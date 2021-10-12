@@ -1,0 +1,28 @@
+defaults:
+  - data: mnist
+  # - optim: defaults
+  - model: defaults
+  # - hydra/job_logging: colorlog
+  # - hydra/hydra_logging: colorlog
+
+trainer:
+  seed: 12345
+  batch_size: 128
+  # n_steps: 40000
+  max_epochs: 50
+  fast_dev_run: False
+  data_root: ${env:DATA_ROOT}
+  experiments_root: ${env:EXPERIMENT_ROOT}
+  experiment_name: test
+  experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
+  n_gpus: 1
+  check_val_every_n_epoch: 1
+  progress_bar_refresh_rate: 10
+
+# hydra:
+#   run:
+#     dir: vit/${trainer.experiments_root}/${trainer.experiment_name}/${trainer.experiment_id}
+
+# test:
+#   checkpoint_path:
+
