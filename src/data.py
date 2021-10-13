@@ -108,7 +108,7 @@ class TorchVisionDM(pl.LightningDataModule):
         self.val_set = self.dataset_cls(
             self.data_root, train=True, transform=self.test_transforms
         )
-        # self.val_set = self._split_dataset(self.val_set, train=False)
+        self.val_set = self._split_dataset(self.val_set, train=False)
         self.test_set = self.dataset_cls(
             self.data_root, train=False, transform=self.test_transforms
         )
