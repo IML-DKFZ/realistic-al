@@ -1,0 +1,13 @@
+hydra_core==1.1.0
+torch==1.9.1
+torchmetrics==0.5.1
+torchvision==0.10.1
+matplotlib==3.4.3
+omegaconf==2.1.1
+tqdm==4.62.3
+pytorch_lightning==1.4.9
+numpy==1.19.5
+seaborn==0.11.1
+hydra==2.5
+rich==10.12.0
+scikit_learn==1.0
