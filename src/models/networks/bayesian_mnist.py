@@ -1,7 +1,11 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor 
-from utils.consistent_mc_dropout import ConsistenMCDropout2D, ConsistentMCDropout, BayesianModule
+from torch import Tensor
+from utils.consistent_mc_dropout import (
+    ConsistenMCDropout2D,
+    ConsistentMCDropout,
+    BayesianModule,
+)
 from .registry import register_model
 
 # MNIST BayesianNet from BatchBALD
@@ -27,6 +31,7 @@ class BayesianNet(BayesianModule):
 
         return input
 
-@register_model 
-def get_cls_model(config, num_classes:int = 10, **kwargs) -> BayesianNet:
+
+@register_model
+def get_cls_model(config, num_classes: int = 10, **kwargs) -> BayesianNet:
     return BayesianNet(num_classes)

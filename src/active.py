@@ -60,7 +60,8 @@ class ActiveLearningDataset(torchdata.Dataset):
     @property
     def _labelled(self):
         warnings.warn(
-            "_labelled as been renamed labelled. Please update your script.", DeprecationWarning
+            "_labelled as been renamed labelled. Please update your script.",
+            DeprecationWarning,
         )
         return self.labelled
 
@@ -219,8 +220,7 @@ class ActiveLearningDataset(torchdata.Dataset):
             IndexError if not done this way."""
             self.label(self.random_state.choice(self.n_unlabelled, 1).item())
 
-
-    def label_balanced(self, n_per_class: int = 1, num_classes:int = 10) -> None:
+    def label_balanced(self, n_per_class: int = 1, num_classes: int = 10) -> None:
         """
         Label `n` data-points with equal class distribution.
 
@@ -230,16 +230,14 @@ class ActiveLearningDataset(torchdata.Dataset):
         counts = np.zeros(num_classes)
         indices = []
         for i, (x, y) in enumerate(self.pool):
-            if len(indices) == num_classes*n_per_class:
+            if len(indices) == num_classes * n_per_class:
                 break
             if counts[y] < n_per_class:
-                counts[y] +=1
+                counts[y] += 1
                 indices.append(i)
-            
+
         for i, ind in enumerate(indices):
-            self.label(ind-i)
-
-
+            self.label(ind - i)
 
     def reset_labeled(self):
         """Reset the label map."""
@@ -273,7 +271,9 @@ class ActiveLearningPool(torchdata.Dataset):
 
     """
 
-    def __init__(self, dataset: torchdata.Dataset, make_unlabelled: Callable = _identity) -> None:
+    def __init__(
+        self, dataset: torchdata.Dataset, make_unlabelled: Callable = _identity
+    ) -> None:
         self._dataset = dataset
         self.make_unlabelled = make_unlabelled
 

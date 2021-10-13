@@ -1,0 +1,5 @@
+# @package _group_
+num_labelled: 100
+balanced: True
+acq_size: 100 
+num_iter: 5

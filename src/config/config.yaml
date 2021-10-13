@@ -4,11 +4,12 @@ defaults:
   - model: defaults
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
+  - active: bald
 
 trainer:
   seed: 12345
   batch_size: 128
-  # n_steps: 40000
+  # n_steps: 400
   max_epochs: 50
   fast_dev_run: False
   data_root: ${env:DATA_ROOT}
@@ -18,6 +19,7 @@ trainer:
   n_gpus: 1
   check_val_every_n_epoch: 1
   progress_bar_refresh_rate: 10
+  gradient_clip_val: 0
 
 # hydra:
 #   run:
