@@ -4,6 +4,19 @@ import torch
 import torch.nn.functional as F
 
 DEVICE = "cuda:0"
+###
+
+
+def get_acq_function(cfg, pt_model):
+    if cfg.active.name == "bald":
+        return get_bald_fct(pt_model, cfg.active.k)
+    elif cfg.active.name == "entropy":
+        return get_bay_entropy_fct(pt_model, cfg.active.k)
+    elif cfg.active.name == "random":
+        return get_random_fct()
+
+
+###
 
 
 def query_sampler(dataloader, acq_function, num_queries=64):
@@ -40,6 +53,15 @@ def get_bay_entropy_fct(pt_model, k=5):
     return acq_bay_entropy
 
 
+def get_random_fct():
+    def acq_random(x: torch.Tensor, c: float = 0.0001):
+        """Returns random values over the interval [0, c)"""
+        out = torch.rand(x.shape[0], device=x.device) * c
+        return out
+
+    return acq_random
+
+
 def bay_entropy(logits):
     out = F.log_softmax(logits, dim=2)  # BxkxD
     out = out.mean(dim=1)  # BxD
@@ -60,7 +82,7 @@ def mutual_bald(logits):
 
 def get_bald_fct(pt_model, k=5):
     def acq_bald(x: torch.Tensor):
-        """ "Returns the BALD-acq values (Mutual Information) between most likely labels and the model parameters"""
+        """Returns the BALD-acq values (Mutual Information) between most likely labels and the model parameters"""
         with torch.no_grad():
             out = pt_model(x, k=k)
             mut_info = mutual_bald(out)
