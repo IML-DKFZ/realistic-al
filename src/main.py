@@ -5,9 +5,7 @@ from data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
 from utils import config_utils
-from query_sampler import query_sampler, get_bald_fct, get_bay_entropy_fct
 import torch
-from utils import plots
 import matplotlib.pyplot as plt
 import os
 from run_training import training_loop
@@ -38,6 +36,7 @@ def active_loop(
         data_root=cfg.trainer.data_root,
         batch_size=cfg.trainer.batch_size,
         dataset=cfg.data.name,
+        min_train=cfg.active.min_train,
     )
     datamodule.prepare_data()
     datamodule.setup()
@@ -60,13 +59,31 @@ def active_loop(
         active_stores.append(active_store)
 
     import matplotlib.pyplot as plt
+    import numpy as np
 
-    accs = [active_store.accuracy_val for active_store in active_stores]
-    num_samples = [active_store.n_labelled for active_store in active_stores]
-    vis_path = "/home/c817h/Documents/projects/Active_Learning/activeframework/visuals"
-    plt.plot(num_samples, accs)
-    plt.savefig(os.path.join(vis_path, "accs_vs_num_samples.pdf"))
-    # add later evaluation
+    val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
+    test_accs = np.array([active_store.accuracy_test for active_store in active_stores])
+    num_samples = np.array([active_store.n_labelled for active_store in active_stores])
+    add_labels = np.stack(
+        [active_store.labels for active_store in active_stores], axis=0
+    )
+    vis_path = "."
+
+    plt.clf()
+    plt.plot(num_samples, val_accs)
+    plt.savefig(os.path.join(vis_path, "val_accs_vs_num_samples.pdf"))
+    plt.clf()
+    plt.plot(num_samples, test_accs)
+    plt.savefig(os.path.join(vis_path, "test_accs_vs_num_samples.pdf"))
+    plt.clf()
+
+    np.savez(
+        os.path.join(vis_path, "stored.npz"),
+        val_acc=val_accs,
+        test_acc=test_accs,
+        num_samples=num_samples,
+        added_labels=add_labels,
+    )
 
 
 if __name__ == "__main__":

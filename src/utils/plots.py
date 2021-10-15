@@ -28,9 +28,11 @@ def visualize_samples(vis_data, acq_vals):
     return fig, ax
 
 
-def visualize_labels(acq_labels):
+def visualize_labels(acq_labels, num_classes):
     fig, ax = plt.subplots()
     values, counts = np.unique(acq_labels, return_counts=True)
     counts = counts / counts.sum()
     ax.bar(x=values, height=counts)
+    ax.set_xlim(-0.5, num_classes - 0.5)
+    ax.set_xticks(np.arange(num_classes))
     return fig, ax

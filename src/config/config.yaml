@@ -1,6 +1,6 @@
 defaults:
   - data: mnist
-  # - optim: defaults
+  - optim: defaults
   - model: defaults
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
@@ -12,8 +12,8 @@ trainer:
   # n_steps: 400
   max_epochs: 50
   fast_dev_run: False
-  data_root: ${env:DATA_ROOT}
-  experiments_root: ${env:EXPERIMENT_ROOT}
+  data_root: ${oc.env:DATA_ROOT}
+  experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
   experiment_name: test
   experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
   n_gpus: 1
@@ -21,9 +21,9 @@ trainer:
   progress_bar_refresh_rate: 10
   gradient_clip_val: 0
 
-# hydra:
-#   run:
-#     dir: vit/${trainer.experiments_root}/${trainer.experiment_name}/${trainer.experiment_id}
+hydra:
+  run:
+    dir: ${trainer.experiments_root}/${trainer.experiment_name}/${trainer.experiment_id}
 
 # test:
 #   checkpoint_path:
