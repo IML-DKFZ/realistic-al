@@ -4,10 +4,11 @@ import torch
 from typing import Union
 
 import pytorch_lightning as pl
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset, random_split, Subset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 from active import ActiveLearningDataset
+from random_fixed_length_sampler import RandomFixedLengthSampler
 
 SEED = 12345
 
@@ -22,7 +23,8 @@ class TorchVisionDM(pl.LightningDataModule):
         drop_last: bool = False,
         num_workers: int = 12,
         pin_memory: bool = True,
-        shuffle: int = True,
+        shuffle: bool = True,
+        min_train: int = 5500,
     ):
         super().__init__()
 
@@ -35,6 +37,7 @@ class TorchVisionDM(pl.LightningDataModule):
         self.num_workers = num_workers
         self.shuffle = shuffle
         self.pin_memory = pin_memory
+        self.min_train = min_train
 
         # Used for the traning validation split
         self.seed = SEED
@@ -84,6 +87,9 @@ class TorchVisionDM(pl.LightningDataModule):
             self.dataset_cls = FashionMNIST
         else:
             raise NotImplementedError
+
+        if not self.shuffle:
+            raise ValueError("shuffle flag has to be set to true")
 
     def prepare_data(self):
         """Download the TorchVision Dataset"""
@@ -142,7 +148,8 @@ class TorchVisionDM(pl.LightningDataModule):
         return DataLoader(
             self.train_set,
             batch_size=self.batch_size,
-            shuffle=self.shuffle,
+            # shuffle=self.shuffle,
+            sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=self.drop_last,
@@ -177,6 +184,19 @@ class TorchVisionDM(pl.LightningDataModule):
             pin_memory=self.pin_memory,
             drop_last=self.drop_last,
         )
+
+
+# TODO: make this function usable for these dataset
+def ActiveSubset(Subset):
+    """Subclass of torch Subset with direct access to transforms the underlying Dataset"""
+
+    @property
+    def transform(self):
+        return self.dataset.transform
+
+    @transform.setter
+    def transform(self, new_transform):
+        self.dataset.transform = new_transform
 
 
 if __name__ == "__main__":
