@@ -25,6 +25,7 @@ class TorchVisionDM(pl.LightningDataModule):
         pin_memory: bool = True,
         shuffle: bool = True,
         min_train: int = 5500,
+        active: bool = True,
     ):
         super().__init__()
 
@@ -38,6 +39,7 @@ class TorchVisionDM(pl.LightningDataModule):
         self.shuffle = shuffle
         self.pin_memory = pin_memory
         self.min_train = min_train
+        self.active = active
 
         # Used for the traning validation split
         self.seed = SEED
@@ -103,13 +105,14 @@ class TorchVisionDM(pl.LightningDataModule):
         self.train_set = self._split_dataset(self.train_set, train=True)
 
         # TODO think about better position to add this into the data-module
-        self.train_set = ActiveLearningDataset(
-            self.train_set,
-            #  TODO: check how to change the transform of a submodule!
-            # pool_specifics={
-            #     'transform' : self.test_transforms
-            # }
-        )
+        if self.active:
+            self.train_set = ActiveLearningDataset(
+                self.train_set,
+                #  TODO: check how to change the transform of a submodule!
+                # pool_specifics={
+                #     'transform' : self.test_transforms
+                # }
+            )
 
         self.val_set = self.dataset_cls(
             self.data_root, train=True, transform=self.test_transforms
@@ -145,15 +148,26 @@ class TorchVisionDM(pl.LightningDataModule):
         return splits
 
     def train_dataloader(self):
-        return DataLoader(
-            self.train_set,
-            batch_size=self.batch_size,
-            # shuffle=self.shuffle,
-            sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            drop_last=self.drop_last,
-        )
+        if len(self.train_set) <= self.min_train:
+            return DataLoader(
+                self.train_set,
+                batch_size=self.batch_size,
+                # shuffle=self.shuffle,
+                sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+            )
+        else:
+            return DataLoader(
+                self.train_set,
+                batch_size=self.batch_size,
+                shuffle=self.shuffle,
+                # sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+            )
 
     def val_dataloader(self):
         return DataLoader(

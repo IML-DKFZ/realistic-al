@@ -12,6 +12,7 @@ from utils import plots
 import matplotlib.pyplot as plt
 import os
 from typing import Union
+import numpy as np
 
 # from collections.abc import Callable
 from typing import Callable
@@ -21,6 +22,7 @@ from utils.storing import ActiveStore
 num_samples = 100
 num_classes = 10
 balanced = True
+active = False
 
 
 @hydra.main(config_path="./config", config_name="config")
@@ -48,22 +50,28 @@ def train(cfg: DictConfig):
     datamodule = TorchVisionDM(
         data_root=cfg.trainer.data_root,
         batch_size=cfg.trainer.batch_size,
+        active=active,
     )
 
     datamodule.prepare_data()
     datamodule.setup("fit")
-    if not balanced:
-        datamodule.train_set.label_randomly(num_samples)
-    else:
-        datamodule.train_set.label_balanced(num_samples // num_classes, num_classes)
+    # num_samples = datamodule.train_set.n_unlabelled
 
-    active_store = training_loop(cfg, datamodule)
+    # datamodule.train_set.label_randomly(num_samples)
+    if active:
+        if not balanced:
+            datamodule.train_set.label_randomly(num_samples)
+        else:
+            datamodule.train_set.label_balanced(num_samples // num_classes, num_classes)
+
+    active_store = training_loop(cfg, datamodule, active=active)
 
 
 def training_loop(
     cfg: DictConfig,
     datamodule: TorchVisionDM,
     count: Union[None, int] = None,
+    active: bool = True,
 ):
     cfg.trainer.seed = pl.utilities.seed.seed_everything(cfg.trainer.seed)
 
@@ -71,11 +79,13 @@ def training_loop(
 
     if count is None:
         version = cfg.trainer.experiment_id
+        name = cfg.trainer.experiment_name
     else:
-        version = "{}_loop-{}".format(cfg.trainer.experiment_id, count)
+        version = "loop-{}".format(count)
+        name = "{}/{}".format(cfg.trainer.experiment_name, cfg.trainer.experiment_id)
     tb_logger = pl.loggers.TensorBoardLogger(
         save_dir=cfg.trainer.experiments_root,
-        name=cfg.trainer.experiment_name,
+        name=name,
         version=version,
     )
 
@@ -103,7 +113,12 @@ def training_loop(
     model.freeze()
     acq_function = get_acq_function(cfg, model)
     return active_callback(
-        model, datamodule, acq_function, count=count, acq_size=cfg.active.acq_size
+        model,
+        datamodule,
+        acq_function,
+        count=count,
+        acq_size=cfg.active.acq_size,
+        active=active,
     )
 
 
@@ -113,24 +128,34 @@ def active_callback(
     acq_function: Callable[[torch.Tensor], torch.Tensor],
     acq_size: int = 10,
     count: Union[None, int] = None,
+    active: bool = True,
 ):
-    pool = datamodule.train_set.pool
-    pool_loader = datamodule.pool_dataloader(batch_size=64)
-    acq_vals, acq_inds = query_sampler(pool_loader, acq_function, num_queries=acq_size)
 
-    acq_data, acq_labels = obtain_data_from_pool(pool, acq_inds)
+    if active:
+        pool = datamodule.train_set.pool
+        pool_loader = datamodule.pool_dataloader(batch_size=64)
+        acq_vals, acq_inds = query_sampler(
+            pool_loader, acq_function, num_queries=acq_size
+        )
+        acq_data, acq_labels = obtain_data_from_pool(pool, acq_inds)
+        n_labelled = datamodule.train_set.n_labelled
 
-    suffix = ""
-    if count is not None:
-        suffix = f"_{count}"
-    vis_path = "."
-    fig, axs = plots.visualize_samples(plots.normalize(acq_data), acq_vals)
-    plt.savefig(os.path.join(vis_path, "labeled_samples{}.pdf".format(suffix)))
-    plt.clf()
+        suffix = ""
+        if count is not None:
+            suffix = f"_{count}"
+        vis_path = "."
+        fig, axs = plots.visualize_samples(plots.normalize(acq_data), acq_vals)
+        plt.savefig(os.path.join(vis_path, "labeled_samples{}.pdf".format(suffix)))
+        plt.clf()
 
-    fig, axs = plots.visualize_labels(acq_labels, num_classes)
-    plt.savefig(os.path.join(vis_path, "labelled_targets{}.pdf".format(suffix)))
-    plt.clf()
+        fig, axs = plots.visualize_labels(acq_labels, num_classes)
+        plt.savefig(os.path.join(vis_path, "labelled_targets{}.pdf".format(suffix)))
+        plt.clf()
+    else:
+        acq_inds = np.zeros(acq_size)
+        acq_labels = np.zeros(acq_size)
+        n_labelled = len(datamodule.train_set)
+
     print("-" * 8)
     print("Evaluating Validation Set")
     accuracy_val = evaluate_accuracy(model, datamodule.val_dataloader())
@@ -140,7 +165,7 @@ def active_callback(
 
     return ActiveStore(
         requests=acq_inds,
-        n_labelled=datamodule.train_set.n_labelled,
+        n_labelled=n_labelled,
         accuracy_val=accuracy_val,
         accuracy_test=accuracy_test,
         labels=acq_labels,
