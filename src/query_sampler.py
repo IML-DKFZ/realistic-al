@@ -14,12 +14,43 @@ def get_acq_function(cfg, pt_model):
         return get_bay_entropy_fct(pt_model, cfg.active.k)
     elif cfg.active.name == "random":
         return get_random_fct()
+    elif cfg.active.name == "batchbald":
+        return get_bay_logits(pt_model, cfg.active.k)
+    else:
+        raise NotImplementedError
+
+
+def get_post_acq_function(cfg):
+    if cfg.active.name == "batchbald":
+        from batchbald_redux.batchbald import get_batchbald_batch 
+        # This values should only be used to select the entropy computation
+        # TODO: verify this!
+        num_samples = 100000 # taken from batchbald_redux notebook 
+        def post_acq_function(logprob_n_k_c:np.ndarray, num_queries:int):
+            assert len(logprob_n_k_c.shape) == 3 # make sure that input is of correct type
+            logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(device=DEVICE, dtype=torch.double)
+            out = get_batchbald_batch(logprob_n_k_c, batch_size=num_queries, num_samples=num_samples, dtype=torch.double, device=DEVICE)
+            indices = np.ndarray(out.indices)
+            scores = np.ndarray(out.scores)
+            return indices, scores
+        return post_acq_function
+    else:
+        def post_acq_function(acq_scores:np.ndarray, num_queries:int):
+            assert len(acq_scores.shape) ==1 # make sure that input is of correct type 
+            acq_ind = np.arange(len(acq_scores))
+            inds = np.argsort(acq_scores)[::-1]
+            inds = inds[:num_queries]
+            acq_list = acq_scores[inds]
+            acq_ind = acq_ind[inds]
+            return inds, acq_list
+        return post_acq_function
+
 
 
 ###
 
 
-def query_sampler(dataloader, acq_function, num_queries=64):
+def query_sampler(dataloader, acq_function, post_acq_function, num_queries=64):
     """Returns the queries (acquistion values and indices) given the data pool and the acquisition function.
     The Acquisition Function Returns Numpy arrays!"""
     acq_list = []
@@ -27,13 +58,15 @@ def query_sampler(dataloader, acq_function, num_queries=64):
         acq_values = acq_from_batch(batch, acq_function, device=DEVICE)
         acq_list.append(acq_values)
     acq_list = np.concatenate(acq_list)
-    acq_ind = np.arange(len(acq_list))
-    inds = np.argsort(acq_list)[::-1]
-    inds = inds[:num_queries]
+    acq_ind, acq_scores = post_acq_function(acq_list, num_queries)
 
-    acq_list = acq_list[inds]
-    acq_ind = acq_ind[inds]
-    return acq_list, acq_ind
+    # acq_ind = np.arange(len(acq_list))
+    # inds = np.argsort(acq_list)[::-1]
+    # inds = inds[:num_queries]
+    # acq_list = acq_list[inds]
+    # acq_ind = acq_ind[inds]
+    
+    return acq_scores, acq_ind
 
 
 def sample_acq_fct(batch):
@@ -89,6 +122,14 @@ def get_bald_fct(pt_model, k=5):
         return mut_info
 
     return acq_bald
+
+def get_bay_logits(pt_model, k=5):
+    def acq_logits(x:torch.Tensor):
+        """Returns the NxKxC logits needed for BatchBALD"""
+        with torch.no_grad():
+            out = pt_model(x, k=k)
+        return out
+    return acq_logits
 
 
 def acq_from_batch(batch, function, device="cuda:0"):

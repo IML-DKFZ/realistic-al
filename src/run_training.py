@@ -6,7 +6,7 @@ from data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
 from utils import config_utils
-from query_sampler import query_sampler, get_acq_function
+from query_sampler import query_sampler, get_acq_function, get_post_acq_function
 import torch
 from utils import plots
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ from typing import Union
 import numpy as np
 
 # from collections.abc import Callable
-from typing import Callable
+from typing import Callable, Tuple
 
 from utils.storing import ActiveStore
 
@@ -112,10 +112,12 @@ def training_loop(
     model = model.to("cuda:0")
     model.freeze()
     acq_function = get_acq_function(cfg, model)
+    post_acq_function = get_post_acq_function(cfg)
     return active_callback(
         model,
         datamodule,
         acq_function,
+        post_acq_function=post_acq_function,
         count=count,
         acq_size=cfg.active.acq_size,
         active=active,
@@ -126,6 +128,7 @@ def active_callback(
     model: pl.LightningModule,
     datamodule: TorchVisionDM,
     acq_function: Callable[[torch.Tensor], torch.Tensor],
+    post_acq_function: Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]],
     acq_size: int = 10,
     count: Union[None, int] = None,
     active: bool = True,
@@ -135,7 +138,7 @@ def active_callback(
         pool = datamodule.train_set.pool
         pool_loader = datamodule.pool_dataloader(batch_size=64)
         acq_vals, acq_inds = query_sampler(
-            pool_loader, acq_function, num_queries=acq_size
+            pool_loader, acq_function,post_acq_function=post_acq_function, num_queries=acq_size
         )
         acq_data, acq_labels = obtain_data_from_pool(pool, acq_inds)
         n_labelled = datamodule.train_set.n_labelled
