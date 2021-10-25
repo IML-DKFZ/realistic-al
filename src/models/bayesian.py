@@ -98,9 +98,12 @@ class BayesianModule(pl.LightningModule):
             return [optimizer], [scheduler]
 
         elif scheduler_name == "steplr":
+            step_size = self.hparams.config.trainer.max_epochs // 4
+            if step_size == 0:
+                step_size+=1
             scheduler = torch.optim.lr_scheduler.StepLR(
                 optimizer=optimizer,
-                step_size=self.hparams.config.trainer.max_epochs // 4,
+                step_size=step_size,
             )
             return [optimizer], [scheduler]
         else:
