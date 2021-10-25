@@ -31,7 +31,7 @@ class BayesianNet(BayesianModule):
 
         return input
 
-
+# TODO: Generalize this
 @register_model
 def get_cls_model(config, num_classes: int = 10, **kwargs) -> BayesianNet:
     return BayesianNet(num_classes)
