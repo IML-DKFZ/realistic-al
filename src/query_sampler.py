@@ -30,8 +30,8 @@ def get_post_acq_function(cfg):
             assert len(logprob_n_k_c.shape) == 3 # make sure that input is of correct type
             logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(device=DEVICE, dtype=torch.double)
             out = get_batchbald_batch(logprob_n_k_c, batch_size=num_queries, num_samples=num_samples, dtype=torch.double, device=DEVICE)
-            indices = np.ndarray(out.indices)
-            scores = np.ndarray(out.scores)
+            indices = np.array(out.indices)
+            scores = np.array(out.scores)
             return indices, scores
         return post_acq_function
     else:

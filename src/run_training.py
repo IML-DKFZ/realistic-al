@@ -17,6 +17,7 @@ import numpy as np
 # from collections.abc import Callable
 from typing import Callable, Tuple
 
+import utils
 from utils.storing import ActiveStore
 
 num_samples = 100
@@ -45,7 +46,8 @@ def obtain_data_from_pool(pool, indices):
 
 
 def train(cfg: DictConfig):
-    cfg.trainer.seed = pl.utilities.seed.seed_everything(cfg.trainer.seed)
+    # cfg.trainer.seed = pl.utilities.seed.seed_everything(cfg.trainer.seed)
+    utils.set_seed(cfg.trainer.seed)
 
     datamodule = TorchVisionDM(
         data_root=cfg.trainer.data_root,
@@ -73,7 +75,7 @@ def training_loop(
     count: Union[None, int] = None,
     active: bool = True,
 ):
-    cfg.trainer.seed = pl.utilities.seed.seed_everything(cfg.trainer.seed)
+    utils.set_seed(cfg.trainer.seed)
 
     model = BayesianModule(config=cfg)
 
@@ -110,7 +112,8 @@ def training_loop(
     test_results = trainer.test()
 
     model = model.to("cuda:0")
-    model.freeze()
+    # model.freeze()
+    model.eval()
     acq_function = get_acq_function(cfg, model)
     post_acq_function = get_post_acq_function(cfg)
     return active_callback(
