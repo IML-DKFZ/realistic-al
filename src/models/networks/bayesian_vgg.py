@@ -10,6 +10,8 @@ from utils.consistent_mc_dropout import (
     BayesianModule,
 )
 
+from .registry import register_model
+
 __all__ = ["VGG", "vgg11", "vgg11_bn", "vgg13", "vgg13_bn", "vgg16", "vgg16_bn", "vgg19_bn", "vgg19"]
 
 model_urls = {
@@ -30,7 +32,7 @@ class VGG(BayesianModule):
     We only add MCDropout in the classifier head (where VGG used dropout before, too)."""
 
     def __init__(self, features, num_classes=1000, init_weights=True, smaller_head=False):
-        super().__init__(num_classes)
+        super().__init__()
 
         self.features = features
         if smaller_head:
@@ -57,7 +59,7 @@ class VGG(BayesianModule):
         if init_weights:
             self.apply(self.initialize_weights)
 
-    def deterministic_forward_impl(self, x: Tensor):
+    def det_forward_impl(self, x: Tensor):
         x = self.features(x)
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
@@ -220,3 +222,14 @@ def vgg19_bn(pretrained=False, progress=True, **kwargs):
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _vgg("vgg19_bn", "E", True, pretrained, progress, **kwargs)
+
+@register_model
+def get_cls_model(config, num_classes: int = 10, data_shape=[32, 32, 3], small_head=False,**kwargs) -> VGG:
+    if len(data_shape) != 3:
+        raise Exception("This Model is not compatible with this input shape")
+    if data_shape[2] !=  3:
+        raise Exception("This Model only works for image data with 3 channels")
+    channels_in = data_shape[2]        
+    if small_head:
+        return vgg16_cinic10_bn(num_classes=num_classes)
+    return vgg16_bn(num_classes=num_classes)

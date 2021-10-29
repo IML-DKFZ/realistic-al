@@ -1,4 +1,4 @@
 name: cifar10
 shape: [32, 32, 3]
 num_classes: 10
-val_split: 200
+val_split: 5000

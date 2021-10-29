@@ -10,6 +10,9 @@ from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 from active import ActiveLearningDataset
 from random_fixed_length_sampler import RandomFixedLengthSampler
 
+
+from typing import Union, Sequence, Optional, Generator
+
 SEED = 12345
 
 
@@ -106,14 +109,12 @@ class TorchVisionDM(pl.LightningDataModule):
         )
         self.train_set = self._split_dataset(self.train_set, train=True)
 
-        # TODO think about better position to add this into the data-module
         if self.active:
             self.train_set = ActiveLearningDataset(
                 self.train_set,
-                #  TODO: check how to change the transform of a submodule!
-                # pool_specifics={
-                #     'transform' : self.test_transforms
-                # }
+                pool_specifics={
+                    'transform' : self.test_transforms
+                }
             )
 
         self.val_set = self.dataset_cls(
@@ -132,9 +133,10 @@ class TorchVisionDM(pl.LightningDataModule):
             dataset_train, dataset_val = random_split(
                 dataset, splits, generator=torch.Generator().manual_seed(self.seed)
             )
+            dataset_train = activesubset_from_subset(dataset_train)
         else:
-            dataset_train = torch.utils.data.Subset(dataset,range(splits[0]))
-            dataset_val = torch.utils.data.Subset(dataset, range(splits[0], splits[1]))
+            dataset_train = ActiveSubset(dataset,range(splits[0]))
+            dataset_val = Subset(dataset, range(splits[0], splits[1]))
         if train:
             return dataset_train
         return dataset_val
@@ -169,7 +171,6 @@ class TorchVisionDM(pl.LightningDataModule):
                 self.train_set,
                 batch_size=self.batch_size,
                 shuffle=self.shuffle,
-                # sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
                 num_workers=self.num_workers,
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
@@ -205,9 +206,7 @@ class TorchVisionDM(pl.LightningDataModule):
             drop_last=self.drop_last,
         )
 
-
-# TODO: make this function usable for these dataset
-def ActiveSubset(Subset):
+class ActiveSubset(Subset):
     """Subclass of torch Subset with direct access to transforms the underlying Dataset"""
 
     @property
@@ -217,6 +216,9 @@ def ActiveSubset(Subset):
     @transform.setter
     def transform(self, new_transform):
         self.dataset.transform = new_transform
+
+def activesubset_from_subset(subset: Subset)-> ActiveSubset:
+    return ActiveSubset(dataset = subset.dataset, indices = subset.indices)
 
 
 if __name__ == "__main__":

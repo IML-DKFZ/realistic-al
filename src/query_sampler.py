@@ -17,6 +17,8 @@ def get_acq_function(cfg, pt_model):
         return get_random_fct()
     elif cfg.active.name == "batchbald":
         return get_bay_logits(pt_model, cfg.active.k)
+    elif cfg.active.name == "kcgreedy":
+        return get_model_features(pt_model)
     else:
         raise NotImplementedError
 
@@ -115,6 +117,12 @@ def get_random_fct():
         return out
 
     return acq_random
+
+def get_model_features(pt_model):
+    def get_features(x: torch.Tensor):
+        with torch.no_grad:
+            return pt_model.get_features(x)
+    return get_features
 
 
 def bay_entropy(logits):

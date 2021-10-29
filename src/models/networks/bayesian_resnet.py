@@ -55,11 +55,6 @@ class ResNet(BayesianModule):
 
     def mc_forward_impl(self, mc_input_BK: torch.Tensor) -> torch.Tensor:
         return self.classifier(mc_input_BK)
-
-    def forward(self, x):
-        out = self.resnet(x)
-        out = self.classifier(x)
-        return out 
     
     def get_features(self, x):
         out = self.resnet(x)

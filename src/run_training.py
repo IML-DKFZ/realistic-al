@@ -15,7 +15,6 @@ from typing import Union
 import numpy as np
 import gc
 
-# from collections.abc import Callable
 from typing import Callable, Tuple
 
 import utils
@@ -97,9 +96,13 @@ def training_loop(
     if datamodule.val_dataloader() is not None:
         # ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/loss", mode="min")
         ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/acc", mode="max")
-        callbacks.append(ckpt_callback)
+    else:
+        ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="train/acc", mode="max")
+    callbacks.append(ckpt_callback)
     if cfg.trainer.early_stop:
-        ckpt_callback = pl.callbacks.EarlyStopping('val/acc', mode='max')
+        early_stop_callback = pl.callbacks.EarlyStopping('val/acc', mode='max')
+        callbacks.append(early_stop_callback)
+
 
     trainer = pl.Trainer(
         gpus=cfg.trainer.n_gpus,
@@ -113,16 +116,20 @@ def training_loop(
         gradient_clip_val=cfg.trainer.gradient_clip_val,
     )
     trainer.fit(model=model, datamodule=datamodule)
-    test_results = trainer.test()
+    best_path = ckpt_callback.best_model_path
+    model.load_from_checkpoint(best_path)
+
+    model = model.to("cuda:0")
+    # TODO: Results from test and active callback for accuracy are NOT equal
+    test_results = trainer.test(model=model)
     gc.collect()
     torch.cuda.empty_cache()
 
     model = model.to("cuda:0")
-    # model.freeze()
     model.eval()
     acq_function = get_acq_function(cfg, model)
     post_acq_function = get_post_acq_function(cfg)
-    return active_callback(
+    stored =  active_callback(
         model,
         datamodule,
         acq_function,
@@ -131,6 +138,7 @@ def training_loop(
         acq_size=cfg.active.acq_size,
         active=active,
     )
+    return stored
 
 
 def active_callback(
@@ -194,7 +202,7 @@ def evaluate_accuracy(model, dataloader):
         x = x.to("cuda:0")
         out = model(x)
         pred = torch.argmax(out, dim=1)
-        correct += (pred.cpu() == y).sum()
+        correct += (pred.cpu() == y).sum().item()
         counts += y.shape[0]
     return correct / counts
 
