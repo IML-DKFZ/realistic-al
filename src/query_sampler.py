@@ -129,9 +129,10 @@ def get_bald_fct(pt_model, k=5):
 
 def get_bay_logits(pt_model, k=5):
     def acq_logits(x:torch.Tensor):
-        """Returns the NxKxC logits needed for BatchBALD"""
+        """Returns the NxKxC logprobs needed for BatchBALD"""
         with torch.no_grad():
             out = pt_model(x, k=k, agg=False)
+            out = torch.log_softmax(out, dim=2)
         return out
     return acq_logits
 
