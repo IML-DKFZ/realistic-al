@@ -38,6 +38,7 @@ def active_loop(
         dataset=cfg.data.name,
         min_train=cfg.active.min_train,
         val_split= cfg.data.val_split,
+        random_split=cfg.active.random_split
     )
     datamodule.prepare_data()
     datamodule.setup()
@@ -55,7 +56,6 @@ def active_loop(
     active_stores = []
     for i in range(num_iter):
         active_store = training_loop(cfg, count=i, datamodule=datamodule)
-        # active_store = train(cfg, datamodule)
         datamodule.train_set.label(active_store.requests)
         active_stores.append(active_store)
 

@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from utils.consistent_mc_dropout import BayesianModule, ConsistentMCDropout
 
 from .registry import register_model
 
 
 
-class ResNet_Encoder(nn.Module):
+class ResNet(BayesianModule):
     def __init__(self, base_model="resnet50", cifar_stem=True, channels_in=3, num_classes=0):
         """obtains the ResNet for use as an Encoder, with the last fc layer
         exchanged for an identity
@@ -17,7 +18,7 @@ class ResNet_Encoder(nn.Module):
             channels_in (int, optional): [description]. Defaults to 3.
             num_classes (int, optional): number of classes (if = 0) purely feature extractor
         """
-        super(ResNet_Encoder, self).__init__()
+        super().__init__()
         self.resnet_dict = {
             "resnet18": models.resnet18(pretrained=False),
             "resnet50": models.resnet50(pretrained=False),
@@ -40,17 +41,20 @@ class ResNet_Encoder(nn.Module):
             )
             nn.init.kaiming_normal_(conv1.weight, mode="fan_out", nonlinearity="relu")
             self.resnet.conv1 = conv1
-        if base_model == "resnet18":
-            self.z_dim = 512
-        else:
-            self.z_dim = 2048
+        self.z_dim = num_ftrs
         
         self.resnet.fc = nn.Identity()
 
         if num_classes != 0:
-            self.classifier = nn.Linear(self.z_dim, num_classes)
+            self.classifier = nn.Sequential(ConsistentMCDropout(), nn.Linear(self.z_dim, num_classes))
         else:
             self.classifier = nn.Identity()
+
+    def det_forward_impl(self, input: torch.Tensor) -> torch.Tensor:
+        return self.resnet(input)
+
+    def mc_forward_impl(self, mc_input_BK: torch.Tensor) -> torch.Tensor:
+        return self.classifier(mc_input_BK)
 
     def forward(self, x):
         out = self.resnet(x)
@@ -72,11 +76,11 @@ class ResNet_Encoder(nn.Module):
             )
 
 @register_model
-def get_cls_model(config, base_model='resnet18', num_classes: int = 10, data_shape=[32, 32, 3],**kwargs) -> ResNet_Encoder:
+def get_cls_model(config, base_model='resnet18', num_classes: int = 10, data_shape=[32, 32, 3],**kwargs) -> ResNet:
     if len(data_shape) != 3:
         raise Exception("This Model is not compatible with this input shape")
     cifar_stem=False
     if data_shape[0] == 32 and data_shape[1] ==32:
         cifar_stem=True 
     channels_in = data_shape[2]        
-    return ResNet_Encoder(base_model=base_model, cifar_stem=cifar_stem, channels_in=channels_in, num_classes=num_classes)
+    return ResNet(base_model=base_model, cifar_stem=cifar_stem, channels_in=channels_in, num_classes=num_classes)

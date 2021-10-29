@@ -55,7 +55,7 @@ class BayesianModule(pl.LightningModule):
             k = self.k
         x, y = batch
         logits = self.forward(x, k=k)
-        loss = F.cross_entropy(logits, y)
+        loss = F.nll_loss(logits, y)
         preds = torch.argmax(logits, dim=1)
         return loss, preds, y
 
@@ -122,7 +122,7 @@ class BayesianModule(pl.LightningModule):
         out = self.model.forward(x, k)  # B x k x ....
         if agg:
             if k == 1:
-                return out.squeeze(1)
+                return torch.log_softmax(out.squeeze(1), dim=-1)
             else: 
                 out = torch.log_softmax(out, dim=-1)
                 out = torch.logsumexp(out, dim=1) - math.log(k)

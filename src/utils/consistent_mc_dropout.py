@@ -14,6 +14,7 @@ class BayesianModule(nn.Module):
         """Standard Forward Pass of the module."""
         BayesianModule.k = k
 
+        x = self.det_forward_impl(x)
         mc_input_BK = BayesianModule.mc_tensor(x, k)  # Bx .... --> B*kx ...
         mc_output_BK = self.mc_forward_impl(mc_input_BK)
         mc_output_B_K = BayesianModule.unflatten_tensor(
@@ -21,8 +22,11 @@ class BayesianModule(nn.Module):
         )  # B*kx... --> Bxkx...
         return mc_output_B_K
 
-    def mc_forward_impl(self, mc_input_BK: torch.Tensor):
+    def mc_forward_impl(self, mc_input_BK: torch.Tensor)-> torch.Tensor:
         return mc_input_BK
+
+    def det_forward_impl(self, input: torch.Tensor)-> torch.Tensor:
+        return input
 
     @staticmethod
     def unflatten_tensor(x: torch.Tensor, k: int):
