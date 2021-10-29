@@ -26,6 +26,7 @@ class TorchVisionDM(pl.LightningDataModule):
         shuffle: bool = True,
         min_train: int = 5500,
         active: bool = True,
+        random_split: bool = True,
     ):
         super().__init__()
 
@@ -40,6 +41,7 @@ class TorchVisionDM(pl.LightningDataModule):
         self.pin_memory = pin_memory
         self.min_train = min_train
         self.active = active
+        self.random_split = random_split
 
         # Used for the traning validation split
         self.seed = SEED
@@ -126,9 +128,13 @@ class TorchVisionDM(pl.LightningDataModule):
         """Splits the dataset into train and validation set."""
         len_dataset = len(dataset)  # type: ignore[arg-type]
         splits = self._get_splits(len_dataset)
-        dataset_train, dataset_val = random_split(
-            dataset, splits, generator=torch.Generator().manual_seed(self.seed)
-        )
+        if self.random_split:
+            dataset_train, dataset_val = random_split(
+                dataset, splits, generator=torch.Generator().manual_seed(self.seed)
+            )
+        else:
+            dataset_train = torch.utils.data.Subset(dataset,range(splits[0]))
+            dataset_val = torch.utils.data.Subset(dataset, range(splits[0], splits[1]))
         if train:
             return dataset_train
         return dataset_val

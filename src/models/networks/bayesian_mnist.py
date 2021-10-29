@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+from torch.utils import data
 from utils.consistent_mc_dropout import (
     ConsistenMCDropout2D,
     ConsistentMCDropout,
@@ -10,10 +11,10 @@ from .registry import register_model
 
 # MNIST BayesianNet from BatchBALD
 class BayesianNet(BayesianModule):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, num_channels):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+        self.conv1 = nn.Conv2d(num_channels, 32, kernel_size=5)
         self.conv1_drop = ConsistenMCDropout2D()
         self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
         self.conv2_drop = ConsistenMCDropout2D()
@@ -33,5 +34,10 @@ class BayesianNet(BayesianModule):
 
 # TODO: Generalize this
 @register_model
-def get_cls_model(config, num_classes: int = 10, **kwargs) -> BayesianNet:
-    return BayesianNet(num_classes)
+def get_cls_model(config, num_classes: int = 10, data_shape=[28, 28, 1], **kwargs) -> BayesianNet:
+    if len(data_shape) != 3:
+        raise Exception("This Model is not compatible with this input shape")
+    if data_shape[0] != 28 or data_shape[1] != 28:
+        raise Exception("This Model is not compatible with this input shape {}".format(data_shape))
+    num_channels = data_shape[2]
+    return BayesianNet(num_classes, num_channels=num_channels)

@@ -1,0 +1,4 @@
+name: resnet 
+base_model: resnet18 
+weight_decay: 0
+learning_rate: 0.001

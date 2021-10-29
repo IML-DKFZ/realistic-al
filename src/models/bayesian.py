@@ -1,7 +1,9 @@
 from typing import Any, List
+import math 
 
 import torch
 import pytorch_lightning as pl
+from torch.nn.modules.linear import NonDynamicallyQuantizableLinear
 from torchmetrics import Accuracy
 import torch.nn.functional as F
 from models.networks import build_model
@@ -13,19 +15,20 @@ class BayesianModule(pl.LightningModule):
     def __init__(
         self,
         config,
-        lr: float = 0.001,
-        weight_decay: float = 0.0005,
+        # lr: float = 0.001,
+        # weight_decay: float = 0.0005,
     ):
         super().__init__()
         self.save_hyperparameters()
         self.test_acc = Accuracy()
         self.val_acc = Accuracy()
         self.train_acc = Accuracy()
-        self.model = build_model(config)
+        self.model = build_model(config, num_classes=config.data.num_classes, data_shape=config.data.shape)  # TODO: change cifar_stem later for more other datasets
+        self.k = self.hparams.config.active.k
 
     def training_step(self, batch, batch_idx):
         mode = "train"
-        loss, preds, y = self.step(batch)
+        loss, preds, y = self.step(batch, k=1)
         self.log(f"{mode}/loss", loss)
         self.train_acc.update(preds, y)
         self.log(f"{mode}/acc", self.train_acc.compute(), on_step=False, on_epoch=True)
@@ -47,26 +50,30 @@ class BayesianModule(pl.LightningModule):
         self.log(f"{mode}/acc", self.val_acc.compute(), on_step=False, on_epoch=True)
         return loss
 
-    def step(self, batch: Any):
+    def step(self, batch: Any, k:int=None):
+        if k is None:
+            k = self.k
         x, y = batch
-        logits = self.forward(x)
+        logits = self.forward(x, k=k)
         loss = F.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         return loss, preds, y
 
     def configure_optimizers(self):
         optimizer_name = self.hparams.config.optim.optimizer.name
+        lr = self.hparams.config.model.learning_rate
+        wd = self.hparams.config.model.weight_decay
         if optimizer_name == "adam":
             optimizer = torch.optim.Adam(
                 params=self.parameters(),
-                lr=self.hparams.lr,
-                weight_decay=self.hparams.weight_decay,
+                lr=lr,
+                weight_decay=wd,
             )
         elif optimizer_name == "sgd":
             optimizer = torch.optim.SGD(
                 params=self.parameters(),
-                lr=self.hparams.lr,
-                weight_decay=self.hparams.weight_decay,
+                lr=lr,
+                weight_decay=wd,
             )
         else:
             raise NotImplementedError
@@ -109,8 +116,15 @@ class BayesianModule(pl.LightningModule):
         else:
             raise NotImplementedError
 
-    def forward(self, x: torch.Tensor, k: int = 1):
+    def forward(self, x: torch.Tensor, k: int = None, agg: bool = True):
+        if k is None:
+            k = self.k
         out = self.model.forward(x, k)  # B x k x ....
-        if k == 1:
-            return out.squeeze(1)
+        if agg:
+            if k == 1:
+                return out.squeeze(1)
+            else: 
+                out = torch.log_softmax(out, dim=-1)
+                out = torch.logsumexp(out, dim=1) - math.log(k)
+                return out
         return out

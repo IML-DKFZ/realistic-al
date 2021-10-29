@@ -1,16 +1,17 @@
 defaults:
   - data: mnist
   - optim: defaults
-  - model: defaults
+  - model: bayesian_mnist
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
   - active: bald
 
 trainer:
   seed: 12345
-  batch_size: 128
+  batch_size: 64
+  # batch_size: 128
   # n_steps: 400
-  max_epochs: 50
+  max_epochs: 100
   fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
   experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
@@ -20,6 +21,7 @@ trainer:
   check_val_every_n_epoch: 1
   progress_bar_refresh_rate: 10
   gradient_clip_val: 0
+  early_stop: True
 
 hydra:
   run:

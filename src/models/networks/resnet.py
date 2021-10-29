@@ -1,5 +1,5 @@
 import torch
-import torch.nn as nn 
+import torch.nn as nn
 import torchvision.models as models
 
 from .registry import register_model
@@ -44,14 +44,22 @@ class ResNet_Encoder(nn.Module):
             self.z_dim = 512
         else:
             self.z_dim = 2048
+        
+        self.resnet.fc = nn.Identity()
 
-        if num_classes==0:
-            self.resnet.fc = nn.Identity()
+        if num_classes != 0:
+            self.classifier = nn.Linear(self.z_dim, num_classes)
         else:
-            self.resnet.fc = nn.Linear()
+            self.classifier = nn.Identity()
 
     def forward(self, x):
-        return self.resnet(x)
+        out = self.resnet(x)
+        out = self.classifier(x)
+        return out 
+    
+    def get_features(self, x):
+        out = self.resnet(x)
+        return out
 
     def _get_basemodel(self, model_name):
         try:
@@ -64,5 +72,11 @@ class ResNet_Encoder(nn.Module):
             )
 
 @register_model
-def get_cls_model(config, base_model, num_classes: int = 10, cifar_stem:bool=True, channels_in:int=3,**kwargs) -> ResNet_Encoder:
+def get_cls_model(config, base_model='resnet18', num_classes: int = 10, data_shape=[32, 32, 3],**kwargs) -> ResNet_Encoder:
+    if len(data_shape) != 3:
+        raise Exception("This Model is not compatible with this input shape")
+    cifar_stem=False
+    if data_shape[0] == 32 and data_shape[1] ==32:
+        cifar_stem=True 
+    channels_in = data_shape[2]        
     return ResNet_Encoder(base_model=base_model, cifar_stem=cifar_stem, channels_in=channels_in, num_classes=num_classes)

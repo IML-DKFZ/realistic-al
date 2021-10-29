@@ -1,3 +1,4 @@
 name: mnist
 shape: [28, 28, 1]
 num_classes: 10
+val_split: 100

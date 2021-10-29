@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import os
 from typing import Union
 import numpy as np
+import gc
 
 # from collections.abc import Callable
 from typing import Callable, Tuple
@@ -94,8 +95,11 @@ def training_loop(
     lr_monitor = pl.callbacks.LearningRateMonitor()
     callbacks = [lr_monitor]
     if datamodule.val_dataloader() is not None:
-        ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/loss", mode="min")
+        # ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/loss", mode="min")
+        ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/acc", mode="max")
         callbacks.append(ckpt_callback)
+    if cfg.trainer.early_stop:
+        ckpt_callback = pl.callbacks.EarlyStopping('val/acc', mode='max')
 
     trainer = pl.Trainer(
         gpus=cfg.trainer.n_gpus,
@@ -110,6 +114,8 @@ def training_loop(
     )
     trainer.fit(model=model, datamodule=datamodule)
     test_results = trainer.test()
+    gc.collect()
+    torch.cuda.empty_cache()
 
     model = model.to("cuda:0")
     # model.freeze()

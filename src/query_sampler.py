@@ -117,7 +117,7 @@ def get_bald_fct(pt_model, k=5):
     def acq_bald(x: torch.Tensor):
         """Returns the BALD-acq values (Mutual Information) between most likely labels and the model parameters"""
         with torch.no_grad():
-            out = pt_model(x, k=k)
+            out = pt_model(x, k=k, agg=False)
             mut_info = mutual_bald(out)
         return mut_info
 
@@ -127,7 +127,7 @@ def get_bay_logits(pt_model, k=5):
     def acq_logits(x:torch.Tensor):
         """Returns the NxKxC logits needed for BatchBALD"""
         with torch.no_grad():
-            out = pt_model(x, k=k)
+            out = pt_model(x, k=k, agg=False)
         return out
     return acq_logits
 

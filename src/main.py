@@ -1,6 +1,5 @@
 import pytorch_lightning as pl
 from torch.functional import norm
-from models.bayesian import BayesianModule
 from data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
@@ -38,10 +37,11 @@ def active_loop(
         batch_size=cfg.trainer.batch_size,
         dataset=cfg.data.name,
         min_train=cfg.active.min_train,
+        val_split= cfg.data.val_split,
     )
     datamodule.prepare_data()
     datamodule.setup()
-    num_classes = 10
+    num_classes = cfg.data.num_classes
     if balanced:
         datamodule.train_set.label_balanced(
             n_per_class=num_labelled // num_classes, num_classes=num_classes

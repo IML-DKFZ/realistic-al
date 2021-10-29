@@ -1,7 +1,7 @@
 name: batchbald
-num_labelled: 100
+num_labelled: 20
 min_train: 5500
 balanced: True
-acq_size: 100 
+acq_size: 10
 num_iter: 10
 k: 50
