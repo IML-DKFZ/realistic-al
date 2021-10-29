@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import torch
 
@@ -96,8 +97,11 @@ def get_random_fct():
 
 
 def bay_entropy(logits):
+    k = logits.shape[1]
     out = F.log_softmax(logits, dim=2)  # BxkxD
-    out = out.mean(dim=1)  # BxD
+    # This part was wrong but it performed better than BatchBALD - interesting
+    # out = out.mean(dim=1)  # BxD 
+    out = torch.logsumexp(out, dim=1) - math.log(k) # BxkxD --> BxD
     ent = torch.sum(-torch.exp(out) * out, dim=1)  # B
     return ent
 
