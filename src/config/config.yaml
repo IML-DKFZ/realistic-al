@@ -11,7 +11,7 @@ trainer:
   batch_size: 64
   # batch_size: 128
   # n_steps: 400
-  max_epochs: 100
+  max_epochs: 200
   fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
   experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
