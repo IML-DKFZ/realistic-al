@@ -80,11 +80,32 @@ def get_bay_entropy_fct(pt_model, k=5):
     def acq_bay_entropy(x: torch.Tensor):
         """Returns the Entropy of predictions of the bayesian model"""
         with torch.no_grad():
-            out = pt_model(x, k=k)  # BxkxD
+            out = pt_model(x, k=k, agg=False)  # BxkxD
             ent = bay_entropy(out)
         return ent
 
     return acq_bay_entropy
+
+
+def get_bald_fct(pt_model, k=5):
+    def acq_bald(x: torch.Tensor):
+        """Returns the BALD-acq values (Mutual Information) between most likely labels and the model parameters"""
+        with torch.no_grad():
+            out = pt_model(x, k=k, agg=False)
+            mut_info = mutual_bald(out)
+        return mut_info
+
+    return acq_bald
+
+
+def get_bay_logits(pt_model, k=5):
+    def acq_logits(x:torch.Tensor):
+        """Returns the NxKxC logprobs needed for BatchBALD"""
+        with torch.no_grad():
+            out = pt_model(x, k=k, agg=False)
+            out = torch.log_softmax(out, dim=2)
+        return out
+    return acq_logits
 
 
 def get_random_fct():
@@ -115,26 +136,6 @@ def mean_entropy(logits):
 
 def mutual_bald(logits):
     return bay_entropy(logits) - mean_entropy(logits)
-
-
-def get_bald_fct(pt_model, k=5):
-    def acq_bald(x: torch.Tensor):
-        """Returns the BALD-acq values (Mutual Information) between most likely labels and the model parameters"""
-        with torch.no_grad():
-            out = pt_model(x, k=k, agg=False)
-            mut_info = mutual_bald(out)
-        return mut_info
-
-    return acq_bald
-
-def get_bay_logits(pt_model, k=5):
-    def acq_logits(x:torch.Tensor):
-        """Returns the NxKxC logprobs needed for BatchBALD"""
-        with torch.no_grad():
-            out = pt_model(x, k=k, agg=False)
-            out = torch.log_softmax(out, dim=2)
-        return out
-    return acq_logits
 
 
 def acq_from_batch(batch, function, device="cuda:0"):
