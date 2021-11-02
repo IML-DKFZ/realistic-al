@@ -108,6 +108,7 @@ def training_loop(
         gpus=cfg.trainer.n_gpus,
         logger=tb_logger,
         max_epochs=cfg.trainer.max_epochs,
+        min_epochs=cfg.trainer.min_epochs,
         fast_dev_run=cfg.trainer.fast_dev_run,
         terminate_on_nan=True,
         callbacks=callbacks,

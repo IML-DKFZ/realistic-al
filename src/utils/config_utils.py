@@ -10,6 +10,7 @@ def print_config(
     fields: Sequence[str] = (
         "trainer",
         "model",
+        "active",
         "data",
         "optim",
     ),

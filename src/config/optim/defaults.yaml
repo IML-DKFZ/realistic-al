@@ -1,13 +1,11 @@
 optimizer:
-  # _target_: torch.optim.SGD
   name: adam
-  lr: 0.001
+  # lr: 0.001
   momentum: 0.9
-  weight_decay: 0.0
+  # weight_decay: 0.0
 
 lr_scheduler:
-  # _target_: pl_bolts.optimizers.lr_scheduler.LinearWarmupCosineAnnealingLR
   name: steplr
   warmup_epochs: 5
-  warmup_start_lr: ${optim.optimizer.lr}
+  # warmup_start_lr: ${optim.optimizer.lr}
   eta_min: 0

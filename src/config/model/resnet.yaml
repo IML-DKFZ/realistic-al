@@ -2,3 +2,4 @@ name: bayesian_resnet
 base_model: resnet18 
 weight_decay: 0.005
 learning_rate: 0.1
+dropout_p: 0

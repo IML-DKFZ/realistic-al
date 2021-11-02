@@ -8,7 +8,8 @@ from .registry import register_model
 
 
 class ResNet(BayesianModule):
-    def __init__(self, base_model="resnet50", cifar_stem=True, channels_in=3, num_classes=0):
+    def __init__(self, base_model="resnet50", cifar_stem=True, channels_in=3, num_classes=0, 
+    dropout_p=0.5):
         """obtains the ResNet for use as an Encoder, with the last fc layer
         exchanged for an identity
 
@@ -46,7 +47,7 @@ class ResNet(BayesianModule):
         self.resnet.fc = nn.Identity()
 
         if num_classes != 0:
-            self.classifier = nn.Sequential(ConsistentMCDropout(), nn.Linear(self.z_dim, num_classes))
+            self.classifier = nn.Sequential(ConsistentMCDropout(p=dropout_p), nn.Linear(self.z_dim, num_classes))
         else:
             self.classifier = nn.Identity()
 
@@ -77,5 +78,6 @@ def get_cls_model(config, base_model='resnet18', num_classes: int = 10, data_sha
     cifar_stem=False
     if data_shape[0] == 32 and data_shape[1] ==32:
         cifar_stem=True 
-    channels_in = data_shape[2]        
-    return ResNet(base_model=base_model, cifar_stem=cifar_stem, channels_in=channels_in, num_classes=num_classes)
+    channels_in = data_shape[2]    
+    dropout_p = config.model.dropout_p  
+    return ResNet(base_model=base_model, cifar_stem=cifar_stem, channels_in=channels_in, num_classes=num_classes, dropout_p=dropout_p)

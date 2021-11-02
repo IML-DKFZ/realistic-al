@@ -20,7 +20,7 @@ class BayesianModule(pl.LightningModule):
         self.test_acc = Accuracy()
         self.val_acc = Accuracy()
         self.train_acc = Accuracy()
-        self.model = build_model(config, num_classes=config.data.num_classes, data_shape=config.data.shape)  # TODO: change cifar_stem later for more other datasets
+        self.model = build_model(config, num_classes=config.data.num_classes, data_shape=config.data.shape) 
         self.k = self.hparams.config.active.k
 
     def training_step(self, batch, batch_idx):
@@ -89,6 +89,7 @@ class BayesianModule(pl.LightningModule):
             optimizer = torch.optim.SGD(
                 params=self.parameters(),
                 lr=lr,
+                momentum = self.hparams.config.optim.optimizer.momentum,
                 weight_decay=wd,
             )
         else:
