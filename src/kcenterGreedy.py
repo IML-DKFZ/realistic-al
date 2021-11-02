@@ -1,3 +1,4 @@
+# From https://github.com/google/active-learning/blob/master/sampling_methods/kcenter_greedy.py
 
 # Copyright 2017 Google Inc.
 #
