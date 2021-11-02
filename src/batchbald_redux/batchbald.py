@@ -70,7 +70,7 @@ def get_batchbald_batch(
     Args:
     log_probs_N_K_C : Logtis with shape NxKxC over whole pool
     batch_size: acquisition size
-    num_samples: 
+    num_samples: number of samples used for exact conditional entropy (num_classes**acq_iteration)
     dtype: tensor type used
     device: device used for computation"""
     N, K, C = log_probs_N_K_C.shape

@@ -28,7 +28,8 @@ def get_post_acq_function(cfg):
         from batchbald_redux.batchbald import get_batchbald_batch 
         # This values should only be used to select the entropy computation
         # TODO: verify this!
-        num_samples = 100000 # taken from batchbald_redux notebook 
+        # num_samples = 100000 # taken from batchbald_redux notebook --> old bb
+        num_samples = 40000 # taken from BatchBALD
         def post_acq_function(logprob_n_k_c:np.ndarray, num_queries:int):
             assert len(logprob_n_k_c.shape) == 3 # make sure that input is of correct type
             logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(device=DEVICE, dtype=torch.double)
