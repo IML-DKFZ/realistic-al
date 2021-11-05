@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 import math 
 
 import torch
@@ -22,7 +22,7 @@ class BayesianModule(pl.LightningModule):
         self.train_acc = Accuracy()
         self.model = build_model(config, num_classes=config.data.num_classes, data_shape=config.data.shape) 
         self.k = self.hparams.config.active.k
-
+    
     def training_step(self, batch, batch_idx):
         mode = "train"
         loss, preds, y = self.step(batch, k=1)
@@ -101,14 +101,16 @@ class BayesianModule(pl.LightningModule):
             return [optimizer]
 
         elif scheduler_name == "cosine_decay":
-            raise NotImplementedError(
-                "Train Iterations per Epoch still needs to be Implemented!"
-            )
+            # raise NotImplementedError(
+            #     "Train Iterations per Epoch still needs to be Implemented!"
+            # )
+            train_epochs_per_iter = self.hparams.config.trainer.train_iters_per_epoch
+
             warm_steps = (
-                self.hparams.optim.lr_scheduler.warmup_epochs
-                * self.train_iters_per_epoch
+                self.hparams.config.optim.lr_scheduler.warmup_epochs
+                * train_epochs_per_iter
             )
-            max_steps = self.trainer.max_epochs * self.train_iters_per_epoch
+            max_steps = self.hparams.config.trainer.max_epochs * train_epochs_per_iter
             lin_scheduler = torch.optim.lr_scheduler.LambdaLR(
                 optimizer=optimizer,
                 lr_lambda=linear_warmup_decay(warm_steps, max_steps, cosine=True),
@@ -128,6 +130,13 @@ class BayesianModule(pl.LightningModule):
             scheduler = torch.optim.lr_scheduler.StepLR(
                 optimizer=optimizer,
                 step_size=step_size,
+            )
+            return [optimizer], [scheduler]
+        elif scheduler_name == "steplr_resnet":
+            scheduler = torch.optim.lr_scheduler.MultiStepLR(
+                optimizer=optimizer,
+                milestones=[160],
+                gamma=0.1
             )
             return [optimizer], [scheduler]
         else:

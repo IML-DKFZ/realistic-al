@@ -4,7 +4,7 @@ from torch.utils import data
 from models.bayesian import BayesianModule
 from data import TorchVisionDM
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, open_dict
 from utils import config_utils
 from query_sampler import query_sampler, get_acq_function, get_post_acq_function
 import torch
@@ -20,9 +20,9 @@ from typing import Callable, Tuple
 import utils
 from utils.storing import ActiveStore
 
-num_samples = 100
+num_labelled = 45000
 num_classes = 10
-balanced = True
+balanced = False
 active = False
 
 
@@ -52,21 +52,22 @@ def train(cfg: DictConfig):
     datamodule = TorchVisionDM(
         data_root=cfg.trainer.data_root,
         batch_size=cfg.trainer.batch_size,
-        active=active,
+        dataset=cfg.data.name,
+        min_train=cfg.active.min_train,
+        val_split= cfg.data.val_split,
+        random_split=cfg.active.random_split
     )
-
     datamodule.prepare_data()
-    datamodule.setup("fit")
-    # num_samples = datamodule.train_set.n_unlabelled
+    datamodule.setup()
+    num_classes = cfg.data.num_classes
+    if balanced:
+        datamodule.train_set.label_balanced(
+            n_per_class=num_labelled // num_classes, num_classes=num_classes
+        )
+    else:
+        datamodule.train_set.label_randomly(num_labelled)
 
-    # datamodule.train_set.label_randomly(num_samples)
-    if active:
-        if not balanced:
-            datamodule.train_set.label_randomly(num_samples)
-        else:
-            datamodule.train_set.label_balanced(num_samples // num_classes, num_classes)
-
-    active_store = training_loop(cfg, datamodule, active=active)
+    active_store = training_loop(cfg, datamodule, active=False)
 
 
 def training_loop(
@@ -76,6 +77,9 @@ def training_loop(
     active: bool = True,
 ):
     utils.set_seed(cfg.trainer.seed)
+    train_iters_per_epoch = len(datamodule.train_set)//cfg.trainer.batch_size
+    with open_dict(cfg):
+        cfg.trainer.train_iters_per_epoch = train_iters_per_epoch
 
     model = BayesianModule(config=cfg)
 

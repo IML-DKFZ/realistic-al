@@ -8,15 +8,18 @@ model="resnet"
 batch_size=128
 momentum=0.9 # this does not change anything here - doublecheck this!
 early_stop="False"
+seed=12345
 
+name_add=""
 
-arguments="model=${model} data=${data} ++active.acq_size=${acq_size} ++active.num_labelled=${num_labelled} ++active.num_iter=${num_iter} ++optim.optimizer.name=sgd ++trainer.batch_size=${batch_size} ++trainer.optim.optimizer.momentum=${momentum} ++trainer.early_stop=${early_stop}"
-
-for i in 1 2 3
+arguments="model=${model} data=${data} ++active.acq_size=${acq_size} ++active.num_labelled=${num_labelled} ++active.num_iter=${num_iter} ++optim.optimizer.name=sgd ++trainer.batch_size=${batch_size} ++optim.optimizer.momentum=${momentum} ++trainer.early_stop=${early_stop}"
+for i in 0 1 2
 do 
-    for acq in "random" "entropy" # "bald" "batchbald"
+    for acq in "entropy_random" #"random" "entropy" # "bald" "batchbald"
     do 
-        full_arg="++trainer.experiment_name=${data}_det_${model}_${acq}_${acq_size}acq active=${acq} ${arguments}"
+        seed_exp=$((seed + i))
+        experiment_name="${data}_det_${model}_${acq}_${acq_size}acq${name_add}"
+        full_arg="++trainer.experiment_name=${experiment_name} active=${acq} ${arguments}"
         # echo $full_arg
         execute="python src/main.py $full_arg"
         echo $execute

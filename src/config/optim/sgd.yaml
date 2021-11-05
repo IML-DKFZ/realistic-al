@@ -1,0 +1,10 @@
+optimizer:
+  name: sgd
+  momentum: 0.9
+
+lr_scheduler:
+  name: steplr
+  # name: steplr_resnet # Performance is unsatisfactory!
+  # warmup_epochs: 5
+  # warmup_start_lr: ${optim.optimizer.lr}
+  # eta_min: 0

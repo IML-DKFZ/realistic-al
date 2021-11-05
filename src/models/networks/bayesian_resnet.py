@@ -47,7 +47,7 @@ class ResNet(BayesianModule):
         self.resnet.fc = nn.Identity()
 
         if num_classes != 0:
-            self.classifier = nn.Sequential(ConsistentMCDropout(p=dropout_p), nn.Linear(self.z_dim, num_classes))
+            self.classifier = nn.Sequential(ConsistentMCDropout(p=dropout_p), nn.Linear(self.z_dim, num_classes)) 
         else:
             self.classifier = nn.Identity()
 

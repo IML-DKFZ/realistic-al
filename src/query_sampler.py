@@ -9,21 +9,23 @@ DEVICE = "cuda:0"
 
 
 def get_acq_function(cfg, pt_model):
-    if cfg.active.name == "bald":
+    name = str(cfg.active.name).split('_')[0]
+    if name == "bald":
         return get_bald_fct(pt_model, cfg.active.k)
-    elif cfg.active.name == "entropy":
+    elif name == "entropy":
         return get_bay_entropy_fct(pt_model, cfg.active.k)
-    elif cfg.active.name == "random":
+    elif name == "random":
         return get_random_fct()
-    elif cfg.active.name == "batchbald":
+    elif name == "batchbald":
         return get_bay_logits(pt_model, cfg.active.k)
-    elif cfg.active.name == "kcgreedy":
+    elif name == "kcgreedy":
         return get_model_features(pt_model)
     else:
         raise NotImplementedError
 
 
 def get_post_acq_function(cfg):
+    names = str(cfg.active.name).split('_')[0]
     if cfg.active.name == "batchbald":
         from batchbald_redux.batchbald import get_batchbald_batch 
         # This values should only be used to select the entropy computation
@@ -38,6 +40,17 @@ def get_post_acq_function(cfg):
             scores = np.array(out.scores)
             return indices, scores
         return post_acq_function
+    elif len(names)==2 and names[-1]=='random':
+        def post_acq_function(acq_scores:np.ndarray, num_queries: int):
+            assert len(acq_scores.shape) ==1
+            subset_size = min(cfg.active.subset, len(acq_scores)) # size of the subset
+            acq_ind = np.arange(len(acq_scores))
+            inds = np.argsort(acq_scores)[::-1]
+            inds = np.random.choice(inds, size=subset_size, replace=False) 
+            inds = inds[:num_queries]
+            acq_list = acq_scores[inds]
+            acq_ind = acq_ind[inds]
+            return inds, acq_list
     else:
         def post_acq_function(acq_scores:np.ndarray, num_queries:int):
             assert len(acq_scores.shape) ==1 # make sure that input is of correct type 
