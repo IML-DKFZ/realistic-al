@@ -31,14 +31,14 @@ class VGG(BayesianModule):
     """VGG with BatchNorm performs best.
     We only add MCDropout in the classifier head (where VGG used dropout before, too)."""
 
-    def __init__(self, features, num_classes=1000, init_weights=True, smaller_head=False):
+    def __init__(self, features, num_classes=1000, init_weights=True, smaller_head=False, dropout_p=0.5):
         super().__init__()
 
         self.features = features
         if smaller_head:
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
             self.classifier = nn.Sequential(
-                ConsistentMCDropout(),
+                ConsistentMCDropout(p=dropout_p),
                 nn.Linear(512 * 1 * 1, 512),
                 nn.BatchNorm1d(512),
                 nn.ReLU(True),
@@ -49,10 +49,10 @@ class VGG(BayesianModule):
             self.classifier = nn.Sequential(
                 nn.Linear(512 * 1 * 1, 4096),
                 nn.ReLU(True),
-                ConsistentMCDropout(),
+                ConsistentMCDropout(p=dropout_p),
                 nn.Linear(4096, 4096),
                 nn.ReLU(True),
-                ConsistentMCDropout(),
+                ConsistentMCDropout(p=dropout_p),
                 nn.Linear(4096, num_classes),
             )
 
@@ -230,6 +230,7 @@ def get_cls_model(config, num_classes: int = 10, data_shape=[32, 32, 3], small_h
     if data_shape[2] !=  3:
         raise Exception("This Model only works for image data with 3 channels")
     channels_in = data_shape[2]        
+    dropout_p = config.model.dropout_p
     if small_head:
         return vgg16_cinic10_bn(num_classes=num_classes)
     return vgg16_bn(num_classes=num_classes)

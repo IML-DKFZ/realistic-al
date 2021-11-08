@@ -1,4 +1,5 @@
 name: bayesian_vgg 
-weight_decay: 0
-learning_rate: 0.001
+weight_decay: 0.0005
+learning_rate: 0.01
 small_head: False
+dropout_p: 0.5
