@@ -67,7 +67,9 @@ class SamplingMethod(object):
         return None
 
 
-class kCenterGreedy(SamplingMethod):
+# Classes Naming Convention - change
+# class kCenterGreedy(SamplingMethod): original
+class KCenterGreedy(SamplingMethod):
     def __init__(self, X, metric="euclidean"):
         self.X = X
         # self.y = y
