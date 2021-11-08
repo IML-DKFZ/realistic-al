@@ -11,10 +11,11 @@ from run_training import training_loop
 import math
 import utils
 
+
 @hydra.main(config_path="./config", config_name="config")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
-    utils.set_seed(cfg.trainer.seed)    
+    utils.set_seed(cfg.trainer.seed)
 
     active_loop(
         cfg,
@@ -37,8 +38,8 @@ def active_loop(
         batch_size=cfg.trainer.batch_size,
         dataset=cfg.data.name,
         min_train=cfg.active.min_train,
-        val_split= cfg.data.val_split,
-        random_split=cfg.active.random_split
+        val_split=cfg.data.val_split,
+        random_split=cfg.active.random_split,
     )
     datamodule.prepare_data()
     datamodule.setup()

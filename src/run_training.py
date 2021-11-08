@@ -23,6 +23,7 @@ from utils.storing import ActiveStore
 num_labelled = 45000
 num_classes = 10
 balanced = False
+active_dataset = False
 active = False
 
 
@@ -54,18 +55,20 @@ def train(cfg: DictConfig):
         batch_size=cfg.trainer.batch_size,
         dataset=cfg.data.name,
         min_train=cfg.active.min_train,
-        val_split= cfg.data.val_split,
-        random_split=cfg.active.random_split
+        val_split=cfg.data.val_split,
+        random_split=cfg.active.random_split,
+        active=active_dataset,
     )
     datamodule.prepare_data()
     datamodule.setup()
     num_classes = cfg.data.num_classes
-    if balanced:
-        datamodule.train_set.label_balanced(
-            n_per_class=num_labelled // num_classes, num_classes=num_classes
-        )
-    else:
-        datamodule.train_set.label_randomly(num_labelled)
+    if active_dataset:
+        if balanced:
+            datamodule.train_set.label_balanced(
+                n_per_class=num_labelled // num_classes, num_classes=num_classes
+            )
+        else:
+            datamodule.train_set.label_randomly(num_labelled)
 
     active_store = training_loop(cfg, datamodule, active=False)
 
@@ -77,7 +80,7 @@ def training_loop(
     active: bool = True,
 ):
     utils.set_seed(cfg.trainer.seed)
-    train_iters_per_epoch = len(datamodule.train_set)//cfg.trainer.batch_size
+    train_iters_per_epoch = len(datamodule.train_set) // cfg.trainer.batch_size
     with open_dict(cfg):
         cfg.trainer.train_iters_per_epoch = train_iters_per_epoch
 
@@ -90,9 +93,7 @@ def training_loop(
         version = "loop-{}".format(count)
         name = "{}/{}".format(cfg.trainer.experiment_name, cfg.trainer.experiment_id)
     tb_logger = pl.loggers.TensorBoardLogger(
-        save_dir=cfg.trainer.experiments_root,
-        name=name,
-        version=version,
+        save_dir=cfg.trainer.experiments_root, name=name, version=version,
     )
 
     lr_monitor = pl.callbacks.LearningRateMonitor()
@@ -104,9 +105,8 @@ def training_loop(
         ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="train/acc", mode="max")
     callbacks.append(ckpt_callback)
     if cfg.trainer.early_stop:
-        early_stop_callback = pl.callbacks.EarlyStopping('val/acc', mode='max')
+        early_stop_callback = pl.callbacks.EarlyStopping("val/acc", mode="max")
         callbacks.append(early_stop_callback)
-
 
     trainer = pl.Trainer(
         gpus=cfg.trainer.n_gpus,
@@ -134,7 +134,7 @@ def training_loop(
     model.eval()
     acq_function = get_acq_function(cfg, model)
     post_acq_function = get_post_acq_function(cfg)
-    stored =  active_callback(
+    stored = active_callback(
         model,
         datamodule,
         acq_function,
@@ -160,7 +160,10 @@ def active_callback(
         pool = datamodule.train_set.pool
         pool_loader = datamodule.pool_dataloader(batch_size=64)
         acq_vals, acq_inds = query_sampler(
-            pool_loader, acq_function,post_acq_function=post_acq_function, num_queries=acq_size
+            pool_loader,
+            acq_function,
+            post_acq_function=post_acq_function,
+            num_queries=acq_size,
         )
         acq_data, acq_labels = obtain_data_from_pool(pool, acq_inds)
         n_labelled = datamodule.train_set.n_labelled

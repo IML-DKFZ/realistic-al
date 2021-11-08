@@ -32,12 +32,17 @@ class BayesianNet(BayesianModule):
 
         return input
 
+
 # TODO: Generalize this
 @register_model
-def get_cls_model(config, num_classes: int = 10, data_shape=[28, 28, 1], **kwargs) -> BayesianNet:
+def get_cls_model(
+    config, num_classes: int = 10, data_shape=[28, 28, 1], **kwargs
+) -> BayesianNet:
     if len(data_shape) != 3:
         raise Exception("This Model is not compatible with this input shape")
     if data_shape[0] != 28 or data_shape[1] != 28:
-        raise Exception("This Model is not compatible with this input shape {}".format(data_shape))
+        raise Exception(
+            "This Model is not compatible with this input shape {}".format(data_shape)
+        )
     num_channels = data_shape[2]
     return BayesianNet(num_classes, num_channels=num_channels)

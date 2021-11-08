@@ -1,4 +1,4 @@
-# Source: BatchBALD 
+# Source: BatchBALD
 import torch.nn as nn
 from torch import Tensor
 from torch.hub import load_state_dict_from_url
@@ -12,7 +12,17 @@ from utils.consistent_mc_dropout import (
 
 from .registry import register_model
 
-__all__ = ["VGG", "vgg11", "vgg11_bn", "vgg13", "vgg13_bn", "vgg16", "vgg16_bn", "vgg19_bn", "vgg19"]
+__all__ = [
+    "VGG",
+    "vgg11",
+    "vgg11_bn",
+    "vgg13",
+    "vgg13_bn",
+    "vgg16",
+    "vgg16_bn",
+    "vgg19_bn",
+    "vgg19",
+]
 
 model_urls = {
     "vgg11": "https://download.pytorch.org/models/vgg11-bbd30ac9.pth",
@@ -31,7 +41,14 @@ class VGG(BayesianModule):
     """VGG with BatchNorm performs best.
     We only add MCDropout in the classifier head (where VGG used dropout before, too)."""
 
-    def __init__(self, features, num_classes=1000, init_weights=True, smaller_head=False, dropout_p=0.5):
+    def __init__(
+        self,
+        features,
+        num_classes=1000,
+        init_weights=True,
+        smaller_head=False,
+        dropout_p=0.5,
+    ):
         super().__init__()
 
         self.features = features
@@ -107,12 +124,61 @@ def make_layers(cfg, batch_norm=False):
 cfgs = {
     "A": [64, "M", 128, "M", 256, 256, "M", 512, 512, "M", 512, 512, "M"],
     "B": [64, 64, "M", 128, 128, "M", 256, 256, "M", 512, 512, "M", 512, 512, "M"],
-    "D": [64, 64, "M", 128, 128, "M", 256, 256, 256, "M", 512, 512, 512, "M", 512, 512, 512, "M"],
-    "E": [64, 64, "M", 128, 128, "M", 256, 256, 256, 256, "M", 512, 512, 512, 512, "M", 512, 512, 512, 512, "M"],
+    "D": [
+        64,
+        64,
+        "M",
+        128,
+        128,
+        "M",
+        256,
+        256,
+        256,
+        "M",
+        512,
+        512,
+        512,
+        "M",
+        512,
+        512,
+        512,
+        "M",
+    ],
+    "E": [
+        64,
+        64,
+        "M",
+        128,
+        128,
+        "M",
+        256,
+        256,
+        256,
+        256,
+        "M",
+        512,
+        512,
+        512,
+        512,
+        "M",
+        512,
+        512,
+        512,
+        512,
+        "M",
+    ],
 }
 
 
-def _vgg(arch, cfg, batch_norm, pretrained, progress, pretrained_features_only=False, **kwargs):
+def _vgg(
+    arch,
+    cfg,
+    batch_norm,
+    pretrained,
+    progress,
+    pretrained_features_only=False,
+    **kwargs
+):
     if pretrained:
         kwargs["init_weights"] = False
     model = VGG(make_layers(cfgs[cfg], batch_norm=batch_norm), **kwargs)
@@ -122,7 +188,9 @@ def _vgg(arch, cfg, batch_norm, pretrained, progress, pretrained_features_only=F
     if pretrained_features_only:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
         fixed_state_dict = {
-            path[len("features.") :]: state for path, state in state_dict.items() if "features." in path
+            path[len("features.") :]: state
+            for path, state in state_dict.items()
+            if "features." in path
         }
 
         model.features.load_state_dict(fixed_state_dict)
@@ -223,13 +291,16 @@ def vgg19_bn(pretrained=False, progress=True, **kwargs):
     """
     return _vgg("vgg19_bn", "E", True, pretrained, progress, **kwargs)
 
+
 @register_model
-def get_cls_model(config, num_classes: int = 10, data_shape=[32, 32, 3], small_head=False,**kwargs) -> VGG:
+def get_cls_model(
+    config, num_classes: int = 10, data_shape=[32, 32, 3], small_head=False, **kwargs
+) -> VGG:
     if len(data_shape) != 3:
         raise Exception("This Model is not compatible with this input shape")
-    if data_shape[2] !=  3:
+    if data_shape[2] != 3:
         raise Exception("This Model only works for image data with 3 channels")
-    channels_in = data_shape[2]        
+    channels_in = data_shape[2]
     dropout_p = config.model.dropout_p
     if small_head:
         return vgg16_cinic10_bn(num_classes=num_classes)

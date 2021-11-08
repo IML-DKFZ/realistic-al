@@ -52,16 +52,10 @@ class TorchVisionDM(pl.LightningDataModule):
         # TODO tidy up and generalize selection of transformations for more datasets
         if self.dataset in ["mnist", "fashion_mnist"]:
             self.train_transforms = transforms.Compose(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.1307,), (0.3081,)),
-                ]
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,)),]
             )
             self.test_transforms = transforms.Compose(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.1307,), (0.3081,)),
-                ]
+                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,)),]
             )
 
         elif self.dataset in ["cifar10", "cifar100"]:
@@ -111,10 +105,7 @@ class TorchVisionDM(pl.LightningDataModule):
 
         if self.active:
             self.train_set = ActiveLearningDataset(
-                self.train_set,
-                pool_specifics={
-                    'transform' : self.test_transforms
-                }
+                self.train_set, pool_specifics={"transform": self.test_transforms}
             )
 
         self.val_set = self.dataset_cls(
@@ -135,7 +126,7 @@ class TorchVisionDM(pl.LightningDataModule):
             )
             dataset_train = activesubset_from_subset(dataset_train)
         else:
-            dataset_train = ActiveSubset(dataset,range(splits[0]))
+            dataset_train = ActiveSubset(dataset, range(splits[0]))
             dataset_val = Subset(dataset, range(splits[0], splits[1]))
         if train:
             return dataset_train
@@ -206,6 +197,7 @@ class TorchVisionDM(pl.LightningDataModule):
             drop_last=self.drop_last,
         )
 
+
 class ActiveSubset(Subset):
     """Subclass of torch Subset with direct access to transforms the underlying Dataset"""
 
@@ -217,8 +209,9 @@ class ActiveSubset(Subset):
     def transform(self, new_transform):
         self.dataset.transform = new_transform
 
-def activesubset_from_subset(subset: Subset)-> ActiveSubset:
-    return ActiveSubset(dataset = subset.dataset, indices = subset.indices)
+
+def activesubset_from_subset(subset: Subset) -> ActiveSubset:
+    return ActiveSubset(dataset=subset.dataset, indices=subset.indices)
 
 
 if __name__ == "__main__":

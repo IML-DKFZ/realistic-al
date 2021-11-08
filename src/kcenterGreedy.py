@@ -36,45 +36,43 @@ from scipy.spatial import distance
 import abc
 import numpy as np
 
+
 class SamplingMethod(object):
-  __metaclass__ = abc.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
-  @abc.abstractmethod
-  def __init__(self, X, y, seed, **kwargs):
-    self.X = X
-    self.y = y
-    self.seed = seed
+    @abc.abstractmethod
+    def __init__(self, X, y, seed, **kwargs):
+        self.X = X
+        self.y = y
+        self.seed = seed
 
-  def flatten_X(self):
-    shape = self.X.shape
-    flat_X = self.X
-    if len(shape) > 2:
-      flat_X = np.reshape(self.X, (shape[0],np.product(shape[1:])))
-    return flat_X
+    def flatten_X(self):
+        shape = self.X.shape
+        flat_X = self.X
+        if len(shape) > 2:
+            flat_X = np.reshape(self.X, (shape[0], np.product(shape[1:])))
+        return flat_X
 
+    @abc.abstractmethod
+    def select_batch_(self):
+        return
 
-  @abc.abstractmethod
-  def select_batch_(self):
-    return
+    def select_batch(self, **kwargs):
+        return self.select_batch_(**kwargs)
 
-  def select_batch(self, **kwargs):
-    return self.select_batch_(**kwargs)
+    def select_batch_unc_(self, **kwargs):
+        return self.select_batch_unc_(**kwargs)
 
-  def select_batch_unc_(self, **kwargs):
-      return self.select_batch_unc_(**kwargs)
-
-  def to_dict(self):
-    return None
-
+    def to_dict(self):
+        return None
 
 
 class kCenterGreedy(SamplingMethod):
-
-    def __init__(self, X,  metric='euclidean'):
+    def __init__(self, X, metric="euclidean"):
         self.X = X
         # self.y = y
         self.flat_X = self.flatten_X()
-        self.name = 'kcenter'
+        self.name = "kcenter"
         self.features = self.flat_X
         self.metric = metric
         self.min_distances = None
@@ -92,19 +90,22 @@ class kCenterGreedy(SamplingMethod):
         """
 
         if reset_dist:
-          self.min_distances = None
+            self.min_distances = None
         if only_new:
-          cluster_centers = [d for d in cluster_centers
-                            if d not in self.already_selected]
+            cluster_centers = [
+                d for d in cluster_centers if d not in self.already_selected
+            ]
         if cluster_centers:
-          x = self.features[cluster_centers]
-          # Update min_distances for all examples given new cluster center.
-          dist = pairwise_distances(self.features, x, metric=self.metric)#,n_jobs=4)
+            x = self.features[cluster_centers]
+            # Update min_distances for all examples given new cluster center.
+            dist = pairwise_distances(
+                self.features, x, metric=self.metric
+            )  # ,n_jobs=4)
 
-          if self.min_distances is None:
-            self.min_distances = np.min(dist, axis=1).reshape(-1,1)
-          else:
-            self.min_distances = np.minimum(self.min_distances, dist)
+            if self.min_distances is None:
+                self.min_distances = np.min(dist, axis=1).reshape(-1, 1)
+            else:
+                self.min_distances = np.minimum(self.min_distances, dist)
 
     def select_batch_(self, already_selected, N, **kwargs):
         """
@@ -120,33 +121,33 @@ class kCenterGreedy(SamplingMethod):
         """
 
         try:
-          # Assumes that the transform function takes in original data and not
-          # flattened data.
-          print('Getting transformed features...')
-        #   self.features = model.transform(self.X)
-          print('Calculating distances...')
-          self.update_distances(already_selected, only_new=False, reset_dist=True)
+            # Assumes that the transform function takes in original data and not
+            # flattened data.
+            print("Getting transformed features...")
+            #   self.features = model.transform(self.X)
+            print("Calculating distances...")
+            self.update_distances(already_selected, only_new=False, reset_dist=True)
         except:
-          print('Using flat_X as features.')
-          self.update_distances(already_selected, only_new=True, reset_dist=False)
+            print("Using flat_X as features.")
+            self.update_distances(already_selected, only_new=True, reset_dist=False)
 
         new_batch = []
 
         for _ in range(N):
-          if self.already_selected is None:
-            # Initialize centers with a randomly selected datapoint
-            ind = np.random.choice(np.arange(self.n_obs))
-          else:
-            ind = np.argmax(self.min_distances)
-          # New examples should not be in already selected since those points
-          # should have min_distance of zero to a cluster center.
-          assert ind not in already_selected
+            if self.already_selected is None:
+                # Initialize centers with a randomly selected datapoint
+                ind = np.random.choice(np.arange(self.n_obs))
+            else:
+                ind = np.argmax(self.min_distances)
+            # New examples should not be in already selected since those points
+            # should have min_distance of zero to a cluster center.
+            assert ind not in already_selected
 
-          self.update_distances([ind], only_new=True, reset_dist=False)
-          new_batch.append(ind)
-        print('Maximum distance from cluster centers is %0.2f'
-                % max(self.min_distances))
-
+            self.update_distances([ind], only_new=True, reset_dist=False)
+            new_batch.append(ind)
+        print(
+            "Maximum distance from cluster centers is %0.2f" % max(self.min_distances)
+        )
 
         self.already_selected = already_selected
 

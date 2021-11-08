@@ -1,8 +1,9 @@
 import os
 import random
 import numpy as np
-import torch 
+import torch
 import pytorch_lightning as pl
+
 
 def set_seed(seed):
     print("SETTING GLOBAL SEED")
@@ -13,4 +14,4 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
     random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)

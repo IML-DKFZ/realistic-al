@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-import math 
+import math
 
 import torch
 import pytorch_lightning as pl
@@ -12,17 +12,18 @@ from pl_bolts.optimizers.lars import LARS
 
 class BayesianModule(pl.LightningModule):
     def __init__(
-        self,
-        config,
+        self, config,
     ):
         super().__init__()
         self.save_hyperparameters()
         self.test_acc = Accuracy()
         self.val_acc = Accuracy()
         self.train_acc = Accuracy()
-        self.model = build_model(config, num_classes=config.data.num_classes, data_shape=config.data.shape) 
+        self.model = build_model(
+            config, num_classes=config.data.num_classes, data_shape=config.data.shape
+        )
         self.k = self.hparams.config.active.k
-    
+
     def training_step(self, batch, batch_idx):
         mode = "train"
         loss, preds, y = self.step(batch, k=1)
@@ -65,8 +66,7 @@ class BayesianModule(pl.LightningModule):
         mode = "test"
         self.log(f"{mode}/acc", self.test_acc.compute(), on_step=False, on_epoch=True)
 
-
-    def step(self, batch: Any, k:int=None):
+    def step(self, batch: Any, k: int = None):
         if k is None:
             k = self.k
         x, y = batch
@@ -81,15 +81,13 @@ class BayesianModule(pl.LightningModule):
         wd = self.hparams.config.model.weight_decay
         if optimizer_name == "adam":
             optimizer = torch.optim.Adam(
-                params=self.parameters(),
-                lr=lr,
-                weight_decay=wd,
+                params=self.parameters(), lr=lr, weight_decay=wd,
             )
         elif optimizer_name == "sgd":
             optimizer = torch.optim.SGD(
                 params=self.parameters(),
                 lr=lr,
-                momentum = self.hparams.config.optim.optimizer.momentum,
+                momentum=self.hparams.config.optim.optimizer.momentum,
                 weight_decay=wd,
             )
         else:
@@ -126,17 +124,14 @@ class BayesianModule(pl.LightningModule):
         elif scheduler_name == "steplr":
             step_size = self.hparams.config.trainer.max_epochs // 4
             if step_size == 0:
-                step_size+=1
+                step_size += 1
             scheduler = torch.optim.lr_scheduler.StepLR(
-                optimizer=optimizer,
-                step_size=step_size,
+                optimizer=optimizer, step_size=step_size,
             )
             return [optimizer], [scheduler]
         elif scheduler_name == "steplr_resnet":
             scheduler = torch.optim.lr_scheduler.MultiStepLR(
-                optimizer=optimizer,
-                milestones=[160],
-                gamma=0.1
+                optimizer=optimizer, milestones=[160], gamma=0.1
             )
             return [optimizer], [scheduler]
         else:
@@ -149,7 +144,7 @@ class BayesianModule(pl.LightningModule):
         if agg:
             if k == 1:
                 return torch.log_softmax(out.squeeze(1), dim=-1)
-            else: 
+            else:
                 out = torch.log_softmax(out, dim=-1)
                 out = torch.logsumexp(out, dim=1) - math.log(k)
                 return out
