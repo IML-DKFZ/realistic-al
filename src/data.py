@@ -52,10 +52,16 @@ class TorchVisionDM(pl.LightningDataModule):
         # TODO tidy up and generalize selection of transformations for more datasets
         if self.dataset in ["mnist", "fashion_mnist"]:
             self.train_transforms = transforms.Compose(
-                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,)),]
+                [
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.1307,), (0.3081,)),
+                ]
             )
             self.test_transforms = transforms.Compose(
-                [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,)),]
+                [
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.1307,), (0.3081,)),
+                ]
             )
 
         elif self.dataset in ["cifar10", "cifar100"]:

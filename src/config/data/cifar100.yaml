@@ -1,0 +1,4 @@
+name: cifar100
+shape: [32, 32, 3]
+num_classes: 100
+val_split: 5000
