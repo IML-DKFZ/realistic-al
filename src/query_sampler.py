@@ -18,8 +18,6 @@ def get_acq_function(cfg, pt_model):
         return get_random_fct()
     elif name == "batchbald":
         return get_bay_logits(pt_model, cfg.active.k)
-    elif name == "kcgreedy":
-        return get_model_features(pt_model)
     else:
         raise NotImplementedError
 

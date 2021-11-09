@@ -90,7 +90,7 @@ class TorchVisionDM(pl.LightningDataModule):
             self.dataset_cls = CIFAR10
         elif self.dataset == "cifar100":
             self.dataset_cls = CIFAR100
-        elif self.dataest == "fashion_mnist":
+        elif self.dataset == "fashion_mnist":
             self.dataset_cls = FashionMNIST
         else:
             raise NotImplementedError
