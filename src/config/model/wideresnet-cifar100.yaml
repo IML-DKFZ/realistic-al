@@ -1,0 +1,14 @@
+name: bayesian_wide_resnet
+model_width: 8
+model_depth: 28
+weight_decay: 0.001  
+learning_rate: 0.03
+dropout_p: 0
+load_pretrained: Null
+# load_pretrained: /home/c817h/Documents/logs_cluster/SSL/SimCLR/cifar10/2021-11-11 16:20:56.103061/checkpoints/last.ckpt # Currently not available!
+freeze_encoder: False
+use_ema: True
+exclude_bn_bias: True
+k: 50
+finetune: False
+small_head: True

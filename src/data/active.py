@@ -3,7 +3,7 @@
 import warnings
 from copy import deepcopy
 from itertools import zip_longest
-from typing import Union, Optional, Callable, Tuple, List, Any
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -148,6 +148,20 @@ class ActiveLearningDataset(torchdata.Dataset):
         ald = ActiveLearningPool(pool_dataset, make_unlabelled=self.make_unlabelled)
         return ald
 
+    @property
+    def labelled_set(self) -> torchdata.Dataset:
+        """Returns a new Dataset of all labelled samples with same transforms as the pool."""
+        labelled_dataset = deepcopy(self._dataset)
+        for attr, new_val in self.pool_specifics.items():
+            if hasattr(labelled_dataset, attr):
+                setattr(labelled_dataset, attr, new_val)
+            else:
+                raise ValueError(f"{labelled_dataset} doesn't have {attr}")
+        labelled_dataset = torchdata.Subset(
+            labelled_dataset, self.labelled.nonzero()[0].reshape([-1]).tolist()
+        )
+        return labelled_dataset
+
     """ This returns one or zero, if it is labelled or not, no index is returned.
     """
 
@@ -220,7 +234,9 @@ class ActiveLearningDataset(torchdata.Dataset):
             IndexError if not done this way."""
             self.label(self.random_state.choice(self.n_unlabelled, 1).item())
 
-    def label_balanced(self, n_per_class: int = 1, num_classes: int = 10) -> None:
+    def label_balanced(
+        self, n_per_class: int = 1, num_classes: int = 10, random=True
+    ) -> None:
         """
         Label `n` data-points with equal class distribution.
 
@@ -229,15 +245,31 @@ class ActiveLearningDataset(torchdata.Dataset):
         """
         counts = np.zeros(num_classes)
         indices = []
-        for i, (x, y) in enumerate(self.pool):
-            if len(indices) == num_classes * n_per_class:
-                break
-            if counts[y] < n_per_class:
-                counts[y] += 1
-                indices.append(i)
+
+        if random:
+            labels = []
+            for (x, y) in self.pool:
+                labels.append(y)
+            labels = np.array(labels)
+            for c in range(num_classes):
+                class_indices = np.where(labels == c)[0]
+                indices.append(
+                    np.random.choice(class_indices, size=n_per_class, replace=False)
+                )
+            indices = np.concatenate(indices, axis=0)
+
+        else:
+            for i, (x, y) in enumerate(self.pool):
+                if len(indices) == num_classes * n_per_class:
+                    break
+                if counts[y] < n_per_class:
+                    counts[y] += 1
+                    indices.append(i)
+            indices = np.array(indices)
 
         for i, ind in enumerate(indices):
-            self.label(ind - i)
+            self.label(ind)
+            indices[indices > ind] -= 1
 
     def reset_labeled(self):
         """Reset the label map."""

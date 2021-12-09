@@ -1,0 +1,6 @@
+name: fixmatch
+cf_thresh: 0.95
+mu: 7
+lambda_u: 1
+T: 1
+eman: True

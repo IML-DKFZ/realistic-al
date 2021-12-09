@@ -87,6 +87,10 @@ class VGG(BayesianModule):
         x = F.log_softmax(x, dim=1)
         return x
 
+    def get_features(self, x: Tensor):
+        out = self.features(x)
+        return out
+
     @staticmethod
     def initialize_weights(m):
         if isinstance(m, nn.Conv2d):
@@ -294,7 +298,7 @@ def vgg19_bn(pretrained=False, progress=True, **kwargs):
 
 @register_model
 def get_cls_model(
-    config, num_classes: int = 10, data_shape=[32, 32, 3], small_head=False, **kwargs
+    config, num_classes: int = 10, data_shape=[32, 32, 3], **kwargs
 ) -> VGG:
     if len(data_shape) != 3:
         raise Exception("This Model is not compatible with this input shape")
@@ -302,6 +306,7 @@ def get_cls_model(
         raise Exception("This Model only works for image data with 3 channels")
     channels_in = data_shape[2]
     dropout_p = config.model.dropout_p
+    small_head = config.model.small_head
     if small_head:
         return vgg16_cinic10_bn(num_classes=num_classes)
     return vgg16_bn(num_classes=num_classes)

@@ -11,10 +11,15 @@ def normalize(x):
     return x
 
 
-def visualize_samples(vis_data, acq_vals):
-    # vis_data = normalize(acq_data)
+def visualize_samples(vis_data: np.ndarray, acq_vals):
     num_samples = len(vis_data)
     n_rows, n_cols = 8, 8
+    if len(vis_data.shape) == 3:
+        vis_data = vis_data[:, None, :, :]
+    assert len(vis_data.shape) == 4
+    if vis_data.shape[1] == 1:
+        vis_data = np.concatenate([vis_data] * 3, axis=1)
+    vis_data = vis_data.transpose(0, 2, 3, 1)
     fig, ax = plt.subplots(n_rows, n_cols)
     for i in range(n_rows):
         for j in range(n_cols):
@@ -22,7 +27,7 @@ def visualize_samples(vis_data, acq_vals):
             ax[i][j].set_axis_off()
             if ind >= num_samples:
                 continue
-            ax[i][j].imshow(vis_data[ind][0], cmap="gray")
+            ax[i][j].imshow(vis_data[ind])
             ax[i][j].set_title("{:.3f}".format(acq_vals[ind]))
     fig.tight_layout()
     return fig, ax

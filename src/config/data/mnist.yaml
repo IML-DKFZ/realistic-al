@@ -2,3 +2,7 @@ name: mnist
 shape: [28, 28, 1]
 num_classes: 10
 val_split: 100
+mean: [0.1307]
+std: [0.3081]
+transform_train: basic
+transform_test: basic

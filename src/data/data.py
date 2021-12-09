@@ -1,17 +1,16 @@
-# Inspired by Pytorch Lighntning Bolts VisionDataModule  : https://github.com/PyTorchLightning/lightning-bolts
+# Adapterd from Pytorch Lighntning Bolts VisionDataModule  : https://github.com/PyTorchLightning/lightning-bolts
+from typing import Generator, Optional, Sequence, Union
 
-import torch
-from typing import Union
-
+import numpy as np
 import pytorch_lightning as pl
-from torch.utils.data import DataLoader, Dataset, random_split, Subset
-from torchvision import transforms
+import torch
+from .random_fixed_length_sampler import RandomFixedLengthSampler
+from torch.utils.data import DataLoader, Dataset, Subset, random_split
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
-from active import ActiveLearningDataset
-from random_fixed_length_sampler import RandomFixedLengthSampler
 
-
-from typing import Union, Sequence, Optional, Generator
+from .active import ActiveLearningDataset
+from .utils import activesubset_from_subset, ActiveSubset, seed_worker
+from .transformations import get_transform
 
 SEED = 12345
 
@@ -30,6 +29,12 @@ class TorchVisionDM(pl.LightningDataModule):
         min_train: int = 5500,
         active: bool = True,
         random_split: bool = True,
+        num_classes: int = 10,
+        transform_train: str = "basic",
+        transform_test: str = "basic",
+        shape: Sequence = [28, 28, 1],
+        mean: Sequence = (0,),
+        std: Sequence = (1,),
     ):
         super().__init__()
 
@@ -45,44 +50,24 @@ class TorchVisionDM(pl.LightningDataModule):
         self.min_train = min_train
         self.active = active
         self.random_split = random_split
+        self.num_classes = num_classes
 
         # Used for the traning validation split
         self.seed = SEED
 
         # TODO tidy up and generalize selection of transformations for more datasets
-        if self.dataset in ["mnist", "fashion_mnist"]:
-            self.train_transforms = transforms.Compose(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.1307,), (0.3081,)),
-                ]
-            )
-            self.test_transforms = transforms.Compose(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.1307,), (0.3081,)),
-                ]
-            )
+        self.mean = mean
+        self.std = std
+        self.shape = shape
+        assert shape[-1] == len(mean)
+        assert shape[-1] == len(std)
 
-        elif self.dataset in ["cifar10", "cifar100"]:
-            self.train_transforms = transforms.Compose(
-                [
-                    transforms.ToTensor(),
-                    transforms.RandomCrop(32, 4),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.Normalize(
-                        [0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010]
-                    ),
-                ]
-            )
-            self.test_transforms = transforms.Compose(
-                [
-                    transforms.ToTensor(),
-                    transforms.Normalize(
-                        [0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010]
-                    ),
-                ]
-            )
+        self.train_transforms = get_transform(
+            transform_train, self.mean, self.std, self.shape
+        )
+        self.test_transforms = get_transform(
+            transform_test, self.mean, self.std, self.shape
+        )
 
         if self.dataset == "mnist":
             self.dataset_cls = MNIST
@@ -94,16 +79,18 @@ class TorchVisionDM(pl.LightningDataModule):
             self.dataset_cls = FashionMNIST
         else:
             raise NotImplementedError
+        self._setup_datasets()
 
         if not self.shuffle:
             raise ValueError("shuffle flag has to be set to true")
 
-    def prepare_data(self):
-        """Download the TorchVision Dataset"""
-        self.dataset_cls(root=self.data_root, download=True)
-
-    def setup(self, stage="train"):
+    def _setup_datasets(self):
         """Creates the active training dataset and validation and test datasets"""
+        try:
+            self.dataset_cls(root=self.data_root, download=False)
+        except:  # TODO: add error case for data not found here
+            """Download the TorchVision Dataset"""
+            self.dataset_cls(root=self.data_root, download=True)
         self.train_set = self.dataset_cls(
             self.data_root, train=True, transform=self.train_transforms
         )
@@ -157,11 +144,11 @@ class TorchVisionDM(pl.LightningDataModule):
             return DataLoader(
                 self.train_set,
                 batch_size=self.batch_size,
-                # shuffle=self.shuffle,
                 sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
                 num_workers=self.num_workers,
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
+                worker_init_fn=seed_worker,
             )
         else:
             return DataLoader(
@@ -171,6 +158,7 @@ class TorchVisionDM(pl.LightningDataModule):
                 num_workers=self.num_workers,
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
+                worker_init_fn=seed_worker,
             )
 
     def val_dataloader(self):
@@ -180,7 +168,7 @@ class TorchVisionDM(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
-            drop_last=self.drop_last,
+            drop_last=False,
         )
 
     def test_dataloader(self):
@@ -190,55 +178,96 @@ class TorchVisionDM(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
+            drop_last=False,
+        )
+
+    def pool_dataloader(self, batch_size=64, m: Optional[int] = None):
+        """Returns the dataloader for the pool with test time transformations and optional the
+        given size of the dataset. For labeling the pool - get indices with get_pool_indices"""
+        pool = self.train_set.pool
+        self.indices = np.arange(len(pool), dtype=np.int)
+
+        if m:
+            if m > 0:
+                m = min(len(pool), m)
+                self.indices = np.random.choice(
+                    np.arange(len(pool), dtype=np.int), size=m, replace=False
+                )
+                return DataLoader(
+                    Subset(pool, indices=self.indices),
+                    batch_size=batch_size,
+                    shuffle=False,
+                    num_workers=self.num_workers,
+                    drop_last=self.drop_last,
+                )
+
+        return DataLoader(
+            pool,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
             drop_last=self.drop_last,
         )
 
-    def pool_dataloader(self, batch_size=64):
-        return DataLoader(
-            self.train_set.pool,
+    def get_pool_indices(self, inds: np.ndarray):
+        """Returns the indices of the underlying pool given the indices from the pool loader"""
+        return self.indices[inds]
+
+    def labeled_dataloader(self, batch_size=64):
+        """Returns the dataloader for the labeled set with test time transformations"""
+        loader = DataLoader(
+            self.train_set.labelled_set,
             batch_size=batch_size,
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=self.drop_last,
         )
-
-
-class ActiveSubset(Subset):
-    """Subclass of torch Subset with direct access to transforms the underlying Dataset"""
-
-    @property
-    def transform(self):
-        return self.dataset.transform
-
-    @transform.setter
-    def transform(self, new_transform):
-        self.dataset.transform = new_transform
-
-
-def activesubset_from_subset(subset: Subset) -> ActiveSubset:
-    return ActiveSubset(dataset=subset.dataset, indices=subset.indices)
+        return loader
 
 
 if __name__ == "__main__":
     import os
 
     data_root = os.getenv("DATA_ROOT")
-    dm = TorchVisionDM(data_root=data_root)
+    dm = TorchVisionDM(data_root=data_root, dataset="cifar10")
     dm.prepare_data()
     dm.setup()
-    dm.train_set.label_randomly(100)
+    dm.train_set.label_randomly(6000)
     train_loader = dm.train_dataloader()
+    labeled_loader = dm.labeled_dataloader()
+    pool_loader = dm.pool_dataloader()
+
+    # import matplotlib.pyplot as plt
+    # import torchvision
+
+    # def vis_first_batch(loader):
+    #     x = next(iter(loader))[0]
+    #     x = x - x.min()
+    #     x = x / x.max()
+    #     vis = torchvision.utils.make_grid(x).permute(1, 2, 0)
+    #     plt.imshow(vis)
+    #     plt.show()
+
+    # import IPython
+
+    # IPython.embed()
     from tqdm.auto import tqdm
 
-    print("Iterating over Labelled Training Set")
-    for x in tqdm(train_loader):
-        pass
-    print("Iterating over Unlabelled Pool of Data")
-    for y in tqdm(DataLoader(dm.train_set.pool, batch_size=64)):
-        pass
+    # print("Iterating over Labelled Training Set")
+    # for x in tqdm(train_loader):
+    #     pass
+    # print("Iterating over Unlabelled Pool of Data")
+    # for y in tqdm(DataLoader(dm.train_set.pool, batch_size=64)):
+    #     pass
+    # print("Iterating over the Validation Dataset")
+    # val_loader = dm.val_dataloader()
+    # for x in tqdm(val_loader):
+    #     pass
 
-    print("Iterating over the Validation Dataset")
-    val_loader = dm.val_dataloader()
-    for x in tqdm(val_loader):
-        pass
+    pool_loader = dm.pool_dataloader(m=20)
+    inds = np.array([i for i in range(10)])
+    pool_indices = dm.get_pool_indices(inds)
+    assert np.array_equal(pool_indices, dm.indices[: len(pool_indices)])
+
+    print(pool_indices)

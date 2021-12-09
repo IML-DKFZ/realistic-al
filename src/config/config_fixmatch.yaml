@@ -1,11 +1,13 @@
 defaults:
-  - data: mnist
-  - optim: defaults
-  - model: bayesian_mnist
+  - data: cifar10
+  - optim: sgd_fixmatch
+  # - model: wideresnet-cifar10
+  - model: resnet_fixmatch
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
+  - sem_sl : fixmatch
+  - query: entropy
   - active: standard
-  - query: bald
 
 trainer:
   seed: 12345
@@ -17,7 +19,7 @@ trainer:
   fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
   experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
-  experiment_name: test_new
+  experiment_name: test_fixmatch
   experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
   n_gpus: 1
   check_val_every_n_epoch: 1
@@ -33,4 +35,3 @@ hydra:
 
 # test:
 #   checkpoint_path:
-

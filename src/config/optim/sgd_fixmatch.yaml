@@ -5,5 +5,4 @@ optimizer:
 
 lr_scheduler:
   name: cosine_decay
-  warmup_epochs: 10
-
+  warmup_epochs: 0
