@@ -2,3 +2,7 @@ name: fashion_mnist
 shape: [28, 28, 1]
 num_classes: 10
 val_split: 200
+mean: [0]
+std: [1]
+transform_train: basic
+transform_test: basic

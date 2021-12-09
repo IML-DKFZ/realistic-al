@@ -1,24 +1,36 @@
 import numpy as np
 import torch
 
-from kcenterGreedy import KCenterGreedy
+from .kcenterGreedy import KCenterGreedy
+
+names = """kcentergreedy""".split()
 
 DEVICE = "cuda:0"
 
 
-def get_kcg(model, labeled_dataloader, unlabeled_dataloader, acq_size=100):
-    model.eval()  # or freeze() TODO: unify and think about this!
+def query_sampler(cfg, model, labeled_dataloader, unlabeled_dataloader, acq_size):
+    name = cfg.query.name
+    if name == "kcentergreedy":
+        indices = get_kcg(
+            model, labeled_dataloader, unlabeled_dataloader, acq_size=acq_size
+        )
+        return indices, np.arange(acq_size)[::-1]
+    else:
+        raise NotImplementedError
 
+
+def get_kcg(model, labeled_dataloader, unlabeled_dataloader, acq_size=100):
+    """Returns the core-set of the model via the k-center Greedy approach."""
     features = torch.tensor([]).to(DEVICE)
     with torch.no_grad():
         for inputs, _ in labeled_dataloader:
-            inputs.to(DEVICE)
+            inputs = inputs.to(DEVICE)
             features_batch = model.get_features(inputs)
             features = torch.cat((features, features_batch), 0)
         feat_labeled = features.detach().cpu().numpy()
 
         for inputs, _ in unlabeled_dataloader:
-            inputs.to(DEVICE)
+            inputs = inputs.to(DEVICE)
             features_batch = model.get_features(inputs)
             features = torch.cat((features, features_batch), 0)
         feat_unlabeled = features.detach().cpu().numpy()

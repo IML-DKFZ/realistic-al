@@ -1,15 +1,13 @@
-import pytorch_lightning as pl
-from torch.functional import norm
-from data import TorchVisionDM
+from pytorch_lightning.trainer import training_tricks
+from data.data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
 from utils import config_utils
-import torch
-import matplotlib.pyplot as plt
 import os
-from run_training import training_loop
+from run_training import TrainingLoop
 import math
 import utils
+import numpy as np
 
 
 @hydra.main(config_path="./config", config_name="config")
@@ -19,6 +17,7 @@ def main(cfg: DictConfig):
 
     active_loop(
         cfg,
+        TrainingLoop,
         cfg.active.num_labelled,
         cfg.active.balanced,
         cfg.active.acq_size,
@@ -28,6 +27,7 @@ def main(cfg: DictConfig):
 
 def active_loop(
     cfg: DictConfig,
+    TrainingLoop,
     num_labelled: int = 100,
     balanced: bool = True,
     acq_size: int = 10,
@@ -40,9 +40,13 @@ def active_loop(
         min_train=cfg.active.min_train,
         val_split=cfg.data.val_split,
         random_split=cfg.active.random_split,
+        num_classes=cfg.data.num_classes,
+        mean=cfg.data.mean,
+        std=cfg.data.std,
+        transform_train=cfg.data.transform_train,
+        transform_test=cfg.data.transform_test,
+        shape=cfg.data.shape,
     )
-    datamodule.prepare_data()
-    datamodule.setup()
     num_classes = cfg.data.num_classes
     if balanced:
         datamodule.train_set.label_balanced(
@@ -56,12 +60,13 @@ def active_loop(
 
     active_stores = []
     for i in range(num_iter):
-        active_store = training_loop(cfg, count=i, datamodule=datamodule)
+        # Perform active learning iteration with training and labeling
+        trainer = TrainingLoop(cfg, count=i, datamodule=datamodule)
+        trainer.main()
+        active_store = trainer.active_callback()
+        # active_store = training_loop(cfg, count=i, datamodule=datamodule)
         datamodule.train_set.label(active_store.requests)
         active_stores.append(active_store)
-
-    import matplotlib.pyplot as plt
-    import numpy as np
 
     val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
     test_accs = np.array([active_store.accuracy_test for active_store in active_stores])
@@ -69,18 +74,22 @@ def active_loop(
     add_labels = np.stack(
         [active_store.labels for active_store in active_stores], axis=0
     )
-    vis_path = "."
+    store_path = "."
 
-    plt.clf()
-    plt.plot(num_samples, val_accs)
-    plt.savefig(os.path.join(vis_path, "val_accs_vs_num_samples.pdf"))
-    plt.clf()
-    plt.plot(num_samples, test_accs)
-    plt.savefig(os.path.join(vis_path, "test_accs_vs_num_samples.pdf"))
-    plt.clf()
+    # This can be deleted!
+    if True:
+        import matplotlib.pyplot as plt
+
+        plt.clf()
+        plt.plot(num_samples, val_accs)
+        plt.savefig(os.path.join(store_path, "val_accs_vs_num_samples.pdf"))
+        plt.clf()
+        plt.plot(num_samples, test_accs)
+        plt.savefig(os.path.join(store_path, "test_accs_vs_num_samples.pdf"))
+        plt.clf()
 
     np.savez(
-        os.path.join(vis_path, "stored.npz"),
+        os.path.join(store_path, "stored.npz"),
         val_acc=val_accs,
         test_acc=test_accs,
         num_samples=num_samples,

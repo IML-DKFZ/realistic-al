@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+
 from utils.consistent_mc_dropout import BayesianModule, ConsistentMCDropout
+from .mlp import MLP
 
 from .registry import register_model
 
@@ -14,6 +16,7 @@ class ResNet(BayesianModule):
         channels_in=3,
         num_classes=0,
         dropout_p=0.5,
+        small_head=True,
     ):
         """obtains the ResNet for use as an Encoder, with the last fc layer
         exchanged for an identity
@@ -52,9 +55,15 @@ class ResNet(BayesianModule):
         self.resnet.fc = nn.Identity()
 
         if num_classes != 0:
-            self.classifier = nn.Sequential(
-                ConsistentMCDropout(p=dropout_p), nn.Linear(self.z_dim, num_classes)
-            )
+            if small_head:
+                self.classifier = nn.Sequential(
+                    ConsistentMCDropout(p=dropout_p), nn.Linear(self.z_dim, num_classes)
+                )
+            else:
+                self.classifier = nn.Sequential(
+                    ConsistentMCDropout(p=dropout_p),
+                    MLP(self.z_dim, num_classes, hidden_dims=[self.z_dim], bn=True),
+                )
         else:
             self.classifier = nn.Identity()
 
@@ -94,10 +103,12 @@ def get_cls_model(
         cifar_stem = True
     channels_in = data_shape[2]
     dropout_p = config.model.dropout_p
+    small_head = config.model.small_head
     return ResNet(
         base_model=base_model,
         cifar_stem=cifar_stem,
         channels_in=channels_in,
         num_classes=num_classes,
         dropout_p=dropout_p,
+        small_head=small_head,
     )

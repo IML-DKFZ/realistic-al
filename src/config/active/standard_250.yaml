@@ -1,9 +1,7 @@
-name: entropy
-num_labelled: 20
+num_labelled: 250
 min_train: 5500
 balanced: True
-acq_size: 10
+acq_size: 50
 num_iter: 10
-k: 50
 random_split: True
-m : 10000
+m: Null
