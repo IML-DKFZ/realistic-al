@@ -20,7 +20,7 @@ do
     do 
         seed_exp=$((seed + i))
         experiment_name="${data}_det_${model}_${acq}_${acq_size}acq${name_add}"
-        full_arg="++trainer.experiment_name=${experiment_name} active=${acq} ${arguments}"
+        full_arg="++trainer.experiment_name=${experiment_name} query=${acq} ${arguments}"
         # echo $full_arg
         execute="python src/main.py $full_arg"
         echo $execute
@@ -40,7 +40,7 @@ do
     do 
         seed_exp=$((seed + i))
         experiment_name="${data}_ba_${model}_${acq}_${acq_size}acq${name_add}"
-        full_arg="++trainer.experiment_name=${experiment_name} active=${acq} ${arguments}"
+        full_arg="++trainer.experiment_name=${experiment_name} query=${acq} ${arguments}"
         # echo $full_arg
         execute="python src/main.py $full_arg"
         echo $execute
@@ -55,7 +55,7 @@ do
     do 
         seed_exp=$((seed + i))
         experiment_name="${data}_ba_${model}_${acq}_${acq_size}acq${name_add}"
-        full_arg="++trainer.experiment_name=${experiment_name} active=${acq} ${arguments}"
+        full_arg="++trainer.experiment_name=${experiment_name} query=${acq} ${arguments}"
         # echo $full_arg
         execute="python src/main.py $full_arg"
         echo $execute

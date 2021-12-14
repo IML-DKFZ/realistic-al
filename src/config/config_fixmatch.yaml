@@ -28,7 +28,7 @@ trainer:
   early_stop: False
   precision: 16
   deterministic: False
-  profiler: simple
+  profiler: advanced
 
 hydra:
   run:
