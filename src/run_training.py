@@ -1,6 +1,4 @@
 import pytorch_lightning as pl
-from torch.functional import norm
-from torch.utils import data
 from models.bayesian import BayesianModule
 from data.data import TorchVisionDM
 import hydra
@@ -8,9 +6,7 @@ from omegaconf import DictConfig, open_dict
 from utils import config_utils
 from query import QuerySampler
 import torch
-import os
 from typing import Union
-import numpy as np
 import gc
 
 import utils
@@ -134,6 +130,7 @@ class TrainingLoop(object):
             precision=self.cfg.trainer.precision,
             benchmark=self.cfg.trainer.deterministic is False,
             deterministic=self.cfg.trainer.deterministic,
+            profiler=self.cfg.trainer.profiler,
         )
 
     def fit(self):

@@ -4,14 +4,8 @@ from torch.utils import data
 from models.fixmatch import FixMatch
 from data.data import TorchVisionDM
 import hydra
-from omegaconf import DictConfig, open_dict
+from omegaconf import DictConfig
 from utils import config_utils
-from query import QuerySampler
-import torch
-import os
-from typing import Union
-import numpy as np
-import gc
 
 import utils
 
@@ -58,7 +52,7 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = TrainingLoop(cfg, datamodule, active=False)
+    training_loop = FixTrainingLoop(cfg, datamodule, active=False)
     training_loop.main()
 
     # training_loop(cfg, datamodule, active=False)
