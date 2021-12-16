@@ -40,9 +40,8 @@ def train(cfg: DictConfig):
         transform_train=cfg.data.transform_train,
         transform_test=cfg.data.transform_test,
         shape=cfg.data.shape,
+        num_workers=cfg.trainer.num_workers,
     )
-    # datamodule.prepare_data()
-    # datamodule.setup()
     num_classes = cfg.data.num_classes
     if active_dataset:
         if balanced:
@@ -55,87 +54,10 @@ def train(cfg: DictConfig):
     training_loop = FixTrainingLoop(cfg, datamodule, active=False)
     training_loop.main()
 
-    # training_loop(cfg, datamodule, active=False)
-
 
 class FixTrainingLoop(TrainingLoop):
     def init_model(self):
         self.model = FixMatch(self.cfg)
-
-
-# def training_loop(
-#     cfg: DictConfig,
-#     datamodule: TorchVisionDM,
-#     count: Union[None, int] = None,
-#     active: bool = True,
-# ):
-#     utils.set_seed(cfg.trainer.seed)
-#     train_iters_per_epoch = len(datamodule.train_set) // cfg.trainer.batch_size
-#     with open_dict(cfg):
-#         cfg.trainer.train_iters_per_epoch = train_iters_per_epoch
-
-#     model = FixMatch(config=cfg)
-
-#     if count is None:
-#         version = cfg.trainer.experiment_id
-#         name = cfg.trainer.experiment_name
-#     else:
-#         version = "loop-{}".format(count)
-#         name = "{}/{}".format(cfg.trainer.experiment_name, cfg.trainer.experiment_id)
-#     tb_logger = pl.loggers.TensorBoardLogger(
-#         save_dir=cfg.trainer.experiments_root,
-#         name=name,
-#         version=version,
-#     )
-
-#     lr_monitor = pl.callbacks.LearningRateMonitor()
-#     callbacks = [lr_monitor]
-#     if datamodule.val_dataloader() is not None:
-#         # ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/loss", mode="min")
-#         ckpt_callback = pl.callbacks.ModelCheckpoint(
-#             monitor="val/acc",
-#             mode="max",
-#             save_last=True,
-#         )
-#     else:
-#         ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="train/acc", mode="max")
-#     callbacks.append(ckpt_callback)
-#     if cfg.trainer.early_stop:
-#         early_stop_callback = pl.callbacks.EarlyStopping("val/acc", mode="max")
-#         callbacks.append(early_stop_callback)
-
-#     trainer = pl.Trainer(
-#         gpus=cfg.trainer.n_gpus,
-#         logger=tb_logger,
-#         max_epochs=cfg.trainer.max_epochs,
-#         min_epochs=cfg.trainer.min_epochs,
-#         fast_dev_run=cfg.trainer.fast_dev_run,
-#         terminate_on_nan=True,
-#         callbacks=callbacks,
-#         check_val_every_n_epoch=cfg.trainer.check_val_every_n_epoch,
-#         progress_bar_refresh_rate=cfg.trainer.progress_bar_refresh_rate,
-#         gradient_clip_val=cfg.trainer.gradient_clip_val,
-#         precision=cfg.trainer.precision,
-#         benchmark=cfg.trainer.deterministic is False,
-#         deterministic=cfg.trainer.deterministic,
-#     )
-#     datamodule = model.wrap_dm(datamodule)
-#     trainer.fit(model=model, datamodule=datamodule)
-#     if not cfg.trainer.fast_dev_run:
-#         best_path = ckpt_callback.best_model_path
-#         print("Model for Testing is selected from path; {}".format(best_path))
-#         model.load_from_checkpoint(best_path)
-
-#         model = model.to("cuda:0")
-#     test_results = trainer.test(model=model)
-#     gc.collect()
-#     torch.cuda.empty_cache()
-
-#     if active:
-#         query_sampler = QuerySampler(cfg, model, count=count)
-#         query_sampler.setup()
-#         stored = query_sampler.active_callback(datamodule)
-#         return stored
 
 
 if __name__ == "__main__":

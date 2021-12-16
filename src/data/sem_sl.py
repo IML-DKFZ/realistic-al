@@ -1,4 +1,5 @@
 from torch.utils.data import DataLoader
+
 from copy import deepcopy
 
 from .utils import (
@@ -7,23 +8,29 @@ from .utils import (
     activesubset_from_subset,
     seed_worker,
 )
+
 from .data import TorchVisionDM
+
+from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
+from torch.utils.data import Subset
+import numpy as np
+from .transformations import get_transform
 
 
 def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int):
     """Returns the Concatenated Daloader used for FixMatch Training given the datamodule"""
     train_pool = activesubset_from_subset(dm.train_set.pool._dataset)
     train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
-    # Keep amount of workers fixed for training.
-    # workers_sup = max(0, (dm.num_workers * 1) // 3)
-    # workers_sem = max(0, (dm.num_workers * 2) // 3)
-    workers_sup = dm.num_workers
-    workers_sem = dm.num_workers
 
+    # Keep amount of workers fixed for training.
+    workers_sup = max(1, (dm.num_workers) // (mu + 1))
+    workers_sem = max(1, (dm.num_workers * mu) // (mu + 1))
+
+    #  seed worker is not source of slow data loading
     return ConcatDataloader(
         DataLoader(
             dm.train_set,
-            batch_size=dm.batch_size * mu,
+            batch_size=dm.batch_size,
             num_workers=workers_sup,
             shuffle=True,
             pin_memory=dm.pin_memory,

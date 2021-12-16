@@ -41,9 +41,8 @@ def train(cfg: DictConfig):
         transform_train=cfg.data.transform_train,
         transform_test=cfg.data.transform_test,
         shape=cfg.data.shape,
+        num_workers=cfg.trainer.num_workers,
     )
-    # datamodule.prepare_data()
-    # datamodule.setup()
     num_classes = cfg.data.num_classes
     if active_dataset:
         if balanced:
@@ -161,7 +160,7 @@ class TrainingLoop(object):
         self.init_logger()
         self.init_trainer()
         self.fit()
-        self.test()
+        # self.test()
 
 
 # def training_loop(

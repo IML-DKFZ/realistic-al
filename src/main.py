@@ -1,13 +1,14 @@
-from pytorch_lightning.trainer import training_tricks
-from data.data import TorchVisionDM
-import hydra
-from omegaconf import DictConfig
-from utils import config_utils
-import os
-from run_training import TrainingLoop
 import math
-import utils
+import os
+
+import hydra
 import numpy as np
+from omegaconf import DictConfig
+
+import utils
+from data.data import TorchVisionDM
+from run_training import TrainingLoop
+from utils import config_utils
 
 
 @hydra.main(config_path="./config", config_name="config")
@@ -46,6 +47,7 @@ def active_loop(
         transform_train=cfg.data.transform_train,
         transform_test=cfg.data.transform_test,
         shape=cfg.data.shape,
+        num_workers=cfg.trainer.num_workers,
     )
     num_classes = cfg.data.num_classes
     if balanced:
@@ -64,7 +66,6 @@ def active_loop(
         trainer = TrainingLoop(cfg, count=i, datamodule=datamodule)
         trainer.main()
         active_store = trainer.active_callback()
-        # active_store = training_loop(cfg, count=i, datamodule=datamodule)
         datamodule.train_set.label(active_store.requests)
         active_stores.append(active_store)
 
