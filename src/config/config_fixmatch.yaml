@@ -12,6 +12,7 @@ defaults:
 trainer:
   seed: 12345
   batch_size: 64
+  num_workers: 8
   # batch_size: 128
   # n_steps: 400
   max_epochs: 200

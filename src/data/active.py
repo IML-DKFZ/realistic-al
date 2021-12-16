@@ -2,6 +2,7 @@
 # Based on:     ActiveLearningDataset from baal: https://github.com/ElementAI/baal
 import warnings
 from copy import deepcopy
+from dataclasses import dataclass
 from itertools import zip_longest
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -46,7 +47,6 @@ class ActiveLearningDataset(torchdata.Dataset):
             self.labelled = labelled.astype(bool)
         else:
             self.labelled = np.zeros(len(self._dataset), dtype=bool)
-
         if pool_specifics is None:
             pool_specifics = {}
         self.pool_specifics = pool_specifics
@@ -56,6 +56,20 @@ class ActiveLearningDataset(torchdata.Dataset):
         self.can_label = self.check_dataset_can_label()
 
         self.random_state = check_random_state(random_state)
+        self._state = None
+        self.init_state()
+
+    @dataclass
+    class _LabelState:
+        num_label: int
+        labelled_ind: np.ndarray
+
+    def init_state(self):
+
+        self._state = self._LabelState(
+            num_label=self.n_labelled,
+            labelled_ind=self.labelled.nonzero()[0].reshape([-1]),
+        )
 
     @property
     def _labelled(self):
@@ -90,32 +104,11 @@ class ActiveLearningDataset(torchdata.Dataset):
 
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, ...]:
         """Return stuff from the original dataset."""
-        return self._dataset[self._labelled_to_oracle_index(index)]
+        return self._dataset[self._state.labelled_ind[index]]
 
     def __len__(self) -> int:
         """Return how many actual data / label pairs we have."""
-        return self.labelled.sum()
-
-    class ActiveIter:
-        """Iterator over an ActiveLearningDataset."""
-
-        def __init__(self, aldataset):
-            self.i = 0
-            self.aldataset = aldataset
-
-        def __len__(self):
-            return len(self.aldataset)
-
-        def __next__(self):
-            if self.i >= len(self):
-                raise StopIteration
-
-            n = self.aldataset[self.i]
-            self.i = self.i + 1
-            return n
-
-    def __iter__(self):
-        return self.ActiveIter(self)
+        return self._state.num_label
 
     @property
     def n_unlabelled(self):
@@ -157,16 +150,14 @@ class ActiveLearningDataset(torchdata.Dataset):
                 setattr(labelled_dataset, attr, new_val)
             else:
                 raise ValueError(f"{labelled_dataset} doesn't have {attr}")
-        labelled_dataset = torchdata.Subset(
-            labelled_dataset, self.labelled.nonzero()[0].reshape([-1]).tolist()
-        )
+        labelled_dataset = torchdata.Subset(labelled_dataset, self._state.labelled_ind)
         return labelled_dataset
 
     """ This returns one or zero, if it is labelled or not, no index is returned.
     """
 
     def _labelled_to_oracle_index(self, index: int) -> int:
-        return self.labelled.nonzero()[0][index].squeeze().item()
+        return self._state.labelled_ind[index]
 
     def _pool_to_oracle_index(self, index: Union[int, List[int]]) -> List[int]:
         if isinstance(index, np.int64) or isinstance(index, int):
@@ -220,6 +211,7 @@ class ActiveLearningDataset(torchdata.Dataset):
                         ),
                         UserWarning,
                     )
+            self.init_state()
 
     def label_randomly(self, n: int = 1) -> None:
         """
