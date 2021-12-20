@@ -23,8 +23,8 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int):
     train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
 
     # Keep amount of workers fixed for training.
-    workers_sup = max(1, (dm.num_workers) // (mu + 1))
-    workers_sem = max(1, (dm.num_workers * mu) // (mu + 1))
+    workers_sup = max(2, (dm.num_workers) // (mu + 1))
+    workers_sem = dm.num_workers - workers_sup
 
     #  seed worker is not source of slow data loading
     return ConcatDataloader(

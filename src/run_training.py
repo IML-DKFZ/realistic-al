@@ -21,7 +21,6 @@ def main(cfg: DictConfig):
 
 
 def train(cfg: DictConfig):
-    # cfg.trainer.seed = pl.utilities.seed.seed_everything(cfg.trainer.seed)
     utils.set_seed(cfg.trainer.seed)
     balanced = cfg.active.balanced
     num_classes = cfg.data.num_classes
@@ -139,8 +138,6 @@ class TrainingLoop(object):
             best_path = self.ckpt_callback.best_model_path
             print("Model for Testing is selected from path; {}".format(best_path))
             self.model.load_from_checkpoint(best_path)
-
-            # self.model = self.model.to("cuda:0")
         gc.collect()
         torch.cuda.empty_cache()
 
@@ -160,78 +157,7 @@ class TrainingLoop(object):
         self.init_logger()
         self.init_trainer()
         self.fit()
-        # self.test()
-
-
-# def training_loop(
-#     cfg: DictConfig,
-#     datamodule: TorchVisionDM,
-#     count: Union[None, int] = None,
-#     active: bool = True,
-# ):
-#     utils.set_seed(cfg.trainer.seed)
-#     # train_iters_per_epoch = len(datamodule.train_set) // cfg.trainer.batch_size
-#     # with open_dict(cfg):
-#     #     cfg.trainer.train_iters_per_epoch = train_iters_per_epoch
-
-#     model = BayesianModule(config=cfg)
-
-#     if count is None:
-#         version = cfg.trainer.experiment_id
-#         name = cfg.trainer.experiment_name
-#     else:
-#         version = "loop-{}".format(count)
-#         name = "{}/{}".format(cfg.trainer.experiment_name, cfg.trainer.experiment_id)
-#     tb_logger = pl.loggers.TensorBoardLogger(
-#         save_dir=cfg.trainer.experiments_root,
-#         name=name,
-#         version=version,
-#     )
-
-#     lr_monitor = pl.callbacks.LearningRateMonitor()
-#     callbacks = [lr_monitor]
-#     if datamodule.val_dataloader() is not None:
-#         # ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="val/loss", mode="min")
-#         ckpt_callback = pl.callbacks.ModelCheckpoint(
-#             monitor="val/acc",
-#             mode="max",
-#             save_last=True,
-#         )
-#     else:
-#         ckpt_callback = pl.callbacks.ModelCheckpoint(monitor="train/acc", mode="max")
-#     callbacks.append(ckpt_callback)
-#     if cfg.trainer.early_stop:
-#         early_stop_callback = pl.callbacks.EarlyStopping("val/acc", mode="max")
-#         callbacks.append(early_stop_callback)
-
-#     trainer = pl.Trainer(
-#         gpus=cfg.trainer.n_gpus,
-#         logger=tb_logger,
-#         max_epochs=cfg.trainer.max_epochs,
-#         min_epochs=cfg.trainer.min_epochs,
-#         fast_dev_run=cfg.trainer.fast_dev_run,
-#         terminate_on_nan=True,
-#         callbacks=callbacks,
-#         check_val_every_n_epoch=cfg.trainer.check_val_every_n_epoch,
-#         progress_bar_refresh_rate=cfg.trainer.progress_bar_refresh_rate,
-#         gradient_clip_val=cfg.trainer.gradient_clip_val,
-#     )
-#     trainer.fit(model=model, datamodule=datamodule)
-#     if not cfg.trainer.fast_dev_run:
-#         best_path = ckpt_callback.best_model_path
-#         print("Model for Testing is selected from path; {}".format(best_path))
-#         model.load_from_checkpoint(best_path)
-
-#         model = model.to("cuda:0")
-#     test_results = trainer.test(model=model)
-#     gc.collect()
-#     torch.cuda.empty_cache()
-
-#     if active:
-#         query_sampler = QuerySampler(cfg, model, count=count)
-#         query_sampler.setup()
-#         stored = query_sampler.active_callback(datamodule)
-#         return stored
+        self.test()
 
 
 if __name__ == "__main__":

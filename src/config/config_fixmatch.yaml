@@ -13,9 +13,7 @@ trainer:
   seed: 12345
   batch_size: 64
   num_workers: 8
-  # batch_size: 128
-  # n_steps: 400
-  max_epochs: 200
+  max_epochs: 2000
   min_epochs: 50
   fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
@@ -29,7 +27,7 @@ trainer:
   early_stop: False
   precision: 16
   deterministic: False
-  profiler: advanced
+  profiler: Null
 
 hydra:
   run:

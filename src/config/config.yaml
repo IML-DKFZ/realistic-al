@@ -11,8 +11,6 @@ trainer:
   seed: 12345
   batch_size: 64
   num_workers: 16
-  # batch_size: 128
-  # n_steps: 400
   max_epochs: 200
   min_epochs: 50
   fast_dev_run: False
