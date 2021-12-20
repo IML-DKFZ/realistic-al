@@ -39,18 +39,21 @@ class AbstractClassifier(pl.LightningModule):
         model_forward = self.select_forward_model(ema=ema)
         if k is None:
             k = self.k
+
         out = model_forward(x, k)  # B x k x ....
 
         if k == 1 and len(out.shape) == 3:
             out = out.squeeze(1)
 
         if agg:
-            if k == 1:
-                return torch.log_softmax(out, dim=-1)
-            else:
-                out = torch.log_softmax(out, dim=-1)
-                out = torch.logsumexp(out, dim=1) - math.log(k)
-                return out
+            out = self.mc_nll(out)
+        return out
+
+    def mc_nll(self, logits: torch.Tensor):
+        out = torch.log_softmax(logits, dim=-1)
+        if len(logits.shape) > 2:
+            k = out.shape[1]
+            out = torch.logsumexp(out, dim=1) - math.log(k)
         return out
 
     @abstractclassmethod
@@ -112,6 +115,8 @@ class AbstractClassifier(pl.LightningModule):
         self.acc_train.reset()
         if self.hparams.model.freeze_encoder:
             self.model.resnet.eval()
+        # When ema model is used during training, correct buffers should be used
+        # e.g. eman fixmatch should use eman-batchnorm for teacher!
         if self.ema_model is not None:
             self.ema_model.eval()
 

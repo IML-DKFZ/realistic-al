@@ -1,6 +1,16 @@
 #!/bin/bash
-# source ~/.bashrc
-conda_env="activeframework"
+
+if [ $SYSTEM_NAME = "CLUSTER"]
+then
+    ex="cluster_run"
+    log_path="/gpu/checkpoints/OE0612/c817h"
+fi
+if [ $SYSTEM_NAME = "LOCAL"]
+then 
+    ex="python"
+    log_path="/home/c817h/Documents/logs_cluster"
+fi 
+
 
 active=standard
 data=cifar10
@@ -11,8 +21,7 @@ seed=12345
 finetune=True
 use_ema=True
 model.small_head=False
-# exp_path="/gpu/checkpoints/OE0612/c817h"
-exp_path="/home/c817h/Documents/logs_cluster"
+
 base_path="${exp_path}/SSL/SimCLR/cifar10"
 
 name_add="_fixmatch_big-head"

@@ -60,13 +60,13 @@ class FixMatch(AbstractClassifier):
     def obtain_logits(self, x, x_w, x_s):
         if self.eman and self.ema_model is not None:
             with torch.no_grad():
-                logits_w = self.forward(x_w, k=1, agg=False, ema=True)
+                logits_w = self.forward(x_w, k=None, agg=False, ema=True)
             x_full = torch.cat([x, x_s])
             x_full = interleave(x_full, x_full.shape[0])
             logits_ = self.forward(x_full, k=1, agg=False)
             logits_ = de_interleave(logits_, logits_.shape[0])
             logits = logits_[: x.shape[0]]
-            logits_s = logits_s = logits_[x.shape[0] :]
+            logits_s = logits_[x.shape[0] :]
         else:
             x_full = torch.cat([x, x_w, x_s])
             x_full = interleave(x_full, x_full.shape[0])
@@ -78,9 +78,8 @@ class FixMatch(AbstractClassifier):
 
     def semi_step(self, logits_w, logits_s):
         # create mask for temp scaled output probabilities greater equal threshold
-        max_probs, pseudo_labels = torch.max(
-            torch.softmax(logits_w.detach() / self.T_semsl, dim=1), dim=1
-        )
+        probs = self.mc_nll(logits_w.detach() / self.T_semsl)
+        max_probs, pseudo_labels = torch.max(probs, dim=1)
         mask = max_probs.ge(self.cf_thresh).float()
         # weigh according to amount of samples used
         loss = (
