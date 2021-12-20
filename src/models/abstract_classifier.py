@@ -1,5 +1,6 @@
 from abc import abstractclassmethod
 import math
+from urllib.parse import non_hierarchical
 
 import torch
 import pytorch_lightning as pl
@@ -111,6 +112,8 @@ class AbstractClassifier(pl.LightningModule):
         self.acc_train.reset()
         if self.hparams.model.freeze_encoder:
             self.model.resnet.eval()
+        if self.ema_model is not None:
+            self.ema_model.eval()
 
     def on_validation_epoch_start(self) -> None:
         self.acc_val.reset()
