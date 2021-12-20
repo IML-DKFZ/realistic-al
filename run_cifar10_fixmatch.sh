@@ -4,35 +4,27 @@ conda_env="activeframework"
 
 active=standard
 data=cifar10
-model="resnet_fixmatch"
+model="wideresnet-cifar10"
 early_stop="False"
-learning_rate=0.001
+learning_rate=0.003
 seed=12345
 finetune=True
 use_ema=True
+model.small_head=False
 # exp_path="/gpu/checkpoints/OE0612/c817h"
 exp_path="/home/c817h/Documents/logs_cluster"
 base_path="${exp_path}/SSL/SimCLR/cifar10"
 
-name_add="_fixmatch_ssl_finetune_big-head"
+name_add="_fixmatch_big-head"
 
 arguments="model=${model} data=${data} active=${active}"
-arguments="${arguments} ++model.use_ema=${use_ema} ++model.finetune=${finetune}"
+arguments="${arguments} ++model.use_ema=${use_ema}"
 arguments="${arguments} "
 i=0
-# path1="${base_path}/2021-11-11 16:20:56.103061/checkpoints/last.ckpt"
-# path2="${base_path}/2021-11-15 10:29:02.475176/checkpoints/last.ckpt"
-# path3="${base_path}/2021-11-15 10:29:02.500429/checkpoints/last.ckpt"
-path1="${base_path}/2021-11-11_16:20:56.103061/checkpoints/last.ckpt"
-path2="${base_path}/2021-11-15_10:29:02.475176/checkpoints/last.ckpt"
-path3="${base_path}/2021-11-15_10:29:02.500429/checkpoints/last.ckpt"
-
-# echo $path1
-paths=( "$path1" "$path2" "$path3" )
 
 ex_path="/home/c817h/code/activeframework/src"
 
-for path in "${paths[@]}"
+for k in 1 2 3
 do
     for acq in "random" "entropy" # "bald" "batchbald"
     do
@@ -40,7 +32,7 @@ do
         seed_exp=$((seed + i))
         experiment_name="${data}_acq-${active}_det-${model}_${acq}${name_add}"
         full_arg="++trainer.experiment_name=${experiment_name} query=${acq} ${arguments} ++model.learning_rate=${learning_rate}"
-        full_arg="++model.load_pretrained=${path} trainer.seed=${seed_exp} ${full_arg}"
+        full_arg="trainer.seed=${seed_exp} ${full_arg}"
 
         execute="python src/main_fixmatch.py $full_arg"
         echo $execute
