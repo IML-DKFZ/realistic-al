@@ -38,7 +38,7 @@ num_epochs = [10000]
 # num_epochs = [200, 1000, 2000, 10000]
 
 n_runs = 1
-name_add = "epochs-{}_labeled-{}"
+name_add = "_epochs-{}_labeled-{}"
 
 base_path = f"{log_path}/SSL/SimCLR/cifar10"
 
@@ -94,7 +94,7 @@ for run in range(n_runs):
 
         seed_exp = seed + run
         name_add_r = name_add.format(num_epochs_r, num_labelled_r)
-        experiment_name = f"fixmatch_{data_r}-{model_r}{name_add_r}"
+        experiment_name = f"sweep_fixmatch_{data_r}_{model_r}{name_add_r}"
         configs = f"model={model_r} data={data_r} active={active_r}"
         active_args = f"++active.num_labelled={num_labelled_r}"
         model_args = f"++model.use_ema={use_ema_r} ++model.learning_rate={learning_rate_r} ++model.finetune={finetune_r}"

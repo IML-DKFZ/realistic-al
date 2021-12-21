@@ -10,6 +10,7 @@ from .utils import (
 )
 
 from .data import TorchVisionDM
+from .random_fixed_length_sampler import RandomFixedLengthSampler
 
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 from torch.utils.data import Subset
@@ -26,26 +27,47 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int):
     workers_sup = max(2, (dm.num_workers) // (mu + 1))
     workers_sem = dm.num_workers - workers_sup
 
-    #  seed worker is not source of slow data loading
-    return ConcatDataloader(
-        DataLoader(
+    sem_loader = DataLoader(
+        train_pool,
+        batch_size=dm.batch_size * mu,
+        num_workers=workers_sem,
+        shuffle=True,
+        pin_memory=dm.pin_memory,
+        drop_last=True,
+        worker_init_fn=seed_worker,
+    )
+
+    # Increase size of small datasets to make use of multiple workers
+    # and limit the amount of dataloader reinits in concat dataloader
+    sample_trainset = len(dm.train_set)
+    if sample_trainset // dm.batch_size < len(sem_loader):
+        resample_size = sample_trainset * (
+            len(sem_loader) // max(1, sample_trainset // dm.batch_size)
+        )
+        resample_size = min(6400, resample_size)
+        sup_loader = DataLoader(
             dm.train_set,
             batch_size=dm.batch_size,
-            num_workers=workers_sup,
-            shuffle=True,
+            sampler=RandomFixedLengthSampler(dm.train_set, resample_size),
+            num_workers=dm.num_workers,
             pin_memory=dm.pin_memory,
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
-        ),
-        DataLoader(
-            train_pool,
-            batch_size=dm.batch_size * mu,
-            num_workers=workers_sem,
-            shuffle=True,
+        )
+    else:
+        sup_loader = DataLoader(
+            dm.train_set,
+            batch_size=dm.batch_size,
+            shuffle=dm.shuffle,
+            num_workers=dm.num_workers,
             pin_memory=dm.pin_memory,
-            drop_last=True,
+            drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
-        ),
+        )
+
+    return ConcatDataloader(
+        sup_loader,
+        sem_loader,
     )
 
 
