@@ -78,7 +78,7 @@ class FixMatch(AbstractClassifier):
 
     def semi_step(self, logits_w, logits_s):
         # create mask for temp scaled output probabilities greater equal threshold
-        probs = self.mc_nll(logits_w.detach() / self.T_semsl)
+        probs = torch.exp(self.mc_nll(logits_w.detach() / self.T_semsl))
         max_probs, pseudo_labels = torch.max(probs, dim=1)
         mask = max_probs.ge(self.cf_thresh).float()
         # weigh according to amount of samples used

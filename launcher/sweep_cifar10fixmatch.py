@@ -33,9 +33,9 @@ small_head = [True, False]
 eman = [True, False]
 # eman = [False]
 # num_labelled = [50, 100, 250]
-num_labelled = [50]
-num_epochs = [10000]
-# num_epochs = [200, 1000, 2000, 10000]
+num_labelled = [40]
+max_epochs = [2000]
+# max_epochs = [200, 1000, 2000, 10000]
 
 n_runs = 1
 name_add = "_epochs-{}_labeled-{}"
@@ -55,7 +55,7 @@ full_iterator = product(
     dropout_p,
     small_head,
     num_labelled,
-    num_epochs,
+    max_epochs,
 )
 
 full_launches = len(list(full_iterator)) * n_runs
@@ -72,7 +72,7 @@ full_iterator = product(
     dropout_p,
     small_head,
     num_labelled,
-    num_epochs,
+    max_epochs,
 )
 
 for run in range(n_runs):
@@ -87,27 +87,29 @@ for run in range(n_runs):
         dropout_p_r,
         small_head_r,
         num_labelled_r,
-        num_epochs_r,
+        max_epochs_r,
     ) in enumerate(full_iterator):
-        if eman and use_ema is False:
+        if eman_r and use_ema_r is False:
+            full_launches -= 1
             continue
 
         seed_exp = seed + run
-        name_add_r = name_add.format(num_epochs_r, num_labelled_r)
+        name_add_r = name_add.format(max_epochs_r, num_labelled_r)
         experiment_name = f"sweep_fixmatch_{data_r}_{model_r}{name_add_r}"
         configs = f"model={model_r} data={data_r} active={active_r}"
         active_args = f"++active.num_labelled={num_labelled_r}"
         model_args = f"++model.use_ema={use_ema_r} ++model.learning_rate={learning_rate_r} ++model.finetune={finetune_r}"
+        model_args = f"{model_args} ++model.dropout_p={dropout_p_r} ++model.small_head={small_head_r}"
         sem_sl_args = f"++sem_sl.eman={eman_r}"
-        trainer_args = f"++trainer.seed={seed_exp} ++trainer.num_epochs={num_epochs_r}"
+        trainer_args = f"++trainer.seed={seed_exp} ++trainer.max_epochs={max_epochs_r}"
 
         full_args = f"++trainer.experiment_name={experiment_name} {configs} {active_args} {model_args} {sem_sl_args} {trainer_args}"
 
         launch_command = f"{ex_call} {exec_path} {full_args}"
-        print(f"Launch: {i+1}/{full_launches}")
+        experiment_name_list.append(experiment_name)
+        print(f"Launch: {len(experiment_name_list)}/{full_launches}")
         print(launch_command)
         subprocess.call(launch_command, shell=True)
-        experiment_name_list.append(experiment_name)
         if args.debug:
             break
     if args.debug:
