@@ -37,7 +37,7 @@ query = ["random", "kcentergreedy", "entropy", "bald"]
 
 base_name = "active"
 
-n_runs = 3
+n_runs = 2
 name_add = "_epochs-{}"
 
 base_path = f"{log_path}/SSL/SimCLR/cifar10"
@@ -63,6 +63,7 @@ full_launches = len(list(deepcopy(full_iterator))) * n_runs
 
 
 for run in range(n_runs):
+    # Product needs to be reinitialized after every Iteration over it!
     for i, (
         active_r,
         data_r,
@@ -76,8 +77,11 @@ for run in range(n_runs):
         small_head_r,
         # num_labelled_r,
         max_epochs_r,
-    ) in enumerate(full_iterator):
-        if dropout_p_r and ((query_r == "bald") is False):
+    ) in enumerate(deepcopy(full_iterator)):
+        if dropout_p_r and query_r != "bald":
+            full_launches -= 1
+            continue
+        if dropout_p_r == 0 and query_r == "bald":
             full_launches -= 1
             continue
 
