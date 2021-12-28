@@ -28,7 +28,7 @@ base_path = f"{log_path}/SSL/SimCLR/cifar10"
 
 sweep_name = "sweep_fixmatch-pretrained"
 
-paths = [
+pretrained_paths = [
     f"{base_path}/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
     f"{base_path}/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
     f"{base_path}/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
@@ -86,7 +86,7 @@ full_iterator = product(
     freeze_encoder,
 )
 
-for run, path_r in zip(range(n_runs), paths):
+for run, load_pretrained_r in zip(range(n_runs), pretrained_paths):
     for i, (
         active_r,
         data_r,
@@ -123,7 +123,7 @@ for run, path_r in zip(range(n_runs), paths):
         active_args = f"++active.num_labelled={num_labelled_r}"
         model_args = f"++model.use_ema={use_ema_r} ++model.learning_rate={learning_rate_r} ++model.finetune={finetune_r}"
         model_args = f"{model_args} ++model.dropout_p={dropout_p_r} ++model.small_head={small_head_r} ++model.freeze_encoder={freeze_encoder_r}"
-        model_args = f"{model_args} ++model.path={path_r}"
+        model_args = f"{model_args} ++model.load_pretrained={load_pretrained_r}"
         sem_sl_args = f"++sem_sl.eman={eman_r}"
         trainer_args = f"++trainer.seed={seed_exp} ++trainer.max_epochs={max_epochs_r}"
 
