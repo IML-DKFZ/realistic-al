@@ -161,11 +161,12 @@ class AbstractClassifier(pl.LightningModule):
                 skip_list=no_decay,
                 learning_rate=lr,
             )
+            # LR = 0.1 in SelfMatch but 0.03 works better in my setting with 40 labels on cifar10
             params_cf = exclude_from_wt_decay(
                 self.model.classifier.named_parameters(),
                 weight_decay=wd,
                 skip_list=no_decay,
-                learning_rate=0.1,
+                learning_rate=0.03,
             )
             params = params_enc + params_cf
         else:
@@ -178,15 +179,12 @@ class AbstractClassifier(pl.LightningModule):
         if optimizer_name == "adam":
             optimizer = torch.optim.Adam(
                 params,
-                # lr=lr,
-                # weight_decay=wd,
             )
         elif optimizer_name == "sgd":
             momentum = self.hparams.optim.optimizer.momentum
             nesterov = self.hparams.optim.optimizer.nesterov
             optimizer = torch.optim.SGD(
                 params,
-                # lr=lr, weight_decay=wd,
                 momentum=momentum,
                 nesterov=nesterov,
             )
