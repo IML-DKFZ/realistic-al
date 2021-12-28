@@ -83,7 +83,9 @@ for run in range(n_runs):
 
         seed_exp = seed + run
         name_add_r = name_add.format(max_epochs_r)
-        experiment_name = f"{base_name}_{query_r}_{data_r}_{model_r}{name_add_r}"
+        experiment_name = (
+            f"{base_name}_{active_r}_{query_r}_{data_r}_{model_r}{name_add_r}"
+        )
         configs = f"model={model_r} data={data_r} active={active_r}"
         active_args = ""
         # active_args = f"++active.num_labelled={num_labelled_r}"
