@@ -101,18 +101,18 @@ for run, load_pretrained_r in zip(range(n_runs), pretrained_paths):
         max_epochs_r,
         freeze_encoder_r,
     ) in enumerate(full_iterator):
-        if eman_r and use_ema_r is False:
+        if eman_r and (use_ema_r is False):
             full_launches -= 1
             continue
         if finetune_r and freeze_encoder_r:
             full_launches -= 1
             continue
 
-        if freeze_encoder_r and small_head_r is False:
+        if freeze_encoder_r and (small_head_r is False):
             # for training with big head lr = 0.003 works better than 0.03! and num_labels=40
             learning_rate_r *= 1
 
-        if freeze_encoder_r and small_head_r is True:
+        if freeze_encoder_r and small_head_r:
             # for training with small lr = 0.03 works best than 0.03!
             learning_rate_r *= 10
 
