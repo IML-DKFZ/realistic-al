@@ -33,12 +33,12 @@ freeze_encoder = [False]
 use_ema = [True]
 small_head = [True]
 eman = [True]
-max_epochs = [10]
+# max_epochs = [10]
 max_epochs = [1000]
 query = ["random", "kcentergreedy", "entropy", "bald"]
 
 
-base_name = "active_pretrained"
+base_name = "active_fixmatch_pretrained"
 
 n_runs = 3
 name_add = "_epochs-{}"
