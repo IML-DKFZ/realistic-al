@@ -48,7 +48,8 @@ class FixMatch(AbstractClassifier):
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.log(f"{mode}/mask_u", mask_u, on_step=False, on_epoch=True)
         self.acc_train.update(preds, y)
-        if batch_idx == 0 and self.current_epoch % 10 == 0:
+        # only save very first batch of first epoch to minimize loading times and memory footprint
+        if batch_idx == 0 and self.current_epoch == 0:
             self.visualize_inputs(x, x_w, x_s)
         return loss
 
