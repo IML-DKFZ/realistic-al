@@ -1,0 +1,5 @@
+maxpool1: False
+first_conf: True 
+
+gaussian_blur: True 
+jitter_strength: 1.0

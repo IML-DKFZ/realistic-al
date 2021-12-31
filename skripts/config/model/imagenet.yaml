@@ -1,0 +1,14 @@
+maxpool1: True 
+first_conv: True 
+
+gaussian_blur: True 
+jitter_strength: 1.0 
+
+# batch_size = 64
+# gpus: 8
+# num_nodes: 8
+
+optimizer: lars 
+learning_rate: 4.8 
+final_lr: 0.0048 
+start_lr: 0.3 
