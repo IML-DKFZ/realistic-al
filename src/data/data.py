@@ -118,9 +118,10 @@ class TorchVisionDM(pl.LightningDataModule):
                 dataset, splits, generator=torch.Generator().manual_seed(self.seed)
             )
             dataset_train = activesubset_from_subset(dataset_train)
+            dataset_val = activesubset_from_subset(dataset_val)
         else:
             dataset_train = ActiveSubset(dataset, range(splits[0]))
-            dataset_val = Subset(dataset, range(splits[0], splits[1]))
+            dataset_val = ActiveSubset(dataset, range(splits[0], splits[1]))
         if train:
             return dataset_train
         return dataset_val

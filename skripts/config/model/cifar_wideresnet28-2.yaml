@@ -1,0 +1,16 @@
+
+arch: wideresnet28-2
+first_conv: False
+maxpool1: False
+hidden_mlp: 128
+feat_dim: 128
+weight_decay: 1e-4
+learning_rate: 1
+optimizer: lars
+
+gaussian_blur: False
+jitter_strength: 0.5
+
+temperature: 0.5
+
+batch_size: 512

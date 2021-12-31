@@ -1,0 +1,8 @@
+dataset: cifar100
+shape: [32, 32, 3]
+num_classes: 100
+val_split: 5000
+mean: [0.5071, 0.4867, 0.4408]
+std: [0.2675, 0.2565, 0.2761]
+transform_train: cifar_basic
+transform_test: basic

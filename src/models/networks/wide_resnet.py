@@ -98,6 +98,17 @@ class Wide_ResNet(nn.Module):
 
         return out
 
+    def get_features(self, x):
+        out = self.conv1(x)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = F.relu(self.bn1(out))
+        out = F.avg_pool2d(out, 8)
+        out = out.view(out.size(0), -1)
+
+        return out
+
 
 def build_wideresnet(
     depth: int, widen_factor: int, dropout: float, num_classes: int
