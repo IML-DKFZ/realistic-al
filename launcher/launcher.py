@@ -77,7 +77,7 @@ class BaseLauncher:
         return dictionary
 
     def generate_name(self, config_dict: dict, param_dict: dict) -> str:
-        naming_dict = self.get_joint_dict(config_dict, param_dict)
+        naming_dict = self.merge_dictionaries(config_dict, param_dict)
 
         temp_dict = {}
         for key, val in naming_dict.items():
@@ -89,7 +89,7 @@ class BaseLauncher:
         return temp_naming_convention.format_map(temp_dict)
 
     @staticmethod
-    def get_joint_dict(config_dict, param_dict):
+    def merge_dictionaries(config_dict, param_dict):
         naming_dict = deepcopy(config_dict)
         naming_dict.update(param_dict)
         return naming_dict
@@ -108,17 +108,8 @@ class BaseLauncher:
     def parse_product(self) -> list:
         # add here 1. Verifying that all values have the same length
         # 2. A way to jump over configs, where these values are different
-        check_length = None
-        joint_dict = self.get_joint_dict(self.config_args, self.overwrite_args)
-        accept_dicts = [dict()]
-        if self.joint_iteration is not None:
-            for i, key in enumerate(self.joint_iteration):
-                if i == 0:
-                    check_length = len(joint_dict[key])
-                    accept_dicts = [dict() for i in range(check_length)]
-                assert check_length == len(joint_dict[key])
-                for acc_dict, val in zip(accept_dicts, joint_dict[key]):
-                    acc_dict[key] = val
+        joint_dict = self.merge_dictionaries(self.config_args, self.overwrite_args)
+        accept_dicts = self.unfold_zip_dictionary(joint_dict)
 
         final_product = []
         for args in deepcopy(self.product):
@@ -128,15 +119,29 @@ class BaseLauncher:
             param_dict = dict(
                 zip(self.overwrite_args.keys(), args[len(self.config_args) :])
             )
-            full_dict = self.get_joint_dict(config_dict, param_dict)
+            full_dict = self.merge_dictionaries(config_dict, param_dict)
 
             if not self.check_config(full_dict):
+                # Check whether the the acc_dict lies in the full_dict
+                # If yes, then it is is accepted for execution
                 for acc_dict in accept_dicts:
                     if all(
                         full_dict.get(key, None) == val for key, val in acc_dict.items()
                     ):
                         final_product.append((config_dict, param_dict))
         return final_product
+
+    def unfold_zip_dictionary(self, joint_dict):
+        accept_dicts = [dict()]
+        if self.joint_iteration is not None:
+            for i, key in enumerate(self.joint_iteration):
+                if i == 0:
+                    check_length = len(joint_dict[key])
+                    accept_dicts = [dict() for i in range(check_length)]
+                assert check_length == len(joint_dict[key])
+                for acc_dict, val in zip(accept_dicts, joint_dict[key]):
+                    acc_dict[key] = val
+        return accept_dicts
 
     def check_config(self, config_settings: tuple) -> bool:
         """This function returns true if no execution with this config should be executed"""
@@ -223,5 +228,6 @@ if __name__ == "__main__":
         naming_conv,
         "src/run_training_fixmatch.py",
         joint_iteration=["model.dropout_p", "model"],
+        # joint_iteration=None,
     )
     launcher.launch_runs()
