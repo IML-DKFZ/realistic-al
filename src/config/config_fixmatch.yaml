@@ -28,6 +28,7 @@ trainer:
   precision: 16
   deterministic: False
   profiler: Null
+  enable_progress_bar: True
 
 hydra:
   run:

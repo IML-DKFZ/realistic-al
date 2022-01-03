@@ -129,6 +129,7 @@ class TrainingLoop(object):
             benchmark=self.cfg.trainer.deterministic is False,
             deterministic=self.cfg.trainer.deterministic,
             profiler=self.cfg.trainer.profiler,
+            enable_progess_bar=self.cfg.trainer.enable_progress_bar,
         )
 
     def fit(self):
