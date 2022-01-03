@@ -50,6 +50,7 @@ trainer:
   early_stop: False
   precision: 16
   deterministic: False
+  # enable_progress_bar: True
 
 hydra:
   run:

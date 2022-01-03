@@ -31,7 +31,7 @@ from models.networks import build_wideresnet
 
 """
 For Cifar10 Training:
-python simclr_cluster_hydra.py ++trainer.max_epochs 1000
+python train_simclr.py ++trainer.max_epochs 1000
 """
 
 
@@ -139,6 +139,7 @@ def cli_cluster(cfg: DictConfig):
         precision=cfg.trainer.precision,
         benchmark=cfg.trainer.deterministic is False,
         deterministic=cfg.trainer.deterministic,
+        # enable_progress_bar=cfg.trainer.enable_progress_bar,
     )
 
     trainer.fit(model, datamodule=dm)
