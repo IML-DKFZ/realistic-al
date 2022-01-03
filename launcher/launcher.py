@@ -167,7 +167,7 @@ class BaseLauncher:
                 subprocess.call(launch_command, shell=True)
 
     def prepare_launch(self):
-        if self.launcher_args.cluster:
+        if self.launcher_args.cluster and self.launcher_args.debug is False:
             self.sync_cluster()
 
     @staticmethod
@@ -177,6 +177,22 @@ class BaseLauncher:
             argument_string += f"{prefix}{key}{key_to_arg}{value} "
         return argument_string
 
+    @staticmethod
+    def finalize_paths(paths, on_cluster: bool):
+        """Change all Paths to PreTrained Models according to Environment.
+        paths should start, where log_path ends."""
+        if on_cluster:
+            log_path = cluster_log_path
+        else:
+            log_path = local_log_path
+        if not isinstance(paths, (list, tuple)):
+            paths = [paths]
+
+        out = []
+        for path in paths:
+            out.append(os.path.join(log_path, path))
+        return out
+
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
@@ -184,7 +200,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
     configs = {"data": ["cifar10"], "model": ["resnet18", "vgg"], "exp": "test"}
 
-    hparams = {"model.dropout_p": [0, 0.5], "trainer.name": ["1234", "5678"]}
+    load_pretrained = (
+        "SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
+        "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
+    )
+
+    load_pretrained = BaseLauncher.finalize_paths(
+        load_pretrained, on_cluster=args.cluster
+    )
+
+    hparams = {
+        "model.dropout_p": [0, 0.5],
+        "trainer.name": ["1234", "5678"],
+        "model.load_pretrained": load_pretrained,
+    }
 
     naming_conv = "{trainer.name}_test_v2"
     launcher = BaseLauncher(
@@ -195,5 +224,4 @@ if __name__ == "__main__":
         "src/run_training_fixmatch.py",
         joint_iteration=["model.dropout_p", "model"],
     )
-
     launcher.launch_runs()
