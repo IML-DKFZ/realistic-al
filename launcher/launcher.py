@@ -220,6 +220,9 @@ if __name__ == "__main__":
         "model.load_pretrained": load_pretrained,
     }
 
+    if args.cluster:
+        hparams["trainer.progress_bar_refresh_rate"] = 0
+
     naming_conv = "{trainer.name}_test_v2"
     launcher = BaseLauncher(
         configs,
