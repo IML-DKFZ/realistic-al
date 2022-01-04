@@ -5,30 +5,40 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     # "model": ["resnet18", "wideresnet-cifar10"],
-    "model": "wideresnet-cifar10",
+    "model": "resnet_fixmatch",
     "data": "cifar10",
     "active": "standard",
 }
 
+# Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
+load_pretrained = [
+    "SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
+    # "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
+    # "SSL/SimCLR/cifar10/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
+]
+
 hparam_dict = {
     "active.num_labelled": [40],  # , 1000, 5000],
     "model.dropout_p": [0, 0.5],
-    "model.learning_rate": 0.03,  # is more stable than 0.1!
-    "model.small_head": [True, False],
-    "model.use_ema": [True, False],
+    "model.learning_rate": 0.003,  # according to EMAN paper
+    "model.small_head": [True, False],  # Based on SelfMatch
+    "model.use_ema": [True, False],  # FixMAtch
+    "model.finetune": [True, False],
+    "model.freeze_encoder": [True, False],
+    "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 2000,
     "trainer.seed": [12345],  # , 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
         # "cifar_randaugment",
     ],
-    "sem_sl.eman": [True, False],
+    "sem_sl.eman": [True, False],  # EMAN Paper
 }
 
-naming_conv = "sweep_fixmatch-pretrained_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"
-path_to_ex_file = "src/run_training.py"
+naming_conv = "sweep_fixmatch-pretrained_{data}_{model}_ep-{trainer.max_epochs}_labeled-{active.num_labelled}"
+path_to_ex_file = "src/run_training_fixmatch.py"
 
-joint_iteration = None
+joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 
 if __name__ == "__main__":

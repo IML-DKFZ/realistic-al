@@ -3,7 +3,10 @@ from launcher import ExperimentLauncher
 
 # Add Transformations from Randaugment and Changing of Learning Rates
 
-config_dict = {"model": ["resnet18", "wideresnet-cifar10"], "data": "cifar10"}
+config_dict = {
+    "model": ["resnet18", "wideresnet-cifar10"],
+    "data": "cifar10",
+}
 
 hparam_dict = {
     "active.num_labelled": [40, 500, 1000, 5000],

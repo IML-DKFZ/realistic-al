@@ -133,8 +133,12 @@ class BaseLauncher:
                 # Check whether the the acc_dict lies in the full_dict
                 # If yes, then it is is accepted for execution
                 for acc_dict in accept_dicts:
-                    if all(
-                        full_dict.get(key, None) == val for key, val in acc_dict.items()
+                    if (
+                        all(
+                            full_dict.get(key, None) == val
+                            for key, val in acc_dict.items()
+                        )
+                        and (config_dict, param_dict) not in final_product
                     ):
                         final_product.append((config_dict, param_dict))
         return final_product
