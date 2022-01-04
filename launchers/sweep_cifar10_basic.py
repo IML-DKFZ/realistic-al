@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from launcher import BaseLauncher
+from launcher import ExperimentLauncher
 
 # Add Transformations from Randaugment and Changing of Learning Rates
 
@@ -25,14 +25,14 @@ path_to_ex_file = "src/run_training.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    BaseLauncher.add_argparse_args(parser)
+    ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
 
-    config_dict, hparam_dict = BaseLauncher.modify_params_for_args(
+    config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
 
-    launcher = BaseLauncher(
+    launcher = ExperimentLauncher(
         config_dict,
         hparam_dict,
         launcher_args,
