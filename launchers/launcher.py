@@ -24,7 +24,7 @@ class BaseLauncher:
         add_name: str = "++trainer.experiment_name=",
         joint_iteration: list = None,
     ):
-        """Launcher allowing fast parsing of parameters and experiments on both Cluster and the local Workstation!"""
+        """Launcher allowing fast parsing of parameters and experiments on both Cluster and the local Workstation"""
         if default_struct:
             current_dir = os.path.dirname(os.path.realpath(__file__))
             base_dir = "/".join(current_dir.split("/")[:-1])
@@ -129,7 +129,7 @@ class BaseLauncher:
             )
             full_dict = self.merge_dictionaries(config_dict, param_dict)
 
-            if not self.check_config(full_dict):
+            if not self.skip_config(full_dict):
                 # Check whether the the acc_dict lies in the full_dict
                 # If yes, then it is is accepted for execution
                 for acc_dict in accept_dicts:
@@ -151,7 +151,7 @@ class BaseLauncher:
                     acc_dict[key] = val
         return accept_dicts
 
-    def check_config(self, config_settings: tuple) -> bool:
+    def skip_config(self, config_settings: dict) -> bool:
         """This function returns true if no execution with this config should be executed"""
         return False
 
@@ -207,9 +207,36 @@ class BaseLauncher:
         return out
 
 
+class ExperimentLauncher(BaseLauncher):
+    def skip_config(self, config_settings: dict):
+        if set(["sem_sl.eman", "model.use_ema"]).issubset(config_settings.keys()):
+            if config_settings["sem_sl.eman"] and (
+                config_settings["model.use_ema"] is False
+            ):
+                return True
+
+        if set(["model.finetune", "model.freeze_encoder"]).issubset(
+            config_settings.keys()
+        ):
+            if (
+                config_settings["model.finetune"]
+                and config_settings["model.freeze_encoder"]
+            ):
+                return True
+
+        if set(["query", "model.dropout_p"]).issubset(config_settings.keys()):
+            if (
+                config_settings["query"] == "bald"
+                and config_settings["model.dropout_p"] == 0
+            ):
+                return True
+
+        return False
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    BaseLauncher.add_argparse_args(parser)
+    ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
     config_dict = {"data": ["cifar10"], "model": ["resnet18", "vgg"], "exp": "test"}
 
@@ -218,7 +245,7 @@ if __name__ == "__main__":
         "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
     )
 
-    load_pretrained = BaseLauncher.finalize_paths(
+    load_pretrained = ExperimentLauncher.finalize_paths(
         load_pretrained, on_cluster=launcher_args.cluster
     )
 
@@ -228,12 +255,12 @@ if __name__ == "__main__":
         "model.load_pretrained": load_pretrained,
     }
 
-    config_dict, hparam_dict = BaseLauncher.modify_params_for_args(
+    config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
 
     naming_conv = "{trainer.name}_test_v2"
-    launcher = BaseLauncher(
+    launcher = ExperimentLauncher(
         config_dict,
         hparam_dict,
         launcher_args,
