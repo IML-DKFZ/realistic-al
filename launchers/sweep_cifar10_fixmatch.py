@@ -26,7 +26,7 @@ hparam_dict = {
 }
 
 naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
-path_to_ex_file = "src/run_training.py"
+path_to_ex_file = "src/run_training_fixmatch.py"
 
 joint_iteration = None
 
