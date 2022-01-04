@@ -105,6 +105,14 @@ class BaseLauncher:
         parser.add_argument("--num_end", default=-1, type=int)
         return parser
 
+    @staticmethod
+    def modify_params_for_args(
+        launcher_args: Namespace, config_dict: dict, hparam_dict: dict
+    ):
+        if launcher_args.cluster:
+            hparam_dict["trainer.progress_bar_refresh_rate"] = 0
+        return config_dict, hparam_dict
+
     def parse_product(self) -> list:
         # add here 1. Verifying that all values have the same length
         # 2. A way to jump over configs, where these values are different
@@ -202,8 +210,8 @@ class BaseLauncher:
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
     BaseLauncher.add_argparse_args(parser)
-    args = parser.parse_args()
-    configs = {"data": ["cifar10"], "model": ["resnet18", "vgg"], "exp": "test"}
+    launcher_args = parser.parse_args()
+    config_dict = {"data": ["cifar10"], "model": ["resnet18", "vgg"], "exp": "test"}
 
     load_pretrained = (
         "SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
@@ -211,23 +219,24 @@ if __name__ == "__main__":
     )
 
     load_pretrained = BaseLauncher.finalize_paths(
-        load_pretrained, on_cluster=args.cluster
+        load_pretrained, on_cluster=launcher_args.cluster
     )
 
-    hparams = {
+    hparam_dict = {
         "model.dropout_p": [0, 0.5],
         "trainer.name": ["1234", "5678"],
         "model.load_pretrained": load_pretrained,
     }
 
-    if args.cluster:
-        hparams["trainer.progress_bar_refresh_rate"] = 0
+    config_dict, hparam_dict = BaseLauncher.modify_params_for_args(
+        launcher_args, config_dict, hparam_dict
+    )
 
     naming_conv = "{trainer.name}_test_v2"
     launcher = BaseLauncher(
-        configs,
-        hparams,
-        args,
+        config_dict,
+        hparam_dict,
+        launcher_args,
         naming_conv,
         "src/run_training_fixmatch.py",
         joint_iteration=["model.dropout_p", "model"],
