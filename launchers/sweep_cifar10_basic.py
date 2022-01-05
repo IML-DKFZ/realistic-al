@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
-    "model": ["resnet18", "wideresnet-cifar10"],
+    "model": ["resnet", "wideresnet-cifar10"],
     "data": "cifar10",
 }
 
@@ -22,7 +22,9 @@ hparam_dict = {
     ],
 }
 
-naming_conv = "sweep_baseline_{data}_{trainer.max_epochs}"  # {model}"
+naming_conv = (
+    "sweep_basic_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
+)
 path_to_ex_file = "src/run_training.py"
 
 
@@ -34,6 +36,11 @@ if __name__ == "__main__":
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
+
+    if "model.load_pretrained" in hparam_dict:
+        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
+            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
+        )
 
     launcher = ExperimentLauncher(
         config_dict,

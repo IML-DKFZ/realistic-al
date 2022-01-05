@@ -25,7 +25,10 @@ hparam_dict = {
     "sem_sl.eman": [True, False],
 }
 
-naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
+naming_conv = (
+    "sweep_fixmatch_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
+)
+# naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
 path_to_ex_file = "src/run_training_fixmatch.py"
 
 joint_iteration = None
@@ -39,6 +42,11 @@ if __name__ == "__main__":
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
+
+    if "model.load_pretrained" in hparam_dict:
+        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
+            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
+        )
 
     launcher = ExperimentLauncher(
         config_dict,

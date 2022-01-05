@@ -3,7 +3,7 @@ from launcher import BaseLauncher
 
 config_dict = {
     "data": ["cifar10", "cifar100"],
-    "model": ["resnet18-cifar", "wideresnet28-2"],  # verify correctness here!
+    "model": ["cifar_resnet18", "cifar_wideresnet28-2"],  # verify correctness here!
 }
 
 hparam_dict = {
@@ -26,6 +26,11 @@ if __name__ == "__main__":
         launcher_args, config_dict, hparam_dict
     )
 
+    if "model.load_pretrained" in hparam_dict:
+        hparam_dict["model.load_pretrained"] = BaseLauncher.finalize_paths(
+            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
+        )
+
     launcher = BaseLauncher(
         config_dict,
         hparam_dict,
@@ -35,4 +40,4 @@ if __name__ == "__main__":
         joint_iteration=joint_iteration,
     )
 
-    BaseLauncher.launch_runs()
+    launcher.launch_runs()

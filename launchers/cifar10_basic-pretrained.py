@@ -17,6 +17,7 @@ load_pretrained = [
 ]
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
+    "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [True, False],
@@ -24,7 +25,9 @@ hparam_dict = {
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
 }
-naming_conv = "{data}_{active}_{query}_drop-{model.dropout_p}_pretrained_goodfit"
+naming_conv = (
+    "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
+)
 
 
 joint_iteration = ["model.load_pretrained", "trainer.seed"]
@@ -39,6 +42,11 @@ if __name__ == "__main__":
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
+
+    if "model.load_pretrained" in hparam_dict:
+        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
+            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
+        )
 
     launcher = ExperimentLauncher(
         config_dict,

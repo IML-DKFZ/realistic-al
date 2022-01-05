@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
-    "model": "wideresnet-cifar",
+    "model": "wideresnet-cifar10",
     "data": "cifar10",
     "active": ["cifar10_low_data"],  # standard
     "query": ["random", "entropy", "kcentergreedy", "bald"],
@@ -16,7 +16,7 @@ hparam_dict = {
     "model.small_head": [True],
     "model.use_ema": [True],
     "model.finetune": [False],
-    "model.load_pretrained": None,
+    # "model.load_pretrained": None, # if this is set to None, weird errors appear!
     "trainer.max_epochs": 2000,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [
@@ -26,7 +26,9 @@ hparam_dict = {
     "sem_sl.eman": [False],
 }
 
-naming_conv = "fixmatch_{data}_set-{active}_{query}_{model}_ep-{trainer.max_epochs}"
+naming_conv = (
+    "active_fixmatch_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
+)
 path_to_ex_file = "src/main_fixmatch.py"
 
 joint_iteration = ["query", "model.dropout_p"]
@@ -40,6 +42,11 @@ if __name__ == "__main__":
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
+
+    if "model.load_pretrained" in hparam_dict:
+        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
+            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
+        )
 
     launcher = ExperimentLauncher(
         config_dict,
