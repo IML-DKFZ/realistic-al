@@ -1,7 +1,7 @@
-num_labelled: 20
+num_labelled: 40
 min_train: 5500
 balanced: True
-acq_size: 10
-num_iter: 10
+acq_size: 40
+num_iter: 5
 random_split: True
 m: Null

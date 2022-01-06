@@ -1,6 +1,6 @@
 defaults:
   - data: mnist
-  - optim: defaults
+  - optim: adam
   - model: bayesian_mnist
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
@@ -26,6 +26,7 @@ trainer:
   precision: 16
   deterministic: False
   profiler: Null
+  # enable_progress_bar: True
 
 hydra:
   run:

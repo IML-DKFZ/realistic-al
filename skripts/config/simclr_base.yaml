@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - data: cifar10
-  - model: cifar
+  - model: cifar_resnet18
 
 model:
   # model Params

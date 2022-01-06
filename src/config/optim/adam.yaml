@@ -1,7 +1,7 @@
 optimizer:
-  name: sgd
+  name: adam
   momentum: 0.9
-  nesterov: True
 
 lr_scheduler:
   name: steplr
+
