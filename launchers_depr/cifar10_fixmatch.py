@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 import os
 import subprocess
 from itertools import product
+from copy import deepcopy
 
 parser = ArgumentParser()
 parser.add_argument("-c", "--cluster", action="store_true")
@@ -10,7 +11,7 @@ args = parser.parse_args()
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 exec_dir = "/".join(current_dir.split("/")[:-1])
-exec_path = os.path.join(exec_dir, "src/run_training_fixmatch.py")
+exec_path = os.path.join(exec_dir, "src/main_fixmatch.py")
 
 if args.cluster:
     ex_call = "cluster_run"
@@ -20,35 +21,24 @@ else:
     ex_call = "python"
     log_path = "/home/c817h/Documents/logs_cluster"
 
-active = ["standard"]
+active = ["standard", "cifar10_low_data"]
 data = ["cifar10"]
-model = ["resnet_fixmatch"]
-
-base_path = f"{log_path}/SSL/SimCLR/cifar10"
-
-sweep_name = "sweep_fixmatch-pretrained"
-
-pretrained_paths = [
-    f"{base_path}/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
-    f"{base_path}/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
-    f"{base_path}/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
-]
-learning_rate = [0.003]  # set according to EMAN paper
+model = ["wideresnet-cifar10"]
+learning_rate = [0.03]
 dropout_p = [0, 0.5]
 seed = 12345
-finetune = [True, False]
-use_ema = [True, False]
-small_head = [True, False]
-eman = [True, False]
-freeze_encoder = [False, True]
-# freeze_encoder = [True]
-# num_labelled = [50, 100, 250]
-num_labelled = [40]
+finetune = [False]
+use_ema = [True]
+small_head = [True]
+eman = [False]
 max_epochs = [2000]
-# max_epochs = [200, 1000, 2000, 10000]
+query = ["random", "kcentergreedy", "entropy", "bald"]
 
-n_runs = 1
-name_add = "_epochs-{}_labeled-{}"
+
+base_name = "active"
+
+n_runs = 2
+name_add = "_epochs-{}"
 
 base_path = f"{log_path}/SSL/SimCLR/cifar10"
 
@@ -58,72 +48,53 @@ full_iterator = product(
     active,
     data,
     model,
+    query,
     learning_rate,
     finetune,
     use_ema,
     eman,
     dropout_p,
     small_head,
-    num_labelled,
+    # num_labelled,
     max_epochs,
 )
 
-full_launches = len(list(full_iterator)) * n_runs
+full_launches = len(list(deepcopy(full_iterator))) * n_runs
 
-# this has to be initialized later again list(...)
-full_iterator = product(
-    active,
-    data,
-    model,
-    learning_rate,
-    finetune,
-    use_ema,
-    eman,
-    dropout_p,
-    small_head,
-    num_labelled,
-    max_epochs,
-    freeze_encoder,
-)
 
-for run, load_pretrained_r in zip(range(n_runs), pretrained_paths):
+for run in range(n_runs):
+    # Product needs to be reinitialized after every Iteration over it!
     for i, (
         active_r,
         data_r,
         model_r,
+        query_r,
         learning_rate_r,
         finetune_r,
         use_ema_r,
         eman_r,
         dropout_p_r,
         small_head_r,
-        num_labelled_r,
+        # num_labelled_r,
         max_epochs_r,
-        freeze_encoder_r,
-    ) in enumerate(full_iterator):
-        if eman_r and use_ema_r is False:
+    ) in enumerate(deepcopy(full_iterator)):
+        if dropout_p_r and query_r != "bald":
             full_launches -= 1
             continue
-        if finetune_r and freeze_encoder_r:
+        if dropout_p_r == 0 and query_r == "bald":
             full_launches -= 1
             continue
-
-        if freeze_encoder_r and small_head_r is False:
-            # for training with big head lr = 0.003 works better than 0.03! and num_labels=40
-            learning_rate_r *= 1
-
-        if freeze_encoder_r and small_head_r is True:
-            # for training with small lr = 0.03 works best than 0.03!
-            learning_rate_r *= 10
 
         seed_exp = seed + run
-        name_add_r = name_add.format(max_epochs_r, num_labelled_r)
-        experiment_name = f"{sweep_name}_{data_r}_{model_r}{name_add_r}"
+        name_add_r = name_add.format(max_epochs_r)
+        experiment_name = (
+            f"{base_name}_{active_r}_{query_r}_{data_r}_{model_r}{name_add_r}"
+        )
         configs = f"model={model_r} data={data_r} active={active_r}"
-        active_args = f"++active.num_labelled={num_labelled_r}"
+        active_args = ""
+        # active_args = f"++active.num_labelled={num_labelled_r}"
         model_args = f"++model.use_ema={use_ema_r} ++model.learning_rate={learning_rate_r} ++model.finetune={finetune_r}"
-        model_args = f"{model_args} ++model.dropout_p={dropout_p_r} ++model.small_head={small_head_r} ++model.freeze_encoder={freeze_encoder_r}"
-        model_args = f"{model_args} ++model.load_pretrained={load_pretrained_r}"
+        model_args = f"{model_args} ++model.dropout_p={dropout_p_r} ++model.small_head={small_head_r}"
         sem_sl_args = f"++sem_sl.eman={eman_r}"
         trainer_args = f"++trainer.seed={seed_exp} ++trainer.max_epochs={max_epochs_r}"
 

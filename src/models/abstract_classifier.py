@@ -120,6 +120,10 @@ class AbstractClassifier(pl.LightningModule):
         if self.ema_model is not None:
             self.ema_model.eval()
 
+    def on_fit_start(self) -> None:
+        metric_placeholder = {"val/acc": 0.0, "test/acc": 0.0}
+        self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
+
     def on_validation_epoch_start(self) -> None:
         self.acc_val.reset()
 
