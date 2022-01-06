@@ -8,6 +8,7 @@ config_dict = {
     "data": "cifar10",
     "active": ["cifar10_low_data"],  # standard
     "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "optim": "sgd_fixmatch",
 }
 
 hparam_dict = {

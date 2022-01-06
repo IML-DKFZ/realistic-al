@@ -8,6 +8,7 @@ config_dict = {
     "data": "cifar10",
     "active": ["cifar10_low_data"],  # standard
     "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "optim": "sgd_fixmatch",
 }
 
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version

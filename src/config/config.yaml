@@ -1,6 +1,6 @@
 defaults:
   - data: mnist
-  - optim: defaults
+  - optim: adam
   - model: bayesian_mnist
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog

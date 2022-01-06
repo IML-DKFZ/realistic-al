@@ -6,6 +6,7 @@ config_dict = {
         "resnet"
     ],  # , "wideresnet-cifar10"], currently there are only pretrained models for resnet18 available!
     "data": "cifar10",
+    "optim": ["sgd"],
 }
 
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version

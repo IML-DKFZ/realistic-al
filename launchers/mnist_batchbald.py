@@ -1,32 +1,25 @@
 from argparse import ArgumentParser
 from launcher import ExperimentLauncher
 
-# Add Transformations from Randaugment and Changing of Learning Rates
-
 config_dict = {
-    "model": ["resnet", "wideresnet-cifar10"],
-    "data": "cifar10",
-    "optim": ["sgd"],
+    "model": "bayesian_mnist",
+    "data": ["mnist", "fashion_mnist"],
+    "active": ["mnist_batchbald"],
+    "query": ["random", "bald", "entropy", "batchbald", "kcentergreedy"],
 }
 
 hparam_dict = {
-    "active.num_labelled": [40, 500, 1000, 5000],
-    "model.dropout_p": [0, 0.5],
-    "model.learning_rate": 0.01,  # is more stable than 0.1!
+    # "model.dropout_p": [0, 0.5],
+    # "model.learning_rate": 0.01,  # is more stable than 0.1!
     # "model.use_ema": [True, False],
     "model.use_ema": False,
     "trainer.max_epochs": 200,
-    "trainer.seed": [12345],  # , 12346, 12347],
-    "data.transform_train": [
-        "cifar_basic",
-        "cifar_randaugment",
-    ],
+    "trainer.seed": [12345, 12346, 12347],
+    "data.transform_train": "basic",
 }
 
-naming_conv = (
-    "sweep_basic_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
-)
-path_to_ex_file = "src/run_training.py"
+naming_conv = "active_basic_{data}_set-{active}_{model}_ep-{trainer.max_epochs}"
+path_to_ex_file = "src/main.py"
 
 joint_iteration = None
 

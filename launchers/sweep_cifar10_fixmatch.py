@@ -8,6 +8,7 @@ config_dict = {
     "model": "wideresnet-cifar10",
     "data": "cifar10",
     "active": "standard",
+    "optim": "sgd_fixmatch",
 }
 
 hparam_dict = {

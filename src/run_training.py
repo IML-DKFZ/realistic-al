@@ -54,8 +54,6 @@ def train(cfg: DictConfig):
     training_loop = TrainingLoop(cfg, datamodule, active=False)
     training_loop.main()
 
-    # training_loop(cfg, datamodule, active=False)
-
 
 class TrainingLoop(object):
     def __init__(
@@ -137,7 +135,7 @@ class TrainingLoop(object):
         self.trainer.fit(model=self.model, datamodule=datamodule)
         if not self.cfg.trainer.fast_dev_run:
             best_path = self.ckpt_callback.best_model_path
-            print("Model for Testing is selected from path; {}".format(best_path))
+            print("Model for Testing is selected from path: {}".format(best_path))
             self.model.load_from_checkpoint(best_path)
         gc.collect()
         torch.cuda.empty_cache()

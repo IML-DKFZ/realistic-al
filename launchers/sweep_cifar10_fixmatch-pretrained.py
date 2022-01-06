@@ -8,6 +8,7 @@ config_dict = {
     "model": "resnet_fixmatch",
     "data": "cifar10",
     "active": "standard",
+    "optim": "sgd_fixmatch",
 }
 
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
