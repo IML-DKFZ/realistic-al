@@ -75,6 +75,7 @@ def cli_cluster(cfg: DictConfig):
         transform_train=cfg.data.transform_train,
         transform_test=cfg.data.transform_test,
         shape=cfg.data.shape,
+        seed=cfg.trainer.seed,
     )
 
     normalization = torchvision.transforms.Normalize(cfg.data.mean, cfg.data.std)

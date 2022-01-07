@@ -12,8 +12,6 @@ from .active import ActiveLearningDataset
 from .utils import activesubset_from_subset, ActiveSubset, seed_worker
 from .transformations import get_transform
 
-SEED = 12345
-
 
 class TorchVisionDM(pl.LightningDataModule):
     def __init__(
@@ -35,6 +33,7 @@ class TorchVisionDM(pl.LightningDataModule):
         shape: Sequence = [28, 28, 1],
         mean: Sequence = (0,),
         std: Sequence = (1,),
+        seed: int = 12345,
     ):
         super().__init__()
 
@@ -53,7 +52,7 @@ class TorchVisionDM(pl.LightningDataModule):
         self.num_classes = num_classes
 
         # Used for the traning validation split
-        self.seed = SEED
+        self.seed = seed
 
         # TODO tidy up and generalize selection of transformations for more datasets
         self.mean = mean

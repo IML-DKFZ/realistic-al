@@ -23,8 +23,8 @@ from data.datasets import (
 )
 
 args = Namespace()
-# args.dataset = "cars"
-args.dataset = "caltech101"
+args.dataset = "cars"
+# args.dataset = "caltech101"
 args.batch_size = 128
 args.image_size = 224
 args.workers = 8
@@ -310,9 +310,15 @@ if __name__ == "__main__":
         data_augmentation=args.da,
     )
 
-    print("Number of samples in Traning Set: {}".format(len(train_loader.dataset)))
-    for i, batch in enumerate(tqdm(train_loader)):
-        pass
-    import IPython
+    def test_dataloader(dataloader):
+        print("Number of samples in Dataset: {}".format(len(dataloader.dataset)))
+        for i, batch in enumerate(tqdm(dataloader)):
+            pass
 
-    IPython.embed()
+    # test_dataloader(test_loader)
+    test_dataloader(train_loader)
+    test_dataloader(test_loader)
+
+    # import IPython
+
+    # IPython.embed()
