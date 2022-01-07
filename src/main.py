@@ -48,6 +48,7 @@ def active_loop(
         transform_test=cfg.data.transform_test,
         shape=cfg.data.shape,
         num_workers=cfg.trainer.num_workers,
+        seed=cfg.trainer.seed,
     )
     num_classes = cfg.data.num_classes
     if balanced:
