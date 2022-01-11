@@ -292,17 +292,27 @@ class ExperimentLauncher(BaseLauncher):
         config_dict, hparam_dict = BaseLauncher.modify_params_for_args(
             launcher_args, config_dict, hparam_dict
         )
-        if hparam_dict["model.load_pretrained"] is True:
-            model_type = ExperimentLauncher.access_config_value(
-                "name", "model", config_dict, hparam_dict
-            )
-            dataset = ExperimentLauncher.access_config_value(
-                "name", "data", config_dict, hparam_dict
-            )
-            hparam_dict["model.load_pretrained"] = [
-                get_pretrained_arch(dataset, model_type, seed).ckpt_path
-                for seed in hparam_dict["trainer.seed"]
-            ]
+        load_arch = "model.load_pretrained"
+        if load_arch in hparam_dict:
+            if hparam_dict["model.load_pretrained"] is True:
+                model_type = ExperimentLauncher.access_config_value(
+                    "name", "model", config_dict, hparam_dict
+                )
+                dataset = ExperimentLauncher.access_config_value(
+                    "name", "data", config_dict, hparam_dict
+                )
+                hparam_dict["model.load_pretrained"] = [
+                    get_pretrained_arch(dataset, model_type, seed).ckpt_path
+                    for seed in hparam_dict["trainer.seed"]
+                ]
+
+            if hparam_dict[load_arch] is not None:
+                hparam_dict[
+                    "model.load_pretrained"
+                ] = ExperimentLauncher.finalize_paths(
+                    hparam_dict["model.load_pretrained"],
+                    on_cluster=launcher_args.cluster,
+                )
 
         return config_dict, hparam_dict
 

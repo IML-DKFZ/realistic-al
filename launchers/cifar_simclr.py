@@ -26,6 +26,7 @@ if __name__ == "__main__":
         launcher_args, config_dict, hparam_dict
     )
 
+    # This has to stay here, BaseLauncher does not change this!
     if "model.load_pretrained" in hparam_dict:
         hparam_dict["model.load_pretrained"] = BaseLauncher.finalize_paths(
             hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster

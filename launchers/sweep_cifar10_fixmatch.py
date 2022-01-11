@@ -44,11 +44,6 @@ if __name__ == "__main__":
         launcher_args, config_dict, hparam_dict
     )
 
-    if "model.load_pretrained" in hparam_dict:
-        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
-            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
-        )
-
     launcher = ExperimentLauncher(
         config_dict,
         hparam_dict,

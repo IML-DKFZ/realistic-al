@@ -35,7 +35,7 @@ path_to_ex_file = "src/run_training.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    parser.add_argument("--data", type=str, default=config_dict["data"])
+    # parser.add_argument("--data", type=str, default=config_dict["data"])
     parser.add_argument("--model", type=str, default=config_dict["model"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
@@ -46,11 +46,6 @@ if __name__ == "__main__":
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
-
-    if "model.load_pretrained" in hparam_dict:
-        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
-            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
-        )
 
     launcher = ExperimentLauncher(
         config_dict,
