@@ -24,7 +24,7 @@ hparam_dict = {
     "model.use_ema": False,
     "model.finetune": [True, False],
     "model.freeze_encoder": [True, False],
-    "model.load_pretrained": load_pretrained,
+    "model.load_pretrained": True,
     "trainer.max_epochs": 200,
     "trainer.seed": [12345],  # , 12346, 12347],
     "data.transform_train": [
@@ -42,8 +42,13 @@ path_to_ex_file = "src/run_training.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
+    parser.add_argument("--data", type=str, default=config_dict["data"])
+    parser.add_argument("--model", type=str, default=config_dict["model"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
+
+    # config_dict["data"] = launcher_args.data
+    config_dict["model"] = launcher_args.model
 
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict

@@ -3,6 +3,8 @@ import os
 import subprocess
 from itertools import product
 from copy import deepcopy
+from config_launcher import get_pretrained_arch
+import yaml
 
 cluster_sync_call = "cluster_sync"
 cluster_log_path = "/gpu/checkpoints/OE0612/c817h"
@@ -32,8 +34,8 @@ class BaseLauncher:
 
         self.path_to_ex_file = path_to_ex_file
 
-        self.config_args = self.check_dictionary_iterable(config_args)
-        self.overwrite_args = self.check_dictionary_iterable(overwrite_args)
+        self.config_args = self.make_dictionary_iterable(config_args)
+        self.overwrite_args = self.make_dictionary_iterable(overwrite_args)
 
         self.cluster_log_path = cluster_log_path
         self.cluster_ex_call = cluster_ex_call
@@ -70,13 +72,14 @@ class BaseLauncher:
         )
 
     @staticmethod
-    def check_dictionary_iterable(dictionary: dict):
+    def make_dictionary_iterable(dictionary: dict):
         for key, val in dictionary.items():
             if not isinstance(val, (list, tuple)):
                 dictionary[key] = [val]
         return dictionary
 
     def generate_name(self, config_dict: dict, param_dict: dict) -> str:
+        """Generates name by formatting the naming_convention"""
         naming_dict = self.merge_dictionaries(config_dict, param_dict)
 
         temp_dict = {}
@@ -114,6 +117,7 @@ class BaseLauncher:
         return config_dict, hparam_dict
 
     def parse_product(self) -> list:
+        """Create a list with all combinations that should be launched."""
         # add here 1. Verifying that all values have the same length
         # 2. A way to jump over configs, where these values are different
         joint_dict = self.merge_dictionaries(self.config_args, self.overwrite_args)
@@ -144,6 +148,9 @@ class BaseLauncher:
         return final_product
 
     def unfold_zip_dictionary(self, joint_dict):
+        """Creates a list of dictionaries with combinations that
+        should be launched according to joint_iteration.
+        The format of the output is identical to the one obtained by itertools!"""
         accept_dicts = [dict()]
         if self.joint_iteration is not None:
             for i, key in enumerate(self.joint_iteration):
@@ -210,6 +217,10 @@ class BaseLauncher:
             out.append(os.path.join(log_path, path))
         return out
 
+    @staticmethod
+    def access_config(config_name):
+        raise NotImplementedError
+
 
 class ExperimentLauncher(BaseLauncher):
     def skip_config(self, config_settings: dict):
@@ -236,6 +247,64 @@ class ExperimentLauncher(BaseLauncher):
                 return True
 
         return False
+
+    @staticmethod
+    def access_config_value(
+        key: str,
+        config_name: str,
+        config_dict: dict,
+        hparam_dict: dict,
+        default_struct: bool = True,
+        file_ending: str = ".yaml",
+    ):
+        """Returns the value of a predefined config in hydra, given the key etc."""
+        full_key = "{config_name}.{key}"
+        if full_key in hparam_dict:
+            return hparam_dict[full_key]
+
+        if default_struct:
+            current_dir = os.path.dirname(os.path.realpath(__file__))
+            base_dir = "/".join(current_dir.split("/")[:-1])
+            path_to_config = os.path.join(
+                base_dir,
+                "src",
+                "config",
+                config_name,
+                config_dict[config_name] + file_ending,
+            )
+            print(path_to_config)
+            assert os.path.isfile(
+                path_to_config
+            )  # There exists no such File, or file ending is not correct
+            with open(path_to_config, "r") as stream:
+                # try:
+                value = yaml.safe_load(stream)[key]
+                # except yaml.YAMLError as exc:
+                #     print(exc)
+            return value
+
+        raise NotImplementedError
+
+    @staticmethod
+    def modify_params_for_args(
+        launcher_args: Namespace, config_dict: dict, hparam_dict: dict
+    ):
+        config_dict, hparam_dict = BaseLauncher.modify_params_for_args(
+            launcher_args, config_dict, hparam_dict
+        )
+        if hparam_dict["model.load_pretrained"] is True:
+            model_type = ExperimentLauncher.access_config_value(
+                "name", "model", config_dict, hparam_dict
+            )
+            dataset = ExperimentLauncher.access_config_value(
+                "name", "data", config_dict, hparam_dict
+            )
+            hparam_dict["model.load_pretrained"] = [
+                get_pretrained_arch(dataset, model_type, seed).ckpt_path
+                for seed in hparam_dict["trainer.seed"]
+            ]
+
+        return config_dict, hparam_dict
 
 
 if __name__ == "__main__":

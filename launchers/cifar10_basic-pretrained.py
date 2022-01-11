@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from launcher import ExperimentLauncher
+from config_launcher import get_pretrained_arch
 
 config_dict = {
     "model": "resnet",
@@ -23,8 +24,9 @@ hparam_dict = {
     "model.freeze_encoder": [True, False],
     "model.finetune": [False],
     "model.use_ema": False,
-    "model.load_pretrained": load_pretrained,
+    "model.load_pretrained": True,
 }
+
 naming_conv = (
     "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 )
@@ -36,8 +38,13 @@ path_to_ex_file = "src/main.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
+    # parser.add_argument("--data", type=str, default=config_dict["data"])
+    parser.add_argument("--model", type=str, default=config_dict["model"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
+
+    # config_dict["data"] = launcher_args.data
+    config_dict["model"] = launcher_args.model
 
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
