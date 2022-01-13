@@ -263,14 +263,26 @@ class ExperimentLauncher(BaseLauncher):
             return hparam_dict[full_key]
 
         if default_struct:
+            print(f"{key=}")
+            print(f"{config_dict=}")
+            print(f"{config_name=}")
+            print(config_dict[config_name])
             current_dir = os.path.dirname(os.path.realpath(__file__))
             base_dir = "/".join(current_dir.split("/")[:-1])
+            filename = config_dict[config_name]
+            print(f"{filename=}")
+            if isinstance(filename, (list, tuple)):
+                if len(filename) > 1:
+                    raise NotImplementedError(
+                        "Currently only parameter of one file can be loaded in this fashion."
+                    )
+                filename = filename[0]
             path_to_config = os.path.join(
                 base_dir,
                 "src",
                 "config",
                 config_name,
-                config_dict[config_name] + file_ending,
+                filename + file_ending,
             )
             print(path_to_config)
             assert os.path.isfile(
