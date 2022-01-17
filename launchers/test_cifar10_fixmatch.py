@@ -17,7 +17,7 @@ hparam_dict = {
     "model.learning_rate": 0.03,  # is more stable than 0.1!
     "model.small_head": [True],
     "model.use_ema": [True],
-    "model.load_pretrained": False,
+    "model.load_pretrained": None,
     "trainer.max_epochs": 10000,
     "trainer.seed": [12345],  # , 12346, 12347],
     "data.transform_train": [
