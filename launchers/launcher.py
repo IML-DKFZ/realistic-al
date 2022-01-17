@@ -263,10 +263,10 @@ class ExperimentLauncher(BaseLauncher):
             return hparam_dict[full_key]
 
         if default_struct:
-            print(f"{key=}")
-            print(f"{config_dict=}")
-            print(f"{config_name=}")
-            print(config_dict[config_name])
+            # print(f"{key=}")
+            # print(f"{config_dict=}")
+            # print(f"{config_name=}")
+            # print(config_dict[config_name])
             current_dir = os.path.dirname(os.path.realpath(__file__))
             base_dir = "/".join(current_dir.split("/")[:-1])
             filename = config_dict[config_name]
@@ -327,6 +327,17 @@ class ExperimentLauncher(BaseLauncher):
                 )
 
         return config_dict, hparam_dict
+
+    @staticmethod
+    def dict_to_arg(dict, prefix="", key_to_arg="="):
+        """Base with Change for Translation from None to Null for Hydra"""
+        argument_string = ""
+        for key, value in dict.items():
+            if value == None:
+                argument_string += f"{prefix}{key}{key_to_arg}Null "
+            else:
+                argument_string += f"{prefix}{key}{key_to_arg}{value} "
+        return argument_string
 
 
 if __name__ == "__main__":
