@@ -18,6 +18,7 @@ class PretrainedArch:
         self.ckpt_path = self.rel_path_to
 
 
+# TODO: This might be automated based on hparams and pathfinder --> see nnDetection stuff
 model_list = [
     # Pretrained Archs from Cifar10 with ResNets
     PretrainedArch(
