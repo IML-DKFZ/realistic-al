@@ -30,6 +30,9 @@ dm_params = {
     "data_root": os.getenv("DATA_ROOT"),
 }
 
+# TODO: How can Tests access environment Variables??? -- or make tests agnostic to saved Datasets!
+dm_params = {"data_root": "/home/c817h/Documents/datasets"}
+
 
 def setup_active_datamodule(seed):
     set_seed(seed)
@@ -53,7 +56,7 @@ class TestSet(Dataset):
         return self.len
 
 
-def test_active_dataset():
+def test_active_dataset_identical_seed():
     """Test whether two datasets are identical for the same Seed"""
     dm_1 = setup_active_datamodule(SEED)
 
@@ -67,7 +70,7 @@ def test_active_dataset():
     assert dm_1.val_set.indices == dm_2.val_set.indices
 
 
-def test_active_dataset_seeds():
+def test_active_dataset_different_seeds():
     """Test whether two datasets differ for different SEEDS"""
     seed = SEED
     dm_1 = setup_active_datamodule(seed)
