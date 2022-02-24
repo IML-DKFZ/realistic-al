@@ -10,13 +10,14 @@
 # from .utils import activesubset_from_subset, ActiveSubset, seed_worker
 
 # from .transformations import get_transform
+"""This Module contains the Code to create toy datasets in numpy arrays."""
 
 import numpy as np
 from sklearn.datasets import make_classification
 from sklearn.datasets import make_moons, make_circles, make_checkerboard, make_blobs
 
 
-def generate_hypercube_data(n_samples, n_dim=2, seed=12345):
+def generate_hypercube_data(n_samples, noise=0.3, n_dim=2, seed=12345):
     """Generate a random n-class classification problem based on hypercubes in n_dim.
 
     For more Information about Data Generation process see:
@@ -30,26 +31,33 @@ def generate_hypercube_data(n_samples, n_dim=2, seed=12345):
         n_informative=n_dim - 1,
         n_redundant=1,
     )
+    X += np.random.randn(*X.shape) * noise
     return X, y
 
 
-def generate_blob_data(n_samples, n_dim=2, centers=3, seed=12345):
+def generate_blob_data(n_samples, noise=1, n_dim=2, centers=3, seed=12345):
     X, y = make_blobs(
-        n_samples=n_samples, n_features=n_dim, centers=centers, random_state=seed
+        n_samples=n_samples,
+        n_features=n_dim,
+        centers=centers,
+        random_state=seed,
+        cluster_std=noise,
     )
     return X, y
 
 
-def generate_moons_data(n_samples, seed=12345):
-    X, y = make_moons(n_samples=n_samples, shuffle=True, noise=None, random_state=seed)
+def generate_moons_data(n_samples, noise=0.15, seed=12345):
+    X, y = make_moons(n_samples=n_samples, shuffle=True, random_state=seed, noise=noise)
     return X, y
 
 
-def generate_circles_data(n_samples, seed=12345):
-    X, y = make_circles(n_samples, shuffle=True, random_state=seed)
+def generate_circles_data(n_samples, noise=0.15, seed=12345, factor=0.5):
+    X, y = make_circles(
+        n_samples, shuffle=True, random_state=seed, noise=noise, factor=factor
+    )
     return X, y
 
-
+# Generating Checkerboard Data is super interesting, but needs to be implemented!
 # def generate_checkerboard_data(n_samples, n_dim, seed=12345):
 #     X, y = make_checkerboard()
 
@@ -88,7 +96,7 @@ if __name__ == "__main__":
     }
 
     for dataname, data in datasets.items():
-        print("Working on Data Type {}".format(dataname))
+        print("Plotting Data Type {}".format(dataname))
         # TODO: maybe make a check whether this works y can be CENTERS!
         try:
             X, y = data
@@ -108,7 +116,7 @@ if __name__ == "__main__":
 
             if dataname == "blob_4":
                 plt.scatter(X[:, 0], X[:, 1], c=merge_labels(y, num_labels=2))
-                plt.savefig("{}_split.png".format(dataname))
+                plt.savefig("toy_{}_split.png".format(dataname))
                 plt.cla()
                 plt.clf()
 
@@ -116,4 +124,12 @@ if __name__ == "__main__":
         except Exception as e:
             print(e)
             print("Unsuccesful on Data Type {}".format(dataname))
-            pass
+
+    for dataname, data in datasets.items():
+        print(
+            "Mean and Std for Data Type {}".format(dataname)
+        )
+        X, y = data
+        print("Mean: {}".format(X.mean(axis=0)))
+        print("Std: {}".format(X.std(axis=0)))
+    

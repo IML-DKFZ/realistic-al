@@ -19,6 +19,8 @@ class AbstractClassifier(pl.LightningModule):
         self,
         eman: bool = True,
     ):
+        """Abstract Classifier carrying the logic for Bayesian Models with MC Dropout and logging for base values.
+        Dropout is per default used always, also during validation due to nature of Bayesian Model (Yarin Gal)"""
         super().__init__()
 
         # general model
