@@ -5,12 +5,12 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": ["resnet", "wideresnet-cifar10"],
-    "data": "cifar10",
+    "data": "cifar100",
     "optim": ["sgd"],
 }
 
 hparam_dict = {
-    "active.num_labelled": [40, 500, 1000, 5000],
+    "active.num_labelled": [400, 2500, 10000],
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": 0.01,  # is more stable than 0.1!
     # "model.use_ema": [True, False],

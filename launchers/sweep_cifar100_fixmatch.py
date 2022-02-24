@@ -4,29 +4,33 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
-    "model": ["resnet", "wideresnet-cifar10"],
-    "data": "cifar10",
-    "optim": ["sgd"],
+    # "model": ["resnet18", "wideresnet-cifar10"],
+    "model": "wideresnet-cifar10",
+    "data": "cifar100",
+    "active": "standard",
+    "optim": "sgd_fixmatch",
 }
 
 hparam_dict = {
-    "active.num_labelled": [40, 500, 1000, 5000],
+    "active.num_labelled": [400, 2500, 10000],  # , 1000, 5000],
     "model.dropout_p": [0, 0.5],
-    "model.learning_rate": 0.01,  # is more stable than 0.1!
-    # "model.use_ema": [True, False],
-    "model.use_ema": False,
-    "trainer.max_epochs": 200,
+    "model.learning_rate": 0.03,  # is more stable than 0.1!
+    "model.small_head": [True, False],
+    "model.use_ema": [True, False],
+    "trainer.max_epochs": 2000,
     "trainer.seed": [12345],  # , 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
         "cifar_randaugment",
     ],
+    "sem_sl.eman": [True, False],
 }
 
 naming_conv = (
-    "sweep_basic_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
+    "sweep_fixmatch_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
 )
-path_to_ex_file = "src/run_training.py"
+# naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
+path_to_ex_file = "src/run_training_fixmatch.py"
 
 joint_iteration = None
 

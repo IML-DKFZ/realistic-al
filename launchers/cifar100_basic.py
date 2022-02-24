@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": ["random", "entropy", "kcentergreedy", "bald"],
-    "data": ["cifar10"],  # , "cifar100"],
+    "data": ["cifar100"],  # , "cifar100"],
     "active": ["standard"],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
@@ -33,11 +33,6 @@ if __name__ == "__main__":
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
-
-    if "model.load_pretrained" in hparam_dict:
-        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
-            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
-        )
 
     launcher = ExperimentLauncher(
         config_dict,
