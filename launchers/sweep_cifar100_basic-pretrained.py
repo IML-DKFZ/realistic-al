@@ -5,19 +5,12 @@ config_dict = {
     "model": [
         "resnet"
     ],  # , "wideresnet-cifar10"], currently there are only pretrained models for resnet18 available!
-    "data": "cifar10",
+    "data": "cifar100",
     "optim": ["sgd"],
 }
 
-# Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
-load_pretrained = [
-    "SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
-    # "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
-    # "SSL/SimCLR/cifar10/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
-]
-
 hparam_dict = {
-    "active.num_labelled": [40, 500, 1000, 5000],
+    "active.num_labelled": [400, 2500, 10000],  # according to FixMatch
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": [0.001],  # is more stable than 0.1!
     # "model.use_ema": [True, False], # obtain best model without EMA and then check on this setting for benefits!
@@ -42,7 +35,7 @@ path_to_ex_file = "src/run_training.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    parser.add_argument("--data", type=str, default=config_dict["data"])
+    # parser.add_argument("--data", type=str, default=config_dict["data"])
     parser.add_argument("--model", type=str, default=config_dict["model"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()

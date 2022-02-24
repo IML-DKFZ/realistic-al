@@ -132,6 +132,7 @@ class TrainingLoop(object):
         )
 
     def fit(self):
+        print("Start Experiment with Name: {}".format(self.cfg.trainer.experiment_name))
         datamodule = self.model.wrap_dm(self.datamodule)
         self.trainer.fit(model=self.model, datamodule=datamodule)
         if not self.cfg.trainer.fast_dev_run:
