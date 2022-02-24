@@ -1,5 +1,6 @@
 from typing import Optional, Sequence, Union
 
+import numpy as np
 import pytorch_lightning as pl
 import torch
 from sklearn.model_selection import train_test_split
@@ -14,8 +15,8 @@ from .transformations import get_transform
 from .utils import ActiveSubset, activesubset_from_subset, seed_worker
 
 
-def make_toy_dataset(X, y):
-    return TensorDataset(torch.Tensor(X), torch.Tensor(y))
+def make_toy_dataset(X: np.ndarray, y: np.ndarray):
+    return TensorDataset(torch.from_numpy(X).to(dtype=torch.float), torch.from_numpy(y))
 
 
 class ToyDM(pl.LightningDataModule):

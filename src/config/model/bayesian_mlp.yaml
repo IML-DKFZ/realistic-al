@@ -9,3 +9,5 @@ hidden_dims : [20, 20]
 dropout_p: 0
 use_bn: True
 k: 50
+freeze_encoder: False
+finetune: False
