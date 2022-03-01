@@ -1,3 +1,5 @@
+import os
+
 import pytorch_lightning as pl
 from models.bayesian import BayesianModule
 from data.data import TorchVisionDM
@@ -14,6 +16,7 @@ class ActiveTrainingLoop(object):
         datamodule: TorchVisionDM,
         count: Union[None, int] = None,
         active: bool = True,
+        base_dir: str = None,
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
@@ -25,6 +28,8 @@ class ActiveTrainingLoop(object):
         self.ckpt_callback = None
         self.callbacks = None
         self.device = "cuda:0"
+        self.base_dir = base_dir
+        self.log_dir = None
 
     def init_callbacks(self):
         """Initializing the Callbacks used in Pytorch Lightning."""
@@ -51,17 +56,19 @@ class ActiveTrainingLoop(object):
         Loggers initialized: Tensorobard Loggers
         Name scheme for logs:
         - if no count - root/name/id
-        - if count - root/name/id/count
+        - if count - root/name/id/loop-{count}
 
         Note: hydra always logs in id folder"""
-        if self.count is None:
-            version = self.cfg.trainer.experiment_id
-            name = self.cfg.trainer.experiment_name
-        else:
+        # TODO: Move part of the logic up to logger creation to init!
+        version = self.cfg.trainer.experiment_id
+        name = self.cfg.trainer.experiment_name
+        self.log_dir = self.base_dir
+        if self.count is not None:
             version = "loop-{}".format(self.count)
-            name = "{}/{}".format(
+            name = os.path.join(
                 self.cfg.trainer.experiment_name, self.cfg.trainer.experiment_id
             )
+            self.log_dir = os.path.join(self.base_dir, name)
         tb_logger = pl.loggers.TensorBoardLogger(
             save_dir=self.cfg.trainer.experiments_root,
             name=name,
@@ -105,16 +112,25 @@ class ActiveTrainingLoop(object):
         self.trainer.test(model=self.model, datamodule=self.datamodule)
 
     def active_callback(self):
+        """Execute active learning logic.
+        Returns the queries to the oracle."""
         self.model = self.model.to(self.device)
-        query_sampler = QuerySampler(self.cfg, self.model, count=self.count)
+        query_sampler = QuerySampler(
+            self.cfg, self.model, count=self.count, device=self.device
+        )
         query_sampler.setup()
         stored = query_sampler.active_callback(self.datamodule)
         return stored
 
     def main(self):
+        """Executing logic of the Trainer"""
+        self.init_logger()
+        os.chdir(self.log_dir)
         self.init_model()
         self.init_callbacks()
-        self.init_logger()
         self.init_trainer()
         self.fit()
         self.test()
+        # add a wrap up!
+
+        os.chdir(self.base_dir)

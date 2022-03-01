@@ -12,14 +12,13 @@ from utils.storing import ActiveStore
 from utils import plots
 import matplotlib.pyplot as plt
 
-DEVICE = "cuda:0"
-
-
+# TODO: simplify the logic of this class -- I do not 100% understand this anymore!
 class QuerySampler:
-    def __init__(self, cfg, model: nn.Module, count=None):
+    def __init__(self, cfg, model: nn.Module, count=None, device="cuda:0"):
         self.model = model
         self.cfg = cfg
         self.count = count
+        self.device = device
 
     def query_samples(self, datamodule: pl.LightningDataModule):
         """Query samples with the selected Query Sampler for the Active Datamodule"""
@@ -69,7 +68,7 @@ class QuerySampler:
 
     def ranking_step(self, pool_loader, labeled_loader):
         """Computes Ranking of the data and returns indices of data to be acquired (with scores if possible)"""
-        self.model = self.model.to(DEVICE)
+        self.model = self.model.to(self.device)
         self.model.eval()
         acq_size = self.cfg.active.acq_size
         if self.cfg.query.name.split("_")[0] in query_uncertainty.names:

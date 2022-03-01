@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ sns.set_style()
 ### data helper functions
 
 
-def create_2d_grid_from_data(X):
+def create_2d_grid_from_data(X: np.ndarray):
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
@@ -20,13 +21,13 @@ def create_2d_grid_from_data(X):
 
 
 def fig_class_full_2d(
-    pred_train,
-    pred_val,
-    lab_train,
-    lab_val,
-    grid_lab,
-    grid_arrays,
-    pred_unlabelled=None,
+    pred_train: np.ndarray,
+    pred_val: np.ndarray,
+    lab_train: np.ndarray,
+    lab_val: np.ndarray,
+    grid_lab: np.ndarray,
+    grid_arrays: Tuple(np.ndarray, np.ndarray),
+    pred_unlabelled: np.ndarray = None,
 ):
     fig, axes = plt.subplots(1, 2, sharex="col", sharey="row")
     axes[0].set_title("Training Data")
