@@ -1,20 +1,113 @@
 # from data.data import TorchVisionDM
+from collections import defaultdict
+import numpy as np
+import torch
 import hydra
 from omegaconf import DictConfig
+from torch import Tensor
 from utils import config_utils
+from torch.utils.data import TensorDataset, DataLoader
 
 import utils
 from trainer import ActiveTrainingLoop
 
-from data.toy_dm import ToyDM
+from data.toy_dm import ToyDM, make_toy_dataset
+from plotlib.toy_plots import create_2d_grid_from_data, fig_class_full_2d
 
-active_dataset = False
+active_dataset = True
 
 
 @hydra.main(config_path="./config", config_name="config_toy")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)
+
+
+class ToyActiveLearningLoop(ActiveTrainingLoop):
+    def final_callback(self):
+        # get data for training
+        self.model = self.model.to(self.device)
+        try:
+            pool_loader = self.datamodule.pool_dataloader()
+            pool_data = get_outputs(self.model, pool_loader, self.device)
+        except TypeError:
+            pool_data = None
+
+        # keep in mind to keep training data without transformations here!
+        train_loader = self.datamodule.train_dataloader()
+        train_data = get_outputs(self.model, train_loader, self.device)
+        # get data for validation
+        val_loader = self.datamodule.val_dataloader()
+        val_data = get_outputs(self.model, val_loader, self.device)
+        # get data for test (optional)
+        test_loader = self.datamodule.test_dataloader()
+        test_data = get_outputs(self.model, test_loader, self.device)
+
+        # get data for grid
+
+        grid = create_2d_grid_from_data(test_data["data"])
+        X_grid = np.c_[grid[0].ravel(), grid[1].ravel()]
+        grid_loader = self.datamodule.create_dataloader(
+            make_toy_dataset(X_grid, np.zeros(X_grid.shape[0], dtype=np.int) - 1),
+        )
+
+        grid_data = get_outputs(self.model, grid_loader, self.device)
+
+        if pool_data is None:
+            pred_unlabelled = None
+        else:
+            pred_unlabelled = pool_data["data"]
+
+        fig, axs = fig_class_full_2d(
+            train_data["data"],
+            val_data["data"],
+            train_data["label"],
+            val_data["label"],
+            grid_lab=grid_data["pred"],
+            grid_arrays=grid,
+            pred_unlabelled=pred_unlabelled,
+        )
+        import matplotlib.pyplot as plt
+        import os
+
+        plt.savefig(f"{self.log_dir}/fig_class_full_2d.png")
+
+        plt.savefig(f"{utils.visuals_folder}/fig_class_full_2d.png")
+        plt.clf()
+        plt.cla()
+
+        # do iterations over all datasets
+
+        # create a final plot
+
+
+# TODO: generalize this so that this works with functions and/or saves more data -- see c817h repo for ideas
+def get_outputs(model, dataloader, device="cuda:0"):
+    """Gets the data, labels, softmax and predictions of model for the dataloader"""
+    full_outputs = defaultdict(list)
+    for x, y in dataloader:
+        full_outputs["data"].append(tensor_to_numpy(x))
+        x = x.to(device)
+        out = model(x)
+        full_outputs["prob"].append(tensor_to_numpy(out))
+        # get max class
+        pred = torch.argmax(out, dim=1)
+        full_outputs["pred"].append(tensor_to_numpy(torch.exp(pred)))
+        if y is not None:
+            full_outputs["label"].append(tensor_to_numpy(y))
+        else:
+            # create dummy label with same shape as predictions if no labels applicable
+            # value of -1
+            dummy_label = torch.ones_like(pred) * -1
+            full_outputs["label"].append(tensor_to_numpy(dummy_label))
+    # convert everyting to one big numpy array
+    for key, value in full_outputs.items():
+        full_outputs[key] = np.concatenate(value)
+    return full_outputs
+
+
+def tensor_to_numpy(tensor: Tensor):
+    return tensor.to("cpu").detach().numpy()
 
 
 def train(cfg: DictConfig):
@@ -53,7 +146,7 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = ActiveTrainingLoop(cfg, datamodule, active=False)
+    training_loop = ToyActiveLearningLoop(cfg, datamodule, active=False)
     training_loop.main()
 
 

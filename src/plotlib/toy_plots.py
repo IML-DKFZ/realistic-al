@@ -26,7 +26,7 @@ def fig_class_full_2d(
     lab_train: np.ndarray,
     lab_val: np.ndarray,
     grid_lab: np.ndarray,
-    grid_arrays: Tuple(np.ndarray, np.ndarray),
+    grid_arrays: Tuple[np.ndarray, np.ndarray],
     pred_unlabelled: np.ndarray = None,
 ):
     fig, axes = plt.subplots(1, 2, sharex="col", sharey="row")

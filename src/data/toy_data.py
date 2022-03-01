@@ -83,6 +83,7 @@ def merge_labels(y, num_labels=2):
 
 
 if __name__ == "__main__":
+    # TODO: move all of this to tests
     import matplotlib.pyplot as plt
     import seaborn as sns
 

@@ -193,10 +193,25 @@ class ToyDM(pl.LightningDataModule):
             drop_last=False,
         )
 
+    def create_dataloader(self, dataset, drop_last=False, shuffle=False):
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
+            drop_last=False,
+        )
+
     def pool_dataloader(self, batch_size=64, m: Optional[int] = None):
         """Returns the dataloader for the pool with test time transformations and optional the
         given size of the dataset. For labeling the pool - get indices with get_pool_indices"""
-        pool = self.train_set.pool
+        if hasattr(self.train_set, "pool"):
+            pool = self.train_set.pool
+        else:
+            raise TypeError(
+                "Training Set does not have the attribute pool. \n Try to use the ActiveDataset (by enabling active)"
+            )
         self.indices = np.arange(len(pool), dtype=np.int)
 
         if m:

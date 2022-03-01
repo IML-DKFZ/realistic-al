@@ -16,7 +16,7 @@ class ActiveTrainingLoop(object):
         datamodule: TorchVisionDM,
         count: Union[None, int] = None,
         active: bool = True,
-        base_dir: str = None,
+        base_dir: str = os.getcwd(),
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
@@ -74,6 +74,7 @@ class ActiveTrainingLoop(object):
             name=name,
             version=version,
         )
+        # add csv logger for important values!
         self.logger = tb_logger
 
     def init_model(self):
@@ -122,6 +123,9 @@ class ActiveTrainingLoop(object):
         stored = query_sampler.active_callback(self.datamodule)
         return stored
 
+    def final_callback(self):
+        pass
+
     def main(self):
         """Executing logic of the Trainer"""
         self.init_logger()
@@ -131,6 +135,7 @@ class ActiveTrainingLoop(object):
         self.init_trainer()
         self.fit()
         self.test()
+        self.final_callback()
         # add a wrap up!
 
         os.chdir(self.base_dir)
