@@ -1,3 +1,4 @@
+import os
 from data.data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
@@ -47,7 +48,9 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = ActiveTrainingLoop(cfg, datamodule, active=False)
+    training_loop = ActiveTrainingLoop(
+        cfg, datamodule, active=False, base_dir=os.getcwd()
+    )
     training_loop.main()
 
 

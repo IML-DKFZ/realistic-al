@@ -1,4 +1,5 @@
 # from data.data import TorchVisionDM
+import os
 from collections import defaultdict
 import numpy as np
 import torch
@@ -14,7 +15,7 @@ from trainer import ActiveTrainingLoop
 from data.toy_dm import ToyDM, make_toy_dataset
 from plotlib.toy_plots import create_2d_grid_from_data, fig_class_full_2d
 
-active_dataset = True
+active_dataset = False
 
 
 @hydra.main(config_path="./config", config_name="config_toy")
@@ -146,7 +147,9 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = ToyActiveLearningLoop(cfg, datamodule, active=False)
+    training_loop = ToyActiveLearningLoop(
+        cfg, datamodule, active=False, base_dir=os.getcwd()
+    )
     training_loop.main()
 
 

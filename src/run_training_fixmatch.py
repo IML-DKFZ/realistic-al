@@ -1,3 +1,4 @@
+import os
 from models.fixmatch import FixMatch
 from data.data import TorchVisionDM
 import hydra
@@ -49,7 +50,7 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = FixTrainingLoop(cfg, datamodule, active=False)
+    training_loop = FixTrainingLoop(cfg, datamodule, active=False, base_dir=os.getcwd())
     training_loop.main()
 
 

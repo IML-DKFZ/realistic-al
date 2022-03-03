@@ -7,6 +7,9 @@ from query import QuerySampler
 import torch
 from typing import Union
 import gc
+from datetime import datetime
+from utils.log_utils import log_git
+from utils.io import save_json
 
 
 class ActiveTrainingLoop(object):
@@ -30,6 +33,7 @@ class ActiveTrainingLoop(object):
         self.device = "cuda:0"
         self.base_dir = base_dir
         self.log_dir = None
+        self.init_paths()
 
     def init_callbacks(self):
         """Initializing the Callbacks used in Pytorch Lightning."""
@@ -51,6 +55,26 @@ class ActiveTrainingLoop(object):
         self.ckpt_callback = ckpt_callback
         self.callbacks = callbacks
 
+    def init_paths(self):
+        self.version = self.cfg.trainer.experiment_id
+        self.name = self.cfg.trainer.experiment_name
+        self.log_dir = self.base_dir
+        if self.count is not None:
+            self.version = "loop-{}".format(self.count)
+            self.name = os.path.join(
+                self.cfg.trainer.experiment_name, self.cfg.trainer.experiment_id
+            )
+            # here might appear errors for active learning
+            self.log_dir = os.path.join(self.base_dir, self.name)
+
+    @staticmethod
+    def obtain_meta_data(repo_path: str, repo_name: str = "repo-name"):
+        # based on: https://github.com/MIC-DKFZ/nnDetection/blob/6ac7dac6fd9ffd85b74682a2f565e0028305c2c0/scripts/train.py#L187-L226
+        meta_data = {}
+        meta_data["date"] = str(datetime.now())
+        meta_data["git"] = log_git(repo_path, repo_name=repo_name)
+        return meta_data
+
     def init_logger(self):
         """Initialize the Loggers used in Pytorch Lightning.
         Loggers initialized: Tensorobard Loggers
@@ -59,20 +83,10 @@ class ActiveTrainingLoop(object):
         - if count - root/name/id/loop-{count}
 
         Note: hydra always logs in id folder"""
-        # TODO: Move part of the logic up to logger creation to init!
-        version = self.cfg.trainer.experiment_id
-        name = self.cfg.trainer.experiment_name
-        self.log_dir = self.base_dir
-        if self.count is not None:
-            version = "loop-{}".format(self.count)
-            name = os.path.join(
-                self.cfg.trainer.experiment_name, self.cfg.trainer.experiment_id
-            )
-            self.log_dir = os.path.join(self.base_dir, name)
         tb_logger = pl.loggers.TensorBoardLogger(
             save_dir=self.cfg.trainer.experiments_root,
-            name=name,
-            version=version,
+            name=self.name,
+            version=self.version,
         )
         # add csv logger for important values!
         self.logger = tb_logger
@@ -126,10 +140,19 @@ class ActiveTrainingLoop(object):
     def final_callback(self):
         pass
 
+    def setup_log_struct(self):
+        meta_data = self.obtain_meta_data(
+            os.path.dirname(os.path.abspath(__file__)), repo_name="active-playground"
+        )
+        if os.path.exists(self.log_dir) is False:
+            os.makedirs(self.log_dir)
+        save_meta = os.path.join(self.log_dir, "meta.json")
+        save_json(meta_data, save_meta)
+
     def main(self):
         """Executing logic of the Trainer"""
+        self.setup_log_struct()
         self.init_logger()
-        os.chdir(self.log_dir)
         self.init_model()
         self.init_callbacks()
         self.init_trainer()
