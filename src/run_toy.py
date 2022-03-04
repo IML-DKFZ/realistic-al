@@ -1,11 +1,15 @@
 # from data.data import TorchVisionDM
+from abc import abstractclassmethod
 import os
 from collections import defaultdict
+from typing import Callable, Optional, Tuple
+from importlib_metadata import entry_points
 import numpy as np
 import torch
 import hydra
 from omegaconf import DictConfig
 from torch import Tensor
+from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct
 from utils import config_utils
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -13,7 +17,11 @@ import utils
 from trainer import ActiveTrainingLoop
 
 from data.toy_dm import ToyDM, make_toy_dataset
-from plotlib.toy_plots import create_2d_grid_from_data, fig_class_full_2d
+from plotlib.toy_plots import (
+    create_2d_grid_from_data,
+    fig_class_full_2d,
+    fig_uncertain_full_2d,
+)
 
 active_dataset = True
 
@@ -74,6 +82,21 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         plt.savefig(f"{self.log_dir}/fig_class_full_2d.png")
 
         plt.savefig(f"{utils.visuals_folder}/fig_class_full_2d.png")
+        plt.clf()
+        plt.cla()
+
+        functions_unc = (
+            # get_batch_data,
+            GetModelUncertainties(self.model, device=self.device),
+        )
+        grid_unc = get_functional_from_loader(grid_loader, functions_unc)
+        fig, axs = fig_uncertain_full_2d(
+            train_data["data"], train_data["label"], grid_unc, grid
+        )
+
+        plt.savefig(f"{self.log_dir}/fig_uncertain_full_2d.png")
+
+        plt.savefig(f"{utils.visuals_folder}/fig_uncertain_full_2d.png")
         plt.clf()
         plt.cla()
 
@@ -154,10 +177,10 @@ def get_outputs(model, dataloader, device="cuda:0"):
         full_outputs["data"].append(tensor_to_numpy(x))
         x = x.to(device)
         out = model(x)
-        full_outputs["prob"].append(tensor_to_numpy(out))
+        full_outputs["prob"].append(tensor_to_numpy(torch.exp(out)))
         # get max class
         pred = torch.argmax(out, dim=1)
-        full_outputs["pred"].append(tensor_to_numpy(torch.exp(pred)))
+        full_outputs["pred"].append(tensor_to_numpy(pred))
         if y is not None:
             full_outputs["label"].append(tensor_to_numpy(y))
         else:
@@ -171,6 +194,115 @@ def get_outputs(model, dataloader, device="cuda:0"):
     return full_outputs
 
 
+def get_outputs2(model, dataloader, device="cuda:0"):
+    functions = (get_batch_data, GetModelOutputs(model, device=device))
+    loader_dict = get_functional_from_loader(dataloader, functions)
+    return loader_dict
+
+
+def get_batch_data(batch, out_dict: dict = None):
+    if out_dict is None:
+        out_dict = dict()
+    if isinstance(batch, (list, tuple)):
+        x, y = batch
+    else:
+        raise NotImplemented(
+            "Currently this function is only implemented for batches of type tuple"
+        )
+    out_dict["data"] = tensor_to_numpy(x)
+    if y is not None:
+        out_dict["label"] = tensor_to_numpy(y)
+    else:
+        # create dummy label with same shape as predictions if no labels applicable
+        # value of -1
+        dummy_label = torch.ones(x.shape[0], dtype=torch.long) * -1
+        out_dict["label"] = tensor_to_numpy(dummy_label)
+    return out_dict
+
+
+class AbstractBatchData(object):
+    def __init__(self):
+        pass
+
+    def __call__(self, batch, out_dict: dict = None):
+        if out_dict is None:
+            out_dict = dict()
+        if isinstance(batch, (list, tuple)):
+            x, y = batch
+        else:
+            raise NotImplemented(
+                "Currently this function is only implemented for batches of type tuple"
+            )
+        out_dict = self.custom_call(x, out_dict=out_dict, batch=batch, y=y)
+        return out_dict
+
+    @abstractclassmethod
+    def custom_call(self, x: torch.Tensor, out_dict: dict, **kwargs):
+        raise NotImplementedError
+
+
+class GetModelOutputs(AbstractBatchData):
+    def __init__(self, model, device="cuda:0"):
+        super().__init__()
+        self.model = model
+        self.device = device
+        self.model = self.model.to(device)
+
+    # def __call__(self, batch, out_dict: dict = None):
+    #     if out_dict is None:
+    #         out_dict = dict()
+    #     if isinstance(batch, tuple):
+    #         x, y = batch
+    #     else:
+    #         raise NotImplemented(
+    #             "Currently this function is only implemented for batches of type tuple"
+    #         )
+    #     out_dict = self.custom_call(x, out_dict=out_dict, batch=batch)
+    #     return out_dict
+
+    def custom_call(self, x: torch.Tensor, out_dict: dict, **kwargs):
+        x = x.to(self.device)
+        with torch.no_grad():
+            out = self.model(x)
+            out_dict["prob"] = tensor_to_numpy(out)
+            pred = torch.argmax(out, dim=1)
+            out_dict["pred"] = tensor_to_numpy(pred)
+        return out_dict
+
+
+class GetModelUncertainties(GetModelOutputs):
+    def custom_call(self, x: torch.Tensor, out_dict: dict, **kwargs):
+        x = x.to(self.device)
+        bald_fct = get_bald_fct(self.model)
+        entropy_fct = get_bay_entropy_fct(self.model)
+        out_dict["entropy"] = tensor_to_numpy(entropy_fct(x))
+        out_dict["bald"] = tensor_to_numpy(bald_fct(x))
+        return out_dict
+
+
+# this function might also work based on an abstract class (see GetModelOutputs)
+def get_functional_from_loader(
+    dataloader, functions: Tuple[Callable] = (get_batch_data)
+):
+    """Functions in functions are used on every batch in the dataloader.
+    For a template regarding a function see `get_batch_data`
+    Returns a dictionary"""
+    loader_dict = defaultdict(list)
+    for batch in dataloader:
+        batch_dict = None
+        for function in functions:
+            batch_dict = function(batch, out_dict=batch_dict)
+        for key, val in batch_dict.items():
+            loader_dict[key].append(val)
+    # create new dictionary so as to keep loader_dict as list!
+    out_loader_dict = dict()
+    for key, value in loader_dict.items():
+        out_loader_dict[key] = np.concatenate(value)
+    return out_loader_dict
+
+
+# change this to to_numpy and make it so that it is run by default over certain dictionaries!
+# then it is not needed for every save!
 def tensor_to_numpy(tensor: Tensor):
     return tensor.to("cpu").detach().numpy()
 

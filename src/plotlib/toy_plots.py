@@ -1,7 +1,8 @@
-from typing import Tuple
+from typing import Dict, Tuple
 import numpy as np
 
 import matplotlib.pyplot as plt
+from math import ceil
 
 import seaborn as sns
 
@@ -46,7 +47,57 @@ def fig_class_full_2d(
     return fig, axes
 
 
+def fig_uncertain_full_2d(
+    pred_train: np.ndarray,
+    lab_train: np.ndarray,
+    grid_uncertainties: Dict[str, np.ndarray],
+    grid_arrays: Tuple[np.ndarray, np.ndarray],
+    max_cols=4,
+):
+    keys = [key for key in grid_uncertainties.keys()]
+    num_plots = len(keys)
+    num_rows = ceil(num_plots / max_cols)
+    num_cols = min(num_plots, max_cols)
+    fig, axs = plt.subplots(num_rows, num_cols, sharex="col", sharey="row")
+    if num_cols == 1:
+        axs = [axs]
+    if num_rows == 1:
+        axs = [axs]
+    for y, ax_row in enumerate(axs):
+        for x, ax in enumerate(ax_row):
+            count = x + max_cols * y
+
+            if count >= num_plots:
+                continue
+            key = keys[count]
+            grid_unc = grid_uncertainties[key]
+            ax.set_title("Uncertainty Map for {}".format(key))
+            ax = vis_unc_train_2d(ax, pred_train, lab_train, grid_unc, grid_arrays)
+    return fig, axs
+
+
 ## whole visualization routines on axes
+
+
+def vis_unc_train_2d(
+    ax,
+    predictors,
+    labels,
+    grid_labels,
+    grid_arrays,
+):
+    ax = scatter_class(ax, predictors, labels)
+
+    xx, yy = grid_arrays
+    if xx.shape != yy.shape:
+        raise ValueError(
+            "Object grid_arrays needs appropriate inputs with identical sizes!"
+        )
+
+    ax = contourf_contin(ax, xx, yy, grid_labels)
+    ax.set_xlim(xx.min(), xx.max())
+    ax.set_ylim(yy.min(), yy.max())
+    return ax
 
 
 def vis_class_train_2d(

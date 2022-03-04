@@ -148,6 +148,7 @@ def get_model_features(pt_model):
 
 
 def bay_entropy(logits):
+    """Get the mean entropy of multiple logits."""
     k = logits.shape[1]
     out = F.log_softmax(logits, dim=2)  # BxkxD
     # This part was wrong but it performed better than BatchBALD - interesting
