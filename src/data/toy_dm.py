@@ -13,10 +13,29 @@ from .random_fixed_length_sampler import RandomFixedLengthSampler
 from .toy_data import *
 from .transformations import get_transform
 from .utils import ActiveSubset, activesubset_from_subset, seed_worker
+from torch.utils.data import Dataset
 
 
 def make_toy_dataset(X: np.ndarray, y: np.ndarray):
     return TensorDataset(torch.from_numpy(X).to(dtype=torch.float), torch.from_numpy(y))
+
+
+# this might also be implemented simply carrying
+class ToyDataset(Dataset):
+    def __init__(self, X: np.ndarray, y: np.ndarray, transform=None):
+        self.predictors = torch.from_numpy(X).to(dtype=torch.float)
+        self.labels = torch.from_numpy(y)
+        self.transform = transform
+        assert len(X) == len(y)
+
+    def __getitem__(self, index):
+        data = self.predictors[index]
+        if self.transform is not None:
+            data = self.transform(data)
+        return (data, self.labels[index])
+
+    def __len__(self):
+        return len(self.predictors)
 
 
 class ToyDM(pl.LightningDataModule):
@@ -104,7 +123,10 @@ class ToyDM(pl.LightningDataModule):
 
         if True:
             # basic version with train and validation split
-            self.train_set = make_toy_dataset(train_data, train_label)
+            # self.train_set = make_toy_dataset(train_data, train_label)
+            self.train_set = ToyDataset(
+                train_data, train_label, transform=self.train_transforms
+            )
 
             self.train_set = self._split_dataset(self.train_set, train=True)
 
@@ -114,8 +136,14 @@ class ToyDM(pl.LightningDataModule):
                 )
 
             self.val_set = make_toy_dataset(train_data, train_label)
-            self.val_set = self._split_dataset(self.val_set, train=False)
-            self.test_set = make_toy_dataset(test_data, test_label)
+            # self.val_set = self._split_dataset(self.val_set, train=False)
+            self.val_set = ToyDataset(
+                train_data, train_label, transform=self.test_transforms
+            )
+            # self.test_set = make_toy_dataset(test_data, test_label)
+            self.test_set = ToyDataset(
+                test_data, test_label, transform=self.test_transforms
+            )
         else:
             # add cross validation version here!
             pass

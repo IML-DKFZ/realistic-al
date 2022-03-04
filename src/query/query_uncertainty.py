@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from typing import Callable, Tuple
 
-DEVICE = "cuda:0"
+# DEVICE = "cuda:0"
 ###
 
 names = """bald entropy random batchbald""".split()
@@ -26,13 +26,15 @@ def get_acq_function(cfg, pt_model) -> Callable[[torch.Tensor], torch.Tensor]:
         raise NotImplementedError
 
 
-def get_post_acq_function(cfg) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
+def get_post_acq_function(
+    cfg, device="cuda:0"
+) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
     names = str(cfg.query.name).split("_")
     if cfg.query.name == "batchbald":
         from batchbald_redux.batchbald import get_batchbald_batch
 
         # This values should only be used to select the entropy computation
-        # TODO: verify this!
+        # TODO: verify this! -- true
         # num_samples = 100000 # taken from batchbald_redux notebook --> old bb
         num_samples = 40000  # taken from BatchBALD
 
@@ -42,43 +44,24 @@ def get_post_acq_function(cfg) -> Callable[[np.ndarray], Tuple[np.ndarray, np.nd
                 len(logprob_n_k_c.shape) == 3
             )  # make sure that input is of correct type
             logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(
-                device=DEVICE, dtype=torch.double
+                device=device, dtype=torch.double
             )
             out = get_batchbald_batch(
                 logprob_n_k_c,
                 batch_size=acq_size,
                 num_samples=num_samples,
                 dtype=torch.double,
-                device=DEVICE,
+                device=device,
             )
             indices = np.array(out.indices)
             scores = np.array(out.scores)
             return indices, scores
 
         return post_acq_function
-    #  Deprecated code due to change of Dataloader!
-    # elif len(names) == 2 and names[-1] == "random":
-
-    #     def post_acq_function(
-    #         acq_scores: np.ndarray,
-    #         acq_size: int,
-    #         subset_size: int = cfg.active.subset,
-    #     ):
-    #         """Acquires a random subset of scores and then select based on ranking."""
-    #         assert len(acq_scores.shape) == 1
-    #         subset_size = min(subset_size, len(acq_scores))  # size of the subset
-    #         acq_ind = np.arange(len(acq_scores))
-    #         inds = np.argsort(acq_scores)[::-1]
-    #         inds = np.random.choice(inds, size=subset_size, replace=False)
-    #         inds = inds[:acq_size]
-    #         acq_list = acq_scores[inds]
-    #         acq_ind = acq_ind[inds]
-    #         return inds, acq_list
-
     else:
 
         def post_acq_function(acq_scores: np.ndarray, acq_size: int):
-            """Acquires based on ranking."""
+            """Acquires based on ranking. Highest ranks are acquired first."""
             assert len(acq_scores.shape) == 1  # make sure that input is of correct type
             acq_ind = np.arange(len(acq_scores))
             inds = np.argsort(acq_scores)[::-1]
@@ -93,12 +76,14 @@ def get_post_acq_function(cfg) -> Callable[[np.ndarray], Tuple[np.ndarray, np.nd
 ###
 
 
-def query_sampler(dataloader, acq_function, post_acq_function, acq_size=64):
+def query_sampler(
+    dataloader, acq_function, post_acq_function, acq_size=64, device="cuda:0"
+):
     """Returns the queries (acquistion values and indices) given the data pool and the acquisition function.
     The Acquisition Function Returns Numpy arrays!"""
     acq_list = []
     for i, batch in enumerate(dataloader):
-        acq_values = acq_from_batch(batch, acq_function, device=DEVICE)
+        acq_values = acq_from_batch(batch, acq_function, device=device)
         acq_list.append(acq_values)
     acq_list = np.concatenate(acq_list)
     acq_ind, acq_scores = post_acq_function(acq_list, acq_size)
@@ -106,10 +91,10 @@ def query_sampler(dataloader, acq_function, post_acq_function, acq_size=64):
     return acq_scores, acq_ind
 
 
-def sample_acq_fct(batch):
-    x, y = batch
-    scores = np.arange(x.shape[0])
-    return scores
+# def sample_acq_fct(batch):
+#     x, y = batch
+#     scores = np.arange(x.shape[0])
+#     return scores
 
 
 def get_bay_entropy_fct(pt_model):

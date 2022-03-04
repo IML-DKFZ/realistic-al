@@ -28,11 +28,18 @@ def fig_class_full_2d(
     grid_lab: np.ndarray,
     grid_arrays: Tuple[np.ndarray, np.ndarray],
     pred_unlabelled: np.ndarray = None,
+    pred_queries: np.ndarray = None,
 ):
     fig, axes = plt.subplots(1, 2, sharex="col", sharey="row")
     axes[0].set_title("Training Data")
     axes[0] = vis_class_train_2d(
-        axes[0], pred_train, lab_train, grid_lab, grid_arrays, pred_unlabelled
+        axes[0],
+        pred_train,
+        lab_train,
+        grid_lab,
+        grid_arrays,
+        pred_unlabelled,
+        pred_queries,
     )
     axes[1].set_title("Validation Data")
     axes[1] = vis_class_val_2d(axes[1], pred_val, lab_val, grid_lab, grid_arrays)
@@ -43,10 +50,18 @@ def fig_class_full_2d(
 
 
 def vis_class_train_2d(
-    ax, predictors, labels, grid_labels, grid_arrays, predictors_unlabeled=None
+    ax,
+    predictors,
+    labels,
+    grid_labels,
+    grid_arrays,
+    predictors_unlabeled=None,
+    predictors_query=None,
 ):
     if predictors_unlabeled is not None:
         ax = scatter_unlabeled(ax, predictors_unlabeled)
+    if predictors_query is not None:
+        ax = scatter_query(ax, predictors_query)
     ax = scatter_class(ax, predictors, labels)
 
     xx, yy = grid_arrays
@@ -81,6 +96,11 @@ def vis_class_val_2d(ax, predictors, labels, grid_labels, grid_arrays):
 
 def scatter_class(ax, predictors, labels):
     ax.scatter(predictors[:, 0], predictors[:, 1], c=labels, s=20, edgecolor="k")
+    return ax
+
+
+def scatter_query(ax, predictors, labels=None):
+    ax.scatter(predictors[:, 0], predictors[:, 1], c="red", s=20, edgecolor="k")
     return ax
 
 

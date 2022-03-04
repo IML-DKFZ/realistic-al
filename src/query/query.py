@@ -22,7 +22,7 @@ class QuerySampler:
 
     def query_samples(self, datamodule: pl.LightningDataModule):
         """Query samples with the selected Query Sampler for the Active Datamodule"""
-        # TODO: Add possibility here to select subset of pool with certain Size!
+        # possibility to select subset of pool with certain Size via parameter m
         pool_loader = datamodule.pool_dataloader(batch_size=64, m=self.cfg.active.m)
 
         # Core Set uses test transformations for the labeled set.
@@ -35,7 +35,8 @@ class QuerySampler:
         return acq_vals, acq_inds
 
     def active_callback(self, datamodule: pl.LightningDataModule):
-        """Queries samples with selected method, evaluates the current model"""
+        """Queries samples with selected method, evaluates the current model.
+        Requests are the indices to be labelled relative to the pool. (This changes if pool changes)"""
         # TODO: Make this use pre-defined methods for the model!
         acq_vals, acq_inds = self.query_samples(datamodule)
 
@@ -46,14 +47,19 @@ class QuerySampler:
         accuracy_val = evaluate_accuracy(self.model, datamodule.val_dataloader())
         accuracy_test = evaluate_accuracy(self.model, datamodule.test_dataloader())
 
-        vis_callback(
-            n_labelled,
-            acq_labels,
-            acq_data,
-            acq_vals,
-            datamodule.num_classes,
-            count=self.count,
-        )
+        try:
+            vis_callback(
+                n_labelled,
+                acq_labels,
+                acq_data,
+                acq_vals,
+                datamodule.num_classes,
+                count=self.count,
+            )
+        except:
+            print(
+                "No Visualization with vis_callback function possible! \n Trying to Continue"
+            )
 
         return ActiveStore(
             requests=acq_inds,
@@ -73,12 +79,15 @@ class QuerySampler:
         acq_size = self.cfg.active.acq_size
         if self.cfg.query.name.split("_")[0] in query_uncertainty.names:
             acq_function = query_uncertainty.get_acq_function(self.cfg, self.model)
-            post_acq_function = query_uncertainty.get_post_acq_function(self.cfg)
+            post_acq_function = query_uncertainty.get_post_acq_function(
+                self.cfg, device=self.device
+            )
             acq_ind, acq_scores = query_uncertainty.query_sampler(
                 pool_loader,
                 acq_function,
                 post_acq_function,
                 acq_size=acq_size,
+                device=self.device,
             )
         if self.cfg.query.name.split("_")[0] in query_diversity.names:
             acq_ind, acq_scores = query_diversity.query_sampler(

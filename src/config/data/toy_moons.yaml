@@ -4,8 +4,8 @@ num_classes: 2
 val_split: 200
 mean: [0.51141048, 0.24514534]
 std: [0.90286088, 0.52318728]
-transform_train: basic
-transform_test: basic
+transform_train: toy_identity
+transform_test: toy_identity
 # toy specific
 num_samples: 400
 num_test_samples: 5000
