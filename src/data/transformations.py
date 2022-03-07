@@ -1,3 +1,4 @@
+import torch
 from torchvision import transforms
 
 from .randaugment import RandAugmentMC
@@ -11,6 +12,11 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
         transform.append(get_weak_cifar_transform())
     elif name == "cifar_randaugment":
         transform.append(get_randaug_cifar_transform())
+    # TODO: Make this nice down the line -- see how other people do stuff like this!
+    elif name == "toy_gauss":
+        return ToyNoiseTransform()
+    elif name == "toy_identity":
+        return IdentityTransform()
 
     transform.append(get_norm_transform(mean, std))
     transform = transforms.Compose(transform)
@@ -57,3 +63,34 @@ def get_randaug_cifar_transform():
         ]
     )
     return randaug_transform
+
+
+class AbstractTransform:
+    def __call__(self, x):
+        pass
+
+    def __repr__(self):
+        ret_str = (
+            str(type(self).__name__)
+            + "( "
+            + ", ".join([key + " = " + repr(val) for key, val in self.__dict__.items()])
+            + " )"
+        )
+        return ret_str
+
+
+class IdentityTransform(AbstractTransform):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, x):
+        return x
+
+
+class ToyNoiseTransform(AbstractTransform):
+    def __init__(self, sig=0.05):
+        self.sig = sig
+
+    def __call__(self, x: torch.Tensor):
+        out = x + torch.randn_like(x) * self.sig
+        return out

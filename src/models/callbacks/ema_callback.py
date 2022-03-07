@@ -6,6 +6,14 @@ from typing import Sequence
 
 class EMAWeightUpdate(Callback):
     def __init__(self, tau: float = 0.999, eman: bool = False):
+        """Callback which updates the ema model in a pl.Module.
+        EMA is implemented according to MOCO and BYOL by Pytorch Lightning Bolts.
+
+        if eman is true it also updates the BN parameters according to:
+        EMAN: Exponential Moving Average Normalization for Self-supervised and Semi-supervised Learning
+        ArXiv: https://arxiv.org/abs/2101.08482
+        Repo: https://github.com/amazon-research/exponential-moving-average-normalization
+        """
         super().__init__()
         self.tau = tau
         self.eman = eman

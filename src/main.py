@@ -7,7 +7,7 @@ from omegaconf import DictConfig
 
 import utils
 from data.data import TorchVisionDM
-from run_training import TrainingLoop
+from run_training import ActiveTrainingLoop
 from utils import config_utils
 
 
@@ -18,7 +18,7 @@ def main(cfg: DictConfig):
 
     active_loop(
         cfg,
-        TrainingLoop,
+        ActiveTrainingLoop,
         cfg.active.num_labelled,
         cfg.active.balanced,
         cfg.active.acq_size,
@@ -28,7 +28,7 @@ def main(cfg: DictConfig):
 
 def active_loop(
     cfg: DictConfig,
-    TrainingLoop,
+    ActiveTrainingLoop,
     num_labelled: int = 100,
     balanced: bool = True,
     acq_size: int = 10,
@@ -64,7 +64,9 @@ def active_loop(
     active_stores = []
     for i in range(num_iter):
         # Perform active learning iteration with training and labeling
-        trainer = TrainingLoop(cfg, count=i, datamodule=datamodule)
+        trainer = ActiveTrainingLoop(
+            cfg, count=i, datamodule=datamodule, base_dir=os.getcwd()
+        )
         trainer.main()
         active_store = trainer.active_callback()
         datamodule.train_set.label(active_store.requests)
