@@ -1,4 +1,6 @@
+from optparse import Option
 import os
+from pathlib import Path
 
 import numpy as np
 import pytorch_lightning as pl
@@ -6,7 +8,7 @@ from models.bayesian import BayesianModule
 from data.data import TorchVisionDM
 from query import QuerySampler
 import torch
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 import gc
 from datetime import datetime
 from utils.log_utils import log_git
@@ -36,6 +38,7 @@ class ActiveTrainingLoop(object):
         self.log_dir = None  # carries path to logs of training
         self.init_paths()
         self._save_dict = dict()
+        self.data_ckpt_path = None
 
     def init_callbacks(self):
         """Initializing the Callbacks used in Pytorch Lightning."""
@@ -136,7 +139,7 @@ class ActiveTrainingLoop(object):
         self.trainer.test(model=self.model, datamodule=self.datamodule)
 
     def active_callback(self):
-        """Execute active learning logic.
+        """Execute active learning logic. -- not included in main.
         Returns the queries to the oracle."""
         self.model = self.model.to(self.device)
         query_sampler = QuerySampler(
@@ -149,6 +152,7 @@ class ActiveTrainingLoop(object):
     def final_callback(self):
         pass
 
+    # TODO: Saving in log_save_dict could be done via pickle allowing for more datatypes?
     def update_save_dict(self, sub_key: str, sub_dict: Dict[str, np.ndarray]):
         """Update the values of _save_dict with a new dictionary.
 
@@ -166,10 +170,46 @@ class ActiveTrainingLoop(object):
     def log_save_dict(self):
         """Saves the values of _save_dict to log_dir"""
         for sub_key, sub_dict in self._save_dict.items():
-            save_file = os.path.join(self.log_dir, "{}.npz".format(sub_key))
-            np.savez_compressed(save_file, **sub_dict)
+            self.log_dict(sub_key, sub_dict, level="log", sub_folder="save_dict")
+
+    def log_dict(
+        self,
+        name: str,
+        dictionary: Dict[str, np.ndarray],
+        level: str = "log",
+        sub_folder: Optional[str] = None,
+        path: Optional[Union[str, Path]] = None,
+        ending: str = "npz",
+    ):
+        """Save dictionary consisting of np.ndarrays according to log.
+        Pattern: path/sub_folder/name.ending
+
+        Args:
+            name (str): basename of file
+            dictionary (Dict[np.ndarray]): dictionary to save
+            level (str, optional): "base" or "log". Defaults to "log".
+            sub_folder (Optional[str], optional): Additional Path. Defaults to None.
+            path (Optional[Union[str, Path]], optional): Path in which it is saved. Defaults to None.
+            ending (str, optional): _description_. Defaults to "npz".
+
+        Raises:
+            ValueError: _description_
+        """
+        if path is None:
+            if level == "base":
+                path = self.base_dir
+            elif level == "log":
+                path = self.log_dir
+            else:
+                raise ValueError("level is neither base or log and path is None.")
+        path = os.path.join(path, sub_folder)
+        if os.path.isdir(path) is False:
+            os.makedirs(path)
+        save_file = os.path.join(path, "{}.{}".format(name, ending))
+        np.savez_compressed(save_file, **dictionary)
 
     def setup_log_struct(self):
+        """Save Meta data to a json file."""
         meta_data = self.obtain_meta_data(
             os.path.dirname(os.path.abspath(__file__)), repo_name="active-playground"
         )
@@ -179,7 +219,11 @@ class ActiveTrainingLoop(object):
         save_json(meta_data, save_meta)
 
     def main(self):
-        """Executing logic of the Trainer"""
+        """Executing logic of the Trainer.
+        setup_..., init_..., fit, test, final_callback"""
+        if self.active:
+            self.data_ckpt_path = os.path.join(self.log_dir, "data_ckpt.npz")
+            self.datamodule.train_set.save_checkpoint(self.data_ckpt_path)
         self.setup_log_struct()
         self.init_logger()
         self.init_model()

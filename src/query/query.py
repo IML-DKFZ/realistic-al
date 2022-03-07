@@ -1,10 +1,11 @@
 import os
 
+import numpy as np
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from . import query_diversity, query_uncertainty
 
@@ -14,16 +15,40 @@ import matplotlib.pyplot as plt
 
 # TODO: simplify the logic of this class -- I do not 100% understand this anymore!
 class QuerySampler:
-    def __init__(self, cfg, model: nn.Module, count=None, device="cuda:0"):
+    def __init__(
+        self, cfg, model: nn.Module, count: Optional[int] = None, device="cuda:0"
+    ):
+        """Carries functionality to query samples from the pool.
+        acq_size is selected based on cfg.active.acq_size
+
+
+        Args:
+            cfg (_type_): carries needed parameters
+            model (nn.Module): _description_
+            count (Optional[int], optional): used for vis -- which iteration. Defaults to None.
+            device (str, optional): _description_. Defaults to "cuda:0".
+        """
         self.model = model
         self.cfg = cfg
         self.count = count
         self.device = device
+        self.m = cfg.active.m
+        self.acq_size = cfg.active.acq_size
+        self.acq_method = cfg.query.name
 
-    def query_samples(self, datamodule: pl.LightningDataModule):
-        """Query samples with the selected Query Sampler for the Active Datamodule"""
-        # possibility to select subset of pool with certain Size via parameter m
-        pool_loader = datamodule.pool_dataloader(batch_size=64, m=self.cfg.active.m)
+    def query_samples(
+        self, datamodule: pl.LightningDataModule
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Query samples with the selected Query Sampler for the Active Datamodule
+
+        Args:
+            datamodule (pl.LightningDataModule): _description_
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: Queries -- (rankings + pool_indices)
+        """
+        # possibility to select random subset of pool with certain Size via parameter m
+        pool_loader = datamodule.pool_dataloader(batch_size=64, m=self.m)
 
         # Core Set uses test transformations for the labeled set.
         # Own results indicate that there is no difference in performance
@@ -34,9 +59,16 @@ class QuerySampler:
         acq_inds = datamodule.get_pool_indices(acq_inds)
         return acq_vals, acq_inds
 
-    def active_callback(self, datamodule: pl.LightningDataModule):
-        """Queries samples with selected method, evaluates the current model.
-        Requests are the indices to be labelled relative to the pool. (This changes if pool changes)"""
+    def active_callback(self, datamodule: pl.LightningDataModule) -> ActiveStore:
+        """Queries samples on the pool of the datamodule with selected method, evaluates the current model.
+        Requests are the indices to be labelled relative to the pool. (This changes if pool changes)
+
+        Args:
+            datamodule (pl.LightningDataModule): _description_
+
+        Returns:
+            ActiveStore: _description_
+        """
         # TODO: Make this use pre-defined methods for the model!
         acq_vals, acq_inds = self.query_samples(datamodule)
 
@@ -73,11 +105,22 @@ class QuerySampler:
         pass
 
     def ranking_step(self, pool_loader, labeled_loader):
-        """Computes Ranking of the data and returns indices of data to be acquired (with scores if possible)"""
+        """Computes Ranking of the data and returns indices of
+        data to be acquired (with scores if possible).
+
+        Acquisition Strategy: Values with highes ranking are acquired.
+
+        Args:
+            pool_loader (_type_): _description_
+            labeled_loader (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         self.model = self.model.to(self.device)
         self.model.eval()
-        acq_size = self.cfg.active.acq_size
-        if self.cfg.query.name.split("_")[0] in query_uncertainty.names:
+        acq_size = self.acq_size
+        if self.acq_method.split("_")[0] in query_uncertainty.names:
             acq_function = query_uncertainty.get_acq_function(self.cfg, self.model)
             post_acq_function = query_uncertainty.get_post_acq_function(
                 self.cfg, device=self.device
@@ -89,7 +132,7 @@ class QuerySampler:
                 acq_size=acq_size,
                 device=self.device,
             )
-        if self.cfg.query.name.split("_")[0] in query_diversity.names:
+        if self.acq_method.split("_")[0] in query_diversity.names:
             acq_ind, acq_scores = query_diversity.query_sampler(
                 self.cfg, self.model, labeled_loader, pool_loader, acq_size=acq_size
             )

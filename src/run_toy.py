@@ -2,13 +2,17 @@
 from abc import abstractclassmethod
 import os
 from collections import defaultdict
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 from importlib_metadata import entry_points
 import numpy as np
 import torch
 import hydra
 from omegaconf import DictConfig
 from torch import Tensor
+import pytorch_lightning as pl
+
+import matplotlib.pyplot as plt
+
 from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct
 from utils import config_utils
 
@@ -22,7 +26,11 @@ from plotlib.toy_plots import (
     fig_uncertain_full_2d,
 )
 
-active_dataset = True
+active_dataset = False
+
+
+def close_figs():
+    plt.close("all")
 
 
 @hydra.main(config_path="./config", config_name="config_toy")
@@ -31,11 +39,171 @@ def main(cfg: DictConfig):
     train(cfg)
 
 
+class ToyVisCallback(pl.Callback):
+    def __init__(
+        self, datamodule: ToyDM, save_paths: Union[str, Tuple[str]], device="cuda:0"
+    ):
+        self.device = device
+        if isinstance(save_paths, str):
+            save_paths = (save_paths,)
+        self.save_paths = save_paths
+        for save_path in save_paths:
+            if os.path.isdir(save_path) is False:
+                os.makedirs(save_path)
+        self.datamodule = datamodule
+
+        (
+            self.train_loader,
+            self.val_loader,
+            self.test_loader,
+            self.pool_loader,
+            self.grid_loader,
+            self.grid_arrays,
+        ) = self.get_datamodule_loaders(datamodule)
+
+    @staticmethod
+    def get_datamodule_loaders(datamodule):
+        if hasattr(datamodule, "labeled_dataloader"):
+            train_loader = datamodule.labeled_dataloader()
+        else:
+            train_loader = datamodule.train_dataloader()
+        val_loader = datamodule.val_dataloader()
+        test_loader = datamodule.test_dataloader()
+        try:
+            pool_loader = datamodule.pool_dataloader()
+        except TypeError:
+            pool_loader = None
+
+        # this stays only until better method for creating meshgrid is found!
+        test_data = get_functional_from_loader(test_loader)
+
+        grid_arrays = create_2d_grid_from_data(test_data["data"])
+        X_grid = np.c_[grid_arrays[0].ravel(), grid_arrays[1].ravel()]
+        grid_loader = datamodule.create_dataloader(
+            make_toy_dataset(X_grid, np.zeros(X_grid.shape[0], dtype=np.int) - 1),
+        )
+        train_loader, val_loader, test_loader, pool_loader, grid_loader, grid_arrays
+
+    def on_train_epoch_end(
+        self,
+        trainer: pl.Trainer,
+        pl_module: pl.LightningModule,
+        unused: Optional[Any] = None,
+    ) -> None:
+        epoch = trainer.current_epoch
+
+        train_data = get_outputs(pl_module, self.train_loader)
+        val_data = get_outputs(pl_module, self.val_loader)
+        grid_data = get_outputs(pl_module, self.grid_loader)
+        if self.pool_loader is not None:
+            pool_data = get_outputs(pl_module, self.pool_loader)
+        else:
+            pool_data = dict()
+            for key in train_data.keys():
+                pool_data[key] = None
+
+        functions_unc = (GetModelUncertainties(pl_module, device=self.device),)
+        grid_unc = get_functional_from_loader(self.grid_loader, functions_unc)
+        grid_data["xx"] = self.grid_arrays[0]
+        grid_data["yy"] = self.grid_arrays[1]
+        save_paths = self.save_paths
+
+        self.baseline_plots(
+            train_data, val_data, grid_data, pool_data, grid_unc, save_paths, epoch
+        )
+
+        return super().on_train_epoch_end(trainer, pl_module, unused)
+
+    @staticmethod
+    def baseline_plots(
+        train_data: Dict[str, np.ndarray],
+        val_data: Dict[str, np.ndarray],
+        grid_data: Dict[str, np.ndarray],
+        pool_data: Dict[str, np.ndarray],
+        grid_unc: Dict[str, np.ndarray],
+        save_paths: Tuple[str],
+        epoch: Optional[int] = None,
+        savetype="png",
+    ):
+        """Creates the baseline plots from the dictionaries obtained with get_outputs.
+
+        Args:
+            train_data (Dict[str, np.ndarray]): _description_
+            val_data (Dict[str, np.ndarray]): _description_
+            grid_data (Dict[str, np.ndarray]): _description_
+            pool_data (Dict[str, np.ndarray]): _description_
+            grid_unc (Dict[str, np.ndarray]): _description_
+            save_paths (Tuple[str]): _description_
+            epoch (Optional[int], optional): _description_. Defaults to None.
+            savetype (str, optional): _description_. Defaults to "png".
+        """
+        name_suffix = ""
+        if epoch is not None:
+            name_suffix = "_{:05d}"
+        grid_arrays = (grid_data["xx"], grid_data["yy"])
+        fig, axs = fig_class_full_2d(
+            train_data["data"],
+            val_data["data"],
+            train_data["label"],
+            val_data["label"],
+            grid_lab=grid_data["pred"],
+            grid_arrays=grid_arrays,
+            pred_unlabelled=pool_data["data"],
+        )
+        # how to access possibility for functions?
+        for save_path in save_paths:
+            file_path = os.path.join(
+                save_path, "fig_class_full_2d{}.{}".format(name_suffix, savetype)
+            )
+            plt.savefig(file_path)
+        close_figs()
+
+        fig, axs = fig_uncertain_full_2d(
+            train_data["data"], train_data["label"], grid_unc, grid_arrays
+        )
+        for save_path in save_paths:
+            file_path = os.path.join(
+                save_path, "fig_uncertain_full_2d{}.{}".format(name_suffix, savetype)
+            )
+            plt.savefig(file_path)
+        close_figs()
+
+
 class ToyActiveLearningLoop(ActiveTrainingLoop):
+    def init_callbacks(self):
+        super().init_callbacks()
+        if True:
+            save_paths = [self.log_dir]
+            if True:
+                save_paths.append(utils.visuals_folder)
+            save_paths = tuple(
+                [os.path.join(save_path, "epoch_vis") for save_path in save_paths]
+            )
+            toy_vis_callback = ToyVisCallback(
+                self.datamodule, save_paths=save_paths, device=self.device
+            )
+            self.callbacks.append(toy_vis_callback)
+
     def final_callback(self):
         # get data for training
         self.model = self.model.to(self.device)
         self.model.eval()
+
+        # get loaders
+        (
+            train_loader,
+            val_loader,
+            test_loader,
+            pool_loader,
+            grid_loader,
+            grid_arrays,
+        ) = ToyVisCallback.get_datamodule_loaders(self.datamodule)
+
+        # TODO: Make this nice and smooth!
+        # generate data based on ToyVisCallback.get_outputs()
+
+        # generate Plots based on ToyVisCallback.baseline_plots()
+
         try:
             pool_loader = self.datamodule.pool_dataloader()
             pool_data = get_outputs(self.model, pool_loader, self.device)
@@ -54,15 +222,15 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
 
         # get data for grid
 
-        grid = create_2d_grid_from_data(test_data["data"])
-        X_grid = np.c_[grid[0].ravel(), grid[1].ravel()]
+        grid_arrays = create_2d_grid_from_data(test_data["data"])
+        X_grid = np.c_[grid_arrays[0].ravel(), grid_arrays[1].ravel()]
         grid_loader = self.datamodule.create_dataloader(
             make_toy_dataset(X_grid, np.zeros(X_grid.shape[0], dtype=np.int) - 1),
         )
 
         grid_data = get_outputs(self.model, grid_loader, self.device)
-        grid_data["xx"] = grid[0]
-        grid_data["yy"] = grid[1]
+        grid_data["xx"] = grid_arrays[0]
+        grid_data["yy"] = grid_arrays[1]
 
         if pool_data is None:
             pred_unlabelled = None
@@ -75,32 +243,27 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
             train_data["label"],
             val_data["label"],
             grid_lab=grid_data["pred"],
-            grid_arrays=grid,
+            grid_arrays=grid_arrays,
             pred_unlabelled=pred_unlabelled,
         )
-        import matplotlib.pyplot as plt
-        import os
 
         plt.savefig(f"{self.log_dir}/fig_class_full_2d.png")
 
         plt.savefig(f"{utils.visuals_folder}/fig_class_full_2d.png")
-        plt.clf()
-        plt.cla()
+        close_figs()
 
-        functions_unc = (
-            # get_batch_data,
-            GetModelUncertainties(self.model, device=self.device),
-        )
+        functions_unc = (GetModelUncertainties(self.model, device=self.device),)
         grid_unc = get_functional_from_loader(grid_loader, functions_unc)
         fig, axs = fig_uncertain_full_2d(
-            train_data["data"], train_data["label"], grid_unc, grid
+            train_data["data"], train_data["label"], grid_unc, grid_arrays
         )
 
         plt.savefig(f"{self.log_dir}/fig_uncertain_full_2d.png")
 
         plt.savefig(f"{utils.visuals_folder}/fig_uncertain_full_2d.png")
-        plt.clf()
-        plt.cla()
+        close_figs()
+
+        grid_data.update(grid_unc)
         self.update_save_dict("train_data", train_data)
         self.update_save_dict("val_data", val_data)
         self.update_save_dict("test_data", test_data)
@@ -112,13 +275,10 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         active_store = super().active_callback()
         self.model.eval()
         self.model = self.model.to(self.device)
-        # TODO: Try except might be unnecessary here -- check again.
-        try:
-            pool_loader = self.datamodule.pool_dataloader()
-            pool_data = get_outputs(self.model, pool_loader, self.device)
-            self.update_save_dict("pool_data", pool_data)
-        except TypeError:
-            pool_data = None
+
+        pool_loader = self.datamodule.pool_dataloader()
+        pool_data = get_outputs(self.model, pool_loader, self.device)
+        self.update_save_dict("pool_data", pool_data)
 
         # keep in mind to keep training data without transformations here!
         # train_loader = self.datamodule.labeled_dataloader()
@@ -295,7 +455,7 @@ class GetModelUncertainties(AbstractBatchData):
 
 # this function might also work based on an abstract class (see GetModelOutputs)
 def get_functional_from_loader(
-    dataloader, functions: Tuple[Callable] = (get_batch_data)
+    dataloader, functions: Tuple[Callable] = (get_batch_data,)
 ):
     """Functions in functions are used on every batch in the dataloader.
     For a template regarding a function see `get_batch_data`
@@ -375,24 +535,13 @@ def train(cfg: DictConfig):
             datamodule.train_set.label_randomly(num_labelled)
 
     training_loop = ToyActiveLearningLoop(
-        cfg, datamodule, active=False, base_dir=os.getcwd()
+        cfg, datamodule, active=active_dataset, base_dir=os.getcwd()
     )
     training_loop.main()
 
     if active_dataset:
         active_store = training_loop.active_callback()
-        dataset_indices = np.array(
-            datamodule.train_set._oracle_to_pool_index(active_store.requests.tolist())
-        )
-        pool_set = datamodule.train_set.pool
-        acquired_data = []
-        for idx in active_store.requests:
-            x, y = pool_set[idx]
-            acquired_data.append(x.numpy())
-        acquired_data = np.array(acquired_data)
-
-        # datamodule.train_set.label(active_store.requests)
-        # active_stores.append(active_store)
+    training_loop.log_save_dict()
 
 
 if __name__ == "__main__":

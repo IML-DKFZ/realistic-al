@@ -287,6 +287,23 @@ class ActiveLearningDataset(torchdata.Dataset):
         self.labelled = state_dict["labelled"]
         self.random_state = state_dict["random_state"]
 
+    def save_checkpoint(self, save_path: str):
+        """Save statedict as .npz to save_path.
+
+        Args:
+            save_path (str): Path to file which gets saved.
+        """
+        np.savez_compressed(save_path, self.state_dict())
+
+    def load_checkpoint(self, path: str):
+        """Load statedict as .npz from path.
+
+        Args:
+            path (str): Path to file from which to load data
+        """
+        state_dict = np.load(path)
+        self.load_state_dict(state_dict)
+
 
 class ActiveLearningPool(torchdata.Dataset):
     """A dataset that represents the unlabelled pool for active learning.
