@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
-    "model": "resnet_fixmatch",
+    "model": "resnet_fixmatch",  # wideresnet-cifar10
     "data": "cifar10",
     "active": ["cifar10_low_data"],  # standard
     "query": ["random", "entropy", "kcentergreedy", "bald"],
@@ -24,7 +24,7 @@ hparam_dict = {
     "model.small_head": [False],
     "model.use_ema": [True],
     "model.finetune": [True],
-    "model.load_pretrained": load_pretrained,
+    "model.load_pretrained": True,
     "trainer.max_epochs": 2000,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [
@@ -42,16 +42,19 @@ joint_iteration = ["trainer.seed", "model.load_pretrained"]
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
+    # parser.add_argument("--data", type=str, default=config_dict["data"])
+    parser.add_argument("--model", type=str, default=config_dict["model"])
+    # parser.add_argument("--active", type=str, default=config_dict["active"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
+
+    config_dict["data"] = launcher_args.data
+    config_dict["model"] = launcher_args.model
+    config_dict["active"] = launcher_args.active
 
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict
     )
-    if "model.load_pretrained" in hparam_dict:
-        hparam_dict["model.load_pretrained"] = ExperimentLauncher.finalize_paths(
-            hparam_dict["model.load_pretrained"], on_cluster=launcher_args.cluster
-        )
 
     launcher = ExperimentLauncher(
         config_dict,

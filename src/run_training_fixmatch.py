@@ -1,6 +1,4 @@
-import pytorch_lightning as pl
-from torch.functional import norm
-from torch.utils import data
+import os
 from models.fixmatch import FixMatch
 from data.data import TorchVisionDM
 import hydra
@@ -9,7 +7,7 @@ from utils import config_utils
 
 import utils
 
-from run_training import TrainingLoop
+from trainer import ActiveTrainingLoop
 
 active_dataset = True
 
@@ -52,11 +50,11 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = FixTrainingLoop(cfg, datamodule, active=False)
+    training_loop = FixTrainingLoop(cfg, datamodule, active=False, base_dir=os.getcwd())
     training_loop.main()
 
 
-class FixTrainingLoop(TrainingLoop):
+class FixTrainingLoop(ActiveTrainingLoop):
     def init_model(self):
         self.model = FixMatch(self.cfg)
 

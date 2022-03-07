@@ -16,6 +16,7 @@ class FixMatch(AbstractClassifier):
         self,
         config,
     ):
+        """FixMatch Classifier, which can be extended to a bayesian Neural network by setting config.dropout_p to values greater 0."""
         super().__init__(eman=config.sem_sl.eman)
         # maybe add possiblity to use resnext/use
         self.save_hyperparameters(config)

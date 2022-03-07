@@ -281,8 +281,28 @@ class ActiveLearningDataset(torchdata.Dataset):
 
     def load_state_dict(self, state_dict):
         """Load the labelled map and random_state with give state_dict."""
+        assert len(self._dataset) == len(
+            state_dict["labelled"]
+        )  # length of statedict and dataset not equal
         self.labelled = state_dict["labelled"]
         self.random_state = state_dict["random_state"]
+
+    def save_checkpoint(self, save_path: str):
+        """Save statedict as .npz to save_path.
+
+        Args:
+            save_path (str): Path to file which gets saved.
+        """
+        np.savez_compressed(save_path, self.state_dict())
+
+    def load_checkpoint(self, path: str):
+        """Load statedict as .npz from path.
+
+        Args:
+            path (str): Path to file from which to load data
+        """
+        state_dict = np.load(path)
+        self.load_state_dict(state_dict)
 
 
 class ActiveLearningPool(torchdata.Dataset):

@@ -19,6 +19,8 @@ class AbstractClassifier(pl.LightningModule):
         self,
         eman: bool = True,
     ):
+        """Abstract Classifier carrying the logic for Bayesian Models with MC Dropout and logging for base values.
+        Dropout is per default used always, also during validation due to nature of Bayesian Model (Yarin Gal)"""
         super().__init__()
 
         # general model
@@ -121,8 +123,15 @@ class AbstractClassifier(pl.LightningModule):
             self.ema_model.eval()
 
     def on_fit_start(self) -> None:
+        """Initialize metrics for the tensorboard_logger.
+        Either self.logger is a list with tb_logger as first,
+        or only tb_logger is present."""
         metric_placeholder = {"val/acc": 0.0, "test/acc": 0.0}
-        self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
+        self.logger[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
+        # if isinstance(self.logger, (tuple, list)):
+        #     self.logger[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
+        # else:
+        #     self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
 
     def on_validation_epoch_start(self) -> None:
         self.acc_val.reset()

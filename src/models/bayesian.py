@@ -11,6 +11,8 @@ class BayesianModule(AbstractClassifier):
         self,
         config,
     ):
+        """Simple Bayesian Neural Network which can be used with BatchBALD.
+        For a Non-Bayesian Network set config.dopout_p to 0."""
         super().__init__(eman=True)
         self.save_hyperparameters(config)
         self.model = build_model(

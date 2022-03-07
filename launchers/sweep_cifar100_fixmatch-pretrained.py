@@ -5,40 +5,45 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     # "model": ["resnet18", "wideresnet-cifar10"],
-    "model": "wideresnet-cifar10",
-    "data": "cifar10",
+    "model": "resnet_fixmatch",  # wideresnet-cifar10
+    "data": "cifar100",
     "active": "standard",
     "optim": "sgd_fixmatch",
 }
 
 hparam_dict = {
-    "active.num_labelled": [40],  # , 1000, 5000],
+    "active.num_labelled": [400, 2500, 10000],
     "model.dropout_p": [0, 0.5],
-    "model.learning_rate": 0.03,  # is more stable than 0.1!
-    "model.small_head": [True, False],
-    "model.use_ema": [True, False],
+    "model.learning_rate": 0.003,  # according to EMAN paper
+    "model.small_head": [True, False],  # Based on SelfMatch
+    "model.use_ema": [True, False],  # FixMAtch
+    "model.finetune": [True, False],
+    "model.freeze_encoder": [True, False],
+    "model.load_pretrained": True,
     "trainer.max_epochs": 2000,
     "trainer.seed": [12345],  # , 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
-        # "cifar_randaugment",
+        "cifar_randaugment",
     ],
-    "sem_sl.eman": [True, False],
+    "sem_sl.eman": [True, False],  # EMAN Paper
 }
 
-naming_conv = (
-    "sweep_fixmatch_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
-)
-# naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
+naming_conv = "sweep_fixmatch-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
 path_to_ex_file = "src/run_training_fixmatch.py"
 
-joint_iteration = None
+joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
+    # parser.add_argument("--data", type=str, default=config_dict["data"])
+    parser.add_argument("--model", type=str, default=config_dict["model"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
+
+    # config_dict["data"] = launcher_args.data
+    config_dict["model"] = launcher_args.model
 
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
         launcher_args, config_dict, hparam_dict

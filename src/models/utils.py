@@ -26,7 +26,25 @@ def exclude_from_wt_decay(
 
 def load_from_ssl_checkpoint(model: torch.nn.Module, path: str):
     """Loads the parameters from path"""
-    from pl_bolts.models.self_supervised.simclr.simclr_module import SimCLR
+    # TODO: Generalize this function!!!!
+    #################### SUPER UGLY CODE STARTS HERE ##################
+    # Change this part so that there are no cross dependencies between skripts and source folder!
+    import os
+    import sys
+
+    add_to_sys_folder = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "skripts",
+    )
+
+    sys.path.append(add_to_sys_folder)
+
+    from train_simclr import SimCLR_algo as SimCLR
+
+    ################### SUPER UGLY CODE ENDS HERE ######################
+
+    # Deprecated due to WideResNet
+    # from pl_bolts.models.self_supervised.simclr.simclr_module import SimCLR
 
     model_ssl = SimCLR.load_from_checkpoint(path, map_location="cpu", strict=False)
     param_names = model.resnet.state_dict().keys()
