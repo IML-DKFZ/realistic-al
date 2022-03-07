@@ -281,6 +281,9 @@ class ActiveLearningDataset(torchdata.Dataset):
 
     def load_state_dict(self, state_dict):
         """Load the labelled map and random_state with give state_dict."""
+        assert len(self._dataset) == len(
+            state_dict["labelled"]
+        )  # length of statedict and dataset not equal
         self.labelled = state_dict["labelled"]
         self.random_state = state_dict["random_state"]
 

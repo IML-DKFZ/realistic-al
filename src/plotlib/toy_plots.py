@@ -54,8 +54,21 @@ def fig_uncertain_full_2d(
     grid_arrays: Tuple[np.ndarray, np.ndarray],
     max_cols=4,
 ):
+    """Visualizes multiple uncertainty grids based on grid_uncertainties.
+
+    Args:
+        pred_train (np.ndarray): predictors of training set
+        lab_train (np.ndarray): labels of training set
+        grid_uncertainties (Dict[str, np.ndarray]): Dict of arrays which are used for uncertainty map
+        grid_arrays (Tuple[np.ndarray, np.ndarray]): Two numpy arrays (xx and yy) from np.meshgrid
+        max_cols (int, optional): maximal columns of plot. Defaults to 4.
+
+    Returns:
+        Tupe(plt.figure, plt.axes): figure and axes for plots
+    """
     keys = [key for key in grid_uncertainties.keys()]
     num_plots = len(keys)
+    # TODO: Future - think about how to generalize this function
     num_rows = ceil(num_plots / max_cols)
     num_cols = min(num_plots, max_cols)
     fig, axs = plt.subplots(num_rows, num_cols, sharex="col", sharey="row")

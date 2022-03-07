@@ -2,7 +2,7 @@
 from abc import abstractclassmethod
 import os
 from collections import defaultdict
-from typing import Callable, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 from importlib_metadata import entry_points
 import numpy as np
 import torch
@@ -11,7 +11,6 @@ from omegaconf import DictConfig
 from torch import Tensor
 from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct
 from utils import config_utils
-from torch.utils.data import TensorDataset, DataLoader
 
 import utils
 from trainer import ActiveTrainingLoop
@@ -36,6 +35,7 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
     def final_callback(self):
         # get data for training
         self.model = self.model.to(self.device)
+        self.model.eval()
         try:
             pool_loader = self.datamodule.pool_dataloader()
             pool_data = get_outputs(self.model, pool_loader, self.device)
@@ -43,7 +43,7 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
             pool_data = None
 
         # keep in mind to keep training data without transformations here!
-        train_loader = self.datamodule.train_dataloader()
+        train_loader = self.datamodule.labeled_dataloader()
         train_data = get_outputs(self.model, train_loader, self.device)
         # get data for validation
         val_loader = self.datamodule.val_dataloader()
@@ -61,6 +61,8 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         )
 
         grid_data = get_outputs(self.model, grid_loader, self.device)
+        grid_data["xx"] = grid[0]
+        grid_data["yy"] = grid[1]
 
         if pool_data is None:
             pred_unlabelled = None
@@ -99,47 +101,54 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         plt.savefig(f"{utils.visuals_folder}/fig_uncertain_full_2d.png")
         plt.clf()
         plt.cla()
+        self.update_save_dict("train_data", train_data)
+        self.update_save_dict("val_data", val_data)
+        self.update_save_dict("test_data", test_data)
 
-        ## TODO: Add uncertainties here!
-
-        # do iterations over all datasets
-
-        # create a final plot
+        self.update_save_dict("grid", grid_data)
 
     # TODO: This is just for prototyping -- CLEAN THIS UP ASAP!
     def active_callback(self):
         active_store = super().active_callback()
+        self.model.eval()
         self.model = self.model.to(self.device)
+        # TODO: Try except might be unnecessary here -- check again.
         try:
             pool_loader = self.datamodule.pool_dataloader()
             pool_data = get_outputs(self.model, pool_loader, self.device)
+            self.update_save_dict("pool_data", pool_data)
         except TypeError:
             pool_data = None
 
         # keep in mind to keep training data without transformations here!
-        train_loader = self.datamodule.train_dataloader()
-        train_data = get_outputs(self.model, train_loader, self.device)
+        # train_loader = self.datamodule.labeled_dataloader()
+        # train_data = get_outputs(self.model, train_loader, self.device)
         # get data for validation
-        val_loader = self.datamodule.val_dataloader()
-        val_data = get_outputs(self.model, val_loader, self.device)
+        # val_loader = self.datamodule.val_dataloader()
+        # val_data = get_outputs(self.model, val_loader, self.device)
         # get data for test (optional)
-        test_loader = self.datamodule.test_dataloader()
-        test_data = get_outputs(self.model, test_loader, self.device)
+        # test_loader = self.datamodule.test_dataloader()
+        # test_data = get_outputs(self.model, test_loader, self.device)
 
-        # get data for grid
+        # # get data for grid
+        # grid = create_2d_grid_from_data(test_data["data"])
+        # X_grid = np.c_[grid[0].ravel(), grid[1].ravel()]
+        # grid_loader = self.datamodule.create_dataloader(
+        #     make_toy_dataset(X_grid, np.zeros(X_grid.shape[0], dtype=np.int) - 1),
+        # )
+        # grid_data = get_outputs(self.model, grid_loader, self.device)
 
-        grid = create_2d_grid_from_data(test_data["data"])
-        X_grid = np.c_[grid[0].ravel(), grid[1].ravel()]
-        grid_loader = self.datamodule.create_dataloader(
-            make_toy_dataset(X_grid, np.zeros(X_grid.shape[0], dtype=np.int) - 1),
-        )
+        # this only works if final_callback has been executed before active callback!
+        train_data = self._save_dict["train_data"]
+        val_data = self._save_dict["val_data"]
+        grid_data = self._save_dict["grid"]
+        grid_arrays = (self._save_dict["grid"]["xx"], self._save_dict["grid"]["yy"])
 
-        grid_data = get_outputs(self.model, grid_loader, self.device)
         pool_set = self.datamodule.train_set.pool
         acquired_data = []
         for idx in active_store.requests:
             x, y = pool_set[idx]
-            acquired_data.append(x.numpy())
+            acquired_data.append(to_numpy(x))
         acquired_data = np.array(acquired_data)
 
         if pool_data is None:
@@ -153,12 +162,11 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
             train_data["label"],
             val_data["label"],
             grid_lab=grid_data["pred"],
-            grid_arrays=grid,
+            grid_arrays=grid_arrays,
             pred_unlabelled=pred_unlabelled,
             pred_queries=acquired_data,
         )
         import matplotlib.pyplot as plt
-        import os
 
         plt.savefig(f"{self.log_dir}/fig_class_full_2d-active.png")
 
@@ -168,39 +176,50 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         return active_store
 
 
-# TODO: generalize this so that this works with functions and/or saves more data -- see c817h repo for ideas
-# similar functions acq_from_batch in query_uncertainty.py
-def get_outputs(model, dataloader, device="cuda:0"):
+def get_outputs_deprecated(model, dataloader, device="cuda:0"):
     """Gets the data, labels, softmax and predictions of model for the dataloader"""
     full_outputs = defaultdict(list)
     for x, y in dataloader:
-        full_outputs["data"].append(tensor_to_numpy(x))
+        full_outputs["data"].append(to_numpy(x))
         x = x.to(device)
         out = model(x)
-        full_outputs["prob"].append(tensor_to_numpy(torch.exp(out)))
+        full_outputs["prob"].append(to_numpy(torch.exp(out)))
         # get max class
         pred = torch.argmax(out, dim=1)
-        full_outputs["pred"].append(tensor_to_numpy(pred))
+        full_outputs["pred"].append(to_numpy(pred))
         if y is not None:
-            full_outputs["label"].append(tensor_to_numpy(y))
+            full_outputs["label"].append(to_numpy(y))
         else:
             # create dummy label with same shape as predictions if no labels applicable
             # value of -1
             dummy_label = torch.ones_like(pred) * -1
-            full_outputs["label"].append(tensor_to_numpy(dummy_label))
+            full_outputs["label"].append(to_numpy(dummy_label))
     # convert everyting to one big numpy array
     for key, value in full_outputs.items():
         full_outputs[key] = np.concatenate(value)
     return full_outputs
 
 
-def get_outputs2(model, dataloader, device="cuda:0"):
+def get_outputs(model, dataloader, device="cuda:0"):
     functions = (get_batch_data, GetModelOutputs(model, device=device))
     loader_dict = get_functional_from_loader(dataloader, functions)
     return loader_dict
 
 
-def get_batch_data(batch, out_dict: dict = None):
+def get_batch_data(batch: Any, out_dict: dict = None) -> dict:
+    """Access data inside of a batch and return it in form of a dictionary.
+    If no out_dict is given then, a new dict is created and returned.
+
+    Args:
+        batch (Any): Batch from a dataloader
+        out_dict (dict, optional): dictionary for extension. Defaults to None.
+
+    Raises:
+        NotImplemented: _description_
+
+    Returns:
+        dict: dictionary carrying batch data
+    """
     if out_dict is None:
         out_dict = dict()
     if isinstance(batch, (list, tuple)):
@@ -209,14 +228,14 @@ def get_batch_data(batch, out_dict: dict = None):
         raise NotImplemented(
             "Currently this function is only implemented for batches of type tuple"
         )
-    out_dict["data"] = tensor_to_numpy(x)
+    out_dict["data"] = to_numpy(x)
     if y is not None:
-        out_dict["label"] = tensor_to_numpy(y)
+        out_dict["label"] = to_numpy(y)
     else:
         # create dummy label with same shape as predictions if no labels applicable
         # value of -1
         dummy_label = torch.ones(x.shape[0], dtype=torch.long) * -1
-        out_dict["label"] = tensor_to_numpy(dummy_label)
+        out_dict["label"] = to_numpy(dummy_label)
     return out_dict
 
 
@@ -237,7 +256,7 @@ class AbstractBatchData(object):
         return out_dict
 
     @abstractclassmethod
-    def custom_call(self, x: torch.Tensor, out_dict: dict, **kwargs):
+    def custom_call(self, x: Tensor, out_dict: dict, **kwargs):
         raise NotImplementedError
 
 
@@ -248,35 +267,29 @@ class GetModelOutputs(AbstractBatchData):
         self.device = device
         self.model = self.model.to(device)
 
-    # def __call__(self, batch, out_dict: dict = None):
-    #     if out_dict is None:
-    #         out_dict = dict()
-    #     if isinstance(batch, tuple):
-    #         x, y = batch
-    #     else:
-    #         raise NotImplemented(
-    #             "Currently this function is only implemented for batches of type tuple"
-    #         )
-    #     out_dict = self.custom_call(x, out_dict=out_dict, batch=batch)
-    #     return out_dict
-
-    def custom_call(self, x: torch.Tensor, out_dict: dict, **kwargs):
+    def custom_call(self, x: Tensor, out_dict: dict, **kwargs):
         x = x.to(self.device)
         with torch.no_grad():
             out = self.model(x)
-            out_dict["prob"] = tensor_to_numpy(out)
+            out_dict["prob"] = to_numpy(out)
             pred = torch.argmax(out, dim=1)
-            out_dict["pred"] = tensor_to_numpy(pred)
+            out_dict["pred"] = to_numpy(pred)
         return out_dict
 
 
-class GetModelUncertainties(GetModelOutputs):
-    def custom_call(self, x: torch.Tensor, out_dict: dict, **kwargs):
+class GetModelUncertainties(AbstractBatchData):
+    def __init__(self, model, device="cuda:0"):
+        super().__init__()
+        self.model = model
+        self.device = device
+        self.model = self.model.to(device)
+
+    def custom_call(self, x: Tensor, out_dict: dict, **kwargs):
         x = x.to(self.device)
         bald_fct = get_bald_fct(self.model)
         entropy_fct = get_bay_entropy_fct(self.model)
-        out_dict["entropy"] = tensor_to_numpy(entropy_fct(x))
-        out_dict["bald"] = tensor_to_numpy(bald_fct(x))
+        out_dict["entropy"] = to_numpy(entropy_fct(x))
+        out_dict["bald"] = to_numpy(bald_fct(x))
         return out_dict
 
 
@@ -301,10 +314,28 @@ def get_functional_from_loader(
     return out_loader_dict
 
 
-# change this to to_numpy and make it so that it is run by default over certain dictionaries!
-# then it is not needed for every save!
-def tensor_to_numpy(tensor: Tensor):
-    return tensor.to("cpu").detach().numpy()
+def to_numpy(data: Any) -> np.ndarray:
+    """Change data carrier data to a numpy array
+
+    Args:
+        data (Any): data carrier (torch, list, tuple, numpy)
+
+    Raises:
+        TypeError: _description_
+
+    Returns:
+        np.ndarray: array carrying data from data
+    """
+    if torch.is_tensor(data):
+        return data.to("cpu").detach().numpy()
+    elif isinstance(data, (tuple, list)):
+        return np.array(data)
+    elif isinstance(data, np.ndarray):
+        return data
+    else:
+        raise TypeError(
+            "Object data of type {} cannot be converted to np.ndarray".format(data.type)
+        )
 
 
 def train(cfg: DictConfig):

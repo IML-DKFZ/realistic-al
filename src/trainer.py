@@ -1,11 +1,12 @@
 import os
 
+import numpy as np
 import pytorch_lightning as pl
 from models.bayesian import BayesianModule
 from data.data import TorchVisionDM
 from query import QuerySampler
 import torch
-from typing import Union
+from typing import Dict, Union
 import gc
 from datetime import datetime
 from utils.log_utils import log_git
@@ -19,7 +20,7 @@ class ActiveTrainingLoop(object):
         datamodule: TorchVisionDM,
         count: Union[None, int] = None,
         active: bool = True,
-        base_dir: str = os.getcwd(),
+        base_dir: str = os.getcwd(),  # TODO: change this to some other value!
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
@@ -31,23 +32,26 @@ class ActiveTrainingLoop(object):
         self.ckpt_callback = None
         self.callbacks = None
         self.device = "cuda:0"
-        self.base_dir = base_dir
-        self.log_dir = None
+        self.base_dir = base_dir  # carries path to run
+        self.log_dir = None  # carries path to logs of training
         self.init_paths()
+        self._save_dict = dict()
 
     def init_callbacks(self):
         """Initializing the Callbacks used in Pytorch Lightning."""
         lr_monitor = pl.callbacks.LearningRateMonitor()
         callbacks = [lr_monitor]
+        ckpt_path = os.path.join(self.log_dir, "checkpoints")
         if self.datamodule.val_dataloader() is not None:
             ckpt_callback = pl.callbacks.ModelCheckpoint(
+                dirpath=ckpt_path,
                 monitor="val/acc",
                 mode="max",
                 save_last=True,
             )
         else:
             ckpt_callback = pl.callbacks.ModelCheckpoint(
-                monitor="train/acc", mode="max"
+                dirpath=ckpt_path, monitor="train/acc", mode="max"
             )
         callbacks.append(ckpt_callback)
         if self.cfg.trainer.early_stop and self.datamodule.val_dataloader is not None:
@@ -65,7 +69,7 @@ class ActiveTrainingLoop(object):
                 self.cfg.trainer.experiment_name, self.cfg.trainer.experiment_id
             )
             # here might appear errors for active learning
-            self.log_dir = os.path.join(self.base_dir, self.name)
+            self.log_dir = os.path.join(self.base_dir, self.name, self.version)
 
     @staticmethod
     def obtain_meta_data(repo_path: str, repo_name: str = "repo-name"):
@@ -89,7 +93,12 @@ class ActiveTrainingLoop(object):
             version=self.version,
         )
         # add csv logger for important values!
-        self.logger = tb_logger
+        csv_logger = pl.loggers.CSVLogger(
+            save_dir=self.cfg.trainer.experiments_root,
+            name=self.name,
+            version=self.version,
+        )
+        self.logger = [tb_logger, csv_logger]
 
     def init_model(self):
         self.model = BayesianModule(self.cfg)
@@ -140,6 +149,26 @@ class ActiveTrainingLoop(object):
     def final_callback(self):
         pass
 
+    def update_save_dict(self, sub_key: str, sub_dict: Dict[str, np.ndarray]):
+        """Update the values of _save_dict with a new dictionary.
+
+        Args:
+            sub_key (str): Key which is added
+            sub_dict (Dict[str, np.ndarray]): Dictionary which is added
+        """
+        for key, val in sub_dict.items():
+            if not isinstance(val, np.ndarray):
+                raise TypeError("sub_dict needs values of type np.ndarray")
+            if not isinstance(key, str):
+                raise TypeError("sub_dict needs keys of type str")
+        self._save_dict[sub_key] = sub_dict
+
+    def log_save_dict(self):
+        """Saves the values of _save_dict to log_dir"""
+        for sub_key, sub_dict in self._save_dict.items():
+            save_file = os.path.join(self.log_dir, "{}.npz".format(sub_key))
+            np.savez_compressed(save_file, **sub_dict)
+
     def setup_log_struct(self):
         meta_data = self.obtain_meta_data(
             os.path.dirname(os.path.abspath(__file__)), repo_name="active-playground"
@@ -161,4 +190,4 @@ class ActiveTrainingLoop(object):
         self.final_callback()
         # add a wrap up!
 
-        os.chdir(self.base_dir)
+        # os.chdir(self.base_dir)
