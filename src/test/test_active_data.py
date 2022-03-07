@@ -107,5 +107,5 @@ def test_active_dataset_different_seeds():
 
 
 if __name__ == "__main__":
-    test_active_dataset()
-    test_active_dataset_seeds()
+    test_active_dataset_identical_seed()
+    test_active_dataset_different_seeds()
