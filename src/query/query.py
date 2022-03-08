@@ -9,8 +9,8 @@ from typing import Optional, Tuple
 
 from . import query_diversity, query_uncertainty
 
-from utils.storing import ActiveStore
-from utils import plots
+from query.storing import ActiveStore
+from plotlib import active_plots
 import matplotlib.pyplot as plt
 
 # TODO: simplify the logic of this class -- I do not 100% understand this anymore!
@@ -173,10 +173,12 @@ def vis_callback(n_labelled, acq_labels, acq_data, acq_vals, num_classes, count=
     if count is not None:
         suffix = f"_{count}"
     vis_path = "."
-    fig, axs = plots.visualize_samples(plots.normalize(acq_data), acq_vals)
+    fig, axs = active_plots.visualize_samples(
+        active_plots.normalize(acq_data), acq_vals
+    )
     plt.savefig(os.path.join(vis_path, "labeled_samples{}.pdf".format(suffix)))
     plt.clf()
 
-    fig, axs = plots.visualize_labels(acq_labels, num_classes)
+    fig, axs = active_plots.visualize_labels(acq_labels, num_classes)
     plt.savefig(os.path.join(vis_path, "labelled_targets{}.pdf".format(suffix)))
     plt.clf()

@@ -8,6 +8,13 @@ import seaborn as sns
 
 sns.set_style()
 
+### generally useful pyplot functions
+
+
+def close_figs():
+    plt.close("all")
+
+
 ### data helper functions
 
 
@@ -31,6 +38,24 @@ def fig_class_full_2d(
     pred_unlabelled: np.ndarray = None,
     pred_queries: np.ndarray = None,
 ):
+    """Create 2 Baseline Plots for 2d Classification tasks.
+    Scatters predictors with labels as colors with contourplot for decision boundaries.
+    1 Plot for Training Data(which can have additional unlabeled (Gray) and Queries (Red))
+    1 Plot for Validation Data.
+
+    Args:
+        pred_train (np.ndarray): predictors for training data
+        pred_val (np.ndarray): predictors for validation data
+        lab_train (np.ndarray): vis. labels for training data
+        lab_val (np.ndarray): vis. labels for validation data
+        grid_lab (np.ndarray): vis. labels for grid contour plot.
+        grid_arrays (Tuple[np.ndarray, np.ndarray]): xx, yy from np.meshgrid
+        pred_unlabelled (np.ndarray, optional): predictors for pool. Defaults to None.
+        pred_queries (np.ndarray, optional): predictors for queries. Defaults to None.
+
+    Returns:
+        Tupe(plt.figure, plt.axes): figure and axes for plots
+    """
     fig, axes = plt.subplots(1, 2, sharex="col", sharey="row")
     axes[0].set_title("Training Data")
     axes[0] = vis_class_train_2d(
@@ -191,6 +216,7 @@ def imshow_contin(ax, xx, yy, prob):
 
 
 def run_example_data():
+    """Example with SK-Learn to showcase how functions work."""
     from sklearn import datasets
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.model_selection import train_test_split

@@ -1,5 +1,5 @@
 from torch import Tensor
-from utils.consistent_mc_dropout import BayesianModule
+from models.bayesian_module import BayesianModule
 
 from .mlp import MLP
 from .registry import register_model

@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 
 from typing import Callable, Tuple
+from .batchbald_redux.batchbald import get_batchbald_batch
 
 # DEVICE = "cuda:0"
 ###
@@ -31,7 +32,6 @@ def get_post_acq_function(
 ) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
     names = str(cfg.query.name).split("_")
     if cfg.query.name == "batchbald":
-        from batchbald_redux.batchbald import get_batchbald_batch
 
         # This values should only be used to select the entropy computation
         # TODO: verify this! -- true

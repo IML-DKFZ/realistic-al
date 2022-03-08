@@ -38,7 +38,6 @@ def load_from_ssl_checkpoint(model: torch.nn.Module, path: str):
     )
 
     sys.path.append(add_to_sys_folder)
-
     from train_simclr import SimCLR_algo as SimCLR
 
     ################### SUPER UGLY CODE ENDS HERE ######################

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Optional, Sequence, Union
 
 import numpy as np
@@ -268,16 +269,30 @@ class ToyDM(pl.LightningDataModule):
         """Returns the indices of the underlying pool given the indices from the pool loader"""
         return self.indices[inds]
 
-    def labeled_dataloader(self, batch_size=64):
+    def labeled_dataloader(self, batch_size: Optional[int] = None):
         """Returns the dataloader for the labeled set with test time transformations"""
-        loader = DataLoader(
-            self.train_set.labelled_set,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            drop_last=self.drop_last,
-        )
+        if batch_size is None:
+            batch_size = self.batch_size
+        if hasattr(self.train_set, "labelled_set"):
+            loader = DataLoader(
+                self.train_set.labelled_set,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+            )
+        else:
+            labelled_dset = deepcopy(self.train_set)
+            labelled_dset.transform = self.test_transforms
+            loader = DataLoader(
+                labelled_dset,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+            )
         return loader
 
 

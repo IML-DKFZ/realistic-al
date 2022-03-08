@@ -4,7 +4,7 @@ from torch import Tensor
 from torch.hub import load_state_dict_from_url
 
 from torch.nn import functional as F
-from utils.consistent_mc_dropout import (
+from models.bayesian_module import (
     ConsistenMCDropout2D,
     ConsistentMCDropout,
     BayesianModule,

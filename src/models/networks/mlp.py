@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from utils.consistent_mc_dropout import ConsistentMCDropout
+from models.bayesian_module import ConsistentMCDropout
 
 
 class MLP(nn.Module):
