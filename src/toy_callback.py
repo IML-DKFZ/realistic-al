@@ -1,10 +1,11 @@
 import os
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 from torch import Tensor
+import torch.nn as nn
 
 from data.toy_dm import ToyDM, make_toy_dataset
 from plotlib.toy_plots import (
@@ -20,6 +21,7 @@ from utils.torch_utils import (
     get_batch_data,
     get_functional_from_loader,
 )
+from models.abstract_classifier import AbstractClassifier
 
 
 class ToyVisCallback(pl.Callback):
@@ -227,14 +229,32 @@ class ToyVisCallback(pl.Callback):
         close_figs()
 
     @staticmethod
-    def get_outputs(pl_module, dataloader, device="cuda:0"):
-        functions = (get_batch_data, GetModelOutputs(pl_module, device=device))
+    def get_outputs(
+        model: nn.Module, dataloader: Iterable, device: str = "cuda:0"
+    ) -> Dict[str, np.ndarray]:
+        """Obtain data and the output of the model of the dataloader.
+
+        Args:
+            model (nn.Module): Classification Model
+            dataloader (Iterable): Dataloader
+            device (str, optional): "cpu" or "cuda". Defaults to "cuda:0".
+
+        Returns:
+            Dict[str, np.ndarray]: Data, Model outputs and predictions
+        """
+        functions = (get_batch_data, GetModelOutputs(model, device=device))
         loader_dict = get_functional_from_loader(dataloader, functions)
         return loader_dict
 
 
 class GetModelUncertainties(AbstractBatchData):
-    def __init__(self, model, device="cuda:0"):
+    def __init__(self, model: AbstractClassifier, device="cuda:0"):
+        """Callable class to obtain uncertainties.
+
+        Args:
+            model (AbstractClassifier): Classifier with MC possibility.
+            device (str, optional): _description_. Defaults to "cuda:0".
+        """
         super().__init__()
         self.model = model
         self.device = device

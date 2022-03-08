@@ -17,7 +17,8 @@ import torch
 from toma import toma
 from tqdm.auto import tqdm
 
-from batchbald_redux import joint_entropy
+# from batchbald_redux import joint_entropy
+from . import joint_entropy
 
 # Cell
 
@@ -75,7 +76,7 @@ def get_batchbald_batch(
     device=None,
 ) -> CandidateBatch:
     """Function to use to obtain draw samples
-    
+
     Args:
     log_probs_N_K_C : Logtis with shape NxKxC over whole pool
     batch_size: acquisition size

@@ -72,7 +72,7 @@ class ActiveTrainingLoop(object):
                 self.cfg.trainer.experiment_name, self.cfg.trainer.experiment_id
             )
             # here might appear errors for active learning
-            self.log_dir = os.path.join(self.base_dir, self.name, self.version)
+            self.log_dir = os.path.join(self.base_dir, self.version)
 
     @staticmethod
     def obtain_meta_data(repo_path: str, repo_name: str = "repo-name"):
@@ -221,10 +221,10 @@ class ActiveTrainingLoop(object):
     def main(self):
         """Executing logic of the Trainer.
         setup_..., init_..., fit, test, final_callback"""
+        self.setup_log_struct()
         if self.active:
             self.data_ckpt_path = os.path.join(self.log_dir, "data_ckpt.npz")
             self.datamodule.train_set.save_checkpoint(self.data_ckpt_path)
-        self.setup_log_struct()
         self.init_logger()
         self.init_model()
         self.init_callbacks()

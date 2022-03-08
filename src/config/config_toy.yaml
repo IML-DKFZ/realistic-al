@@ -4,15 +4,15 @@ defaults:
   - model: bayesian_mlp
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
-  - active: standard
-  - query: bald
+  - active: toy_two_moons
+  - query: entropy
 
 trainer:
   seed: 12345
   batch_size: 64
   num_workers: 16
-  max_epochs: 200
-  min_epochs: 50
+  max_epochs: 40
+  min_epochs: 0
   fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
   experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
@@ -26,6 +26,7 @@ trainer:
   precision: 16
   deterministic: False
   profiler: Null
+  vis_callback: False
   # enable_progress_bar: True
 
 hydra:

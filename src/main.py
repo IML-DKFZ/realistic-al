@@ -1,5 +1,6 @@
 import math
 import os
+from typing import Callable
 
 import hydra
 import numpy as np
@@ -7,7 +8,8 @@ from omegaconf import DictConfig
 
 import utils
 from data.data import TorchVisionDM
-from run_training import ActiveTrainingLoop
+from trainer import ActiveTrainingLoop
+from run_training import get_torchvision_dm
 from utils import config_utils
 
 
@@ -19,6 +21,7 @@ def main(cfg: DictConfig):
     active_loop(
         cfg,
         ActiveTrainingLoop,
+        get_torchvision_dm,
         cfg.active.num_labelled,
         cfg.active.balanced,
         cfg.active.acq_size,
@@ -28,28 +31,14 @@ def main(cfg: DictConfig):
 
 def active_loop(
     cfg: DictConfig,
-    ActiveTrainingLoop,
+    ActiveTrainingLoop=ActiveTrainingLoop,
+    get_active_dm_from_config: Callable = get_torchvision_dm,
     num_labelled: int = 100,
     balanced: bool = True,
     acq_size: int = 10,
     num_iter: int = 0,
 ):
-    datamodule = TorchVisionDM(
-        data_root=cfg.trainer.data_root,
-        batch_size=cfg.trainer.batch_size,
-        dataset=cfg.data.name,
-        min_train=cfg.active.min_train,
-        val_split=cfg.data.val_split,
-        random_split=cfg.active.random_split,
-        num_classes=cfg.data.num_classes,
-        mean=cfg.data.mean,
-        std=cfg.data.std,
-        transform_train=cfg.data.transform_train,
-        transform_test=cfg.data.transform_test,
-        shape=cfg.data.shape,
-        num_workers=cfg.trainer.num_workers,
-        seed=cfg.trainer.seed,
-    )
+    datamodule = get_active_dm_from_config(cfg)
     num_classes = cfg.data.num_classes
     if balanced:
         datamodule.train_set.label_balanced(

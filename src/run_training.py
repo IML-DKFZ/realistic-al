@@ -16,29 +16,46 @@ def main(cfg: DictConfig):
     train(cfg)
 
 
+def get_torchvision_dm(
+    config: DictConfig, active_dataset: bool = True
+) -> TorchVisionDM:
+    """Initialize TorchVisionDM from config.
+
+    Args:
+        config (DictConfig): Config obtained
+        active_dataset (bool, optional): . Defaults to True.
+
+    Returns:
+        TorchVisionDM: _description_
+    """
+    datamodule = TorchVisionDM(
+        data_root=config.trainer.data_root,
+        batch_size=config.trainer.batch_size,
+        dataset=config.data.name,
+        min_train=config.active.min_train,
+        val_split=config.data.val_split,
+        random_split=config.active.random_split,
+        num_classes=config.data.num_classes,
+        mean=config.data.mean,
+        std=config.data.std,
+        transform_train=config.data.transform_train,
+        transform_test=config.data.transform_test,
+        shape=config.data.shape,
+        num_workers=config.trainer.num_workers,
+        seed=config.trainer.seed,
+        active=active_dataset,
+    )
+
+    return datamodule
+
+
 def train(cfg: DictConfig):
     utils.set_seed(cfg.trainer.seed)
     balanced = cfg.active.balanced
     num_classes = cfg.data.num_classes
     num_labelled = cfg.active.num_labelled
 
-    datamodule = TorchVisionDM(
-        data_root=cfg.trainer.data_root,
-        batch_size=cfg.trainer.batch_size,
-        dataset=cfg.data.name,
-        min_train=cfg.active.min_train,
-        val_split=cfg.data.val_split,
-        random_split=cfg.active.random_split,
-        active=active_dataset,
-        num_classes=cfg.data.num_classes,
-        mean=cfg.data.mean,
-        std=cfg.data.std,
-        transform_train=cfg.data.transform_train,
-        transform_test=cfg.data.transform_test,
-        shape=cfg.data.shape,
-        num_workers=cfg.trainer.num_workers,
-        seed=cfg.trainer.seed,
-    )
+    datamodule = get_torchvision_dm(cfg, active_dataset)
     num_classes = cfg.data.num_classes
     if active_dataset:
         if balanced:
