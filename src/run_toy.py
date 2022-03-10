@@ -1,7 +1,6 @@
 # from data.data import TorchVisionDM
 from copy import deepcopy
 import os
-from importlib_metadata import entry_points
 import numpy as np
 import hydra
 from omegaconf import DictConfig
@@ -14,7 +13,6 @@ import utils
 from trainer import ActiveTrainingLoop
 
 from data.toy_dm import ToyDM
-from plotlib.toy_plots import fig_class_full_2d
 from toy_callback import ToyVisCallback
 from query.storing import ActiveStore
 

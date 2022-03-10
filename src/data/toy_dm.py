@@ -60,8 +60,8 @@ class ToyDM(pl.LightningDataModule):
         transform_test: str = "basic",
         transform_train: str = "basic",
         shape: Sequence = (2,),
-        mean: Sequence = (0,),
-        std: Sequence = (1,),
+        mean: Sequence = (0, 0),
+        std: Sequence = (1, 1),
         seed: int = 12345,
     ):
         super().__init__()

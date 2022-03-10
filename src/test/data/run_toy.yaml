@@ -1,0 +1,68 @@
+data:
+  name: two_moons
+  shape:
+  - 2
+  num_classes: 2
+  val_split: 200
+  mean:
+  - 0.51141048
+  - 0.24514534
+  std:
+  - 0.90286088
+  - 0.52318728
+  transform_train: toy_identity
+  transform_test: toy_identity
+  num_samples: 400
+  num_test_samples: 5000
+  noise: 0.15
+optim:
+  optimizer:
+    name: adam
+    momentum: 0.9
+  lr_scheduler:
+    name: steplr
+model:
+  name: bayesian_mlp
+  weight_decay: 0
+  learning_rate: 0.1
+  load_pretrained: null
+  use_ema: false
+  exclude_bn_bias: true
+  hidden_dims:
+  - 20
+  - 20
+  dropout_p: 0
+  use_bn: true
+  k: 50
+  freeze_encoder: false
+  finetune: false
+active:
+  num_labelled: 100
+  min_train: 500
+  balanced: true
+  acq_size: 6
+  num_iter: 10
+  random_split: true
+  m: null
+query:
+  name: entropy
+trainer:
+  seed: 12345
+  batch_size: 64
+  num_workers: 16
+  max_epochs: 1
+  min_epochs: 0
+  fast_dev_run: false
+  data_root: ${oc.env:DATA_ROOT}
+  experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
+  experiment_name: 2d_toy_test
+  experiment_id: test
+  n_gpus: 1
+  check_val_every_n_epoch: 1
+  progress_bar_refresh_rate: 10
+  gradient_clip_val: 0
+  early_stop: false
+  precision: 16
+  deterministic: true
+  profiler: null
+  vis_callback: false
