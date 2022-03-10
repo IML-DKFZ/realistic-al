@@ -46,18 +46,18 @@ def get_batch_data(batch: Any, out_dict: dict = None) -> Dict[str, np.ndarray]:
 
 
 # this function might also work based on an abstract class (see GetModelOutputs)
-def get_functional_from_loader(
-    dataloader: Iterable, functions: Tuple[Callable] = (get_batch_data,)
-):
-    """Functions in functions are used on every batch in the dataloader.
+def concat_functional(
+    chunked_data: Iterable, functions: Tuple[Callable] = (get_batch_data,)
+) -> Dict[str, np.ndarray]:
+    """Concatenates outputs of functions from chunked_data.
     For a template regarding a function see `get_batch_data`.
     Also `AbstractBatchData` allows easy creation.
     Returns a dictionary"""
     loader_dict = defaultdict(list)
-    for batch in dataloader:
+    for data in chunked_data:
         batch_dict = None
         for function in functions:
-            batch_dict = function(batch, out_dict=batch_dict)
+            batch_dict = function(data, out_dict=batch_dict)
         for key, val in batch_dict.items():
             loader_dict[key].append(val)
     # create new dictionary so as to keep loader_dict as list!
@@ -69,6 +69,7 @@ def get_functional_from_loader(
 
 class AbstractBatchData(object):
     def __init__(self):
+        """Abstract Class carrying utility to extract data from batches."""
         pass
 
     def __call__(self, batch, out_dict: dict = None):
@@ -90,8 +91,15 @@ class AbstractBatchData(object):
         raise NotImplementedError
 
 
-class GetModelOutputs(AbstractBatchData):
+class GetClassifierOutputs(AbstractBatchData):
     def __init__(self, model: nn.Module, device="cuda:0"):
+        """Class carrying logic to extract classifier outputs.
+        Useful in combination with `concat_functional`.
+
+        Args:
+            model (nn.Module): Classifier returning log_probs
+            device (str, optional): _description_. Defaults to "cuda:0".
+        """
         super().__init__()
         self.model = model
         self.device = device

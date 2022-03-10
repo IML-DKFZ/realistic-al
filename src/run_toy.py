@@ -1,4 +1,5 @@
 # from data.data import TorchVisionDM
+from copy import deepcopy
 import os
 from importlib_metadata import entry_points
 import numpy as np
@@ -15,6 +16,7 @@ from trainer import ActiveTrainingLoop
 from data.toy_dm import ToyDM
 from plotlib.toy_plots import fig_class_full_2d
 from toy_callback import ToyVisCallback
+from query.storing import ActiveStore
 
 active_dataset = True
 
@@ -86,13 +88,25 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
 
         self.update_save_dict("grid", grid_data)
 
-    # TODO: This is just for prototyping -- CLEAN THIS UP ASAP!
-    def active_callback(self):
+    def active_callback(self) -> ActiveStore:
+        """Executes the Active Callback from its parent class.
+        Then updates internal dictionary with data from the pool and alongside queries.
+        Creates Visualizations.
+
+        Returns:
+            ActiveStore: Carries infor regarding Queries.
+        """
         active_store = super().active_callback()
         pool_loader = self.datamodule.pool_dataloader()
         pool_data = ToyVisCallback.get_outputs(self.model, pool_loader, self.device)
-
-        # pool_data is added here to the save_dict!
+        # we loose ordering of queries by doing this!
+        pool_data["queries"] = np.zeros(pool_data["data"].shape[0], dtype=bool)
+        pool_data["queries"][active_store.requests] = 1
+        active_store_dict = active_store.__dict__
+        for key, val in active_store_dict.items():
+            active_store_dict[key] = to_numpy(val)
+        self.update_save_dict("active_store", active_store_dict)
+        # pool_data is added here to internal _save_dict
         self.update_save_dict("pool_data", pool_data)
 
         # this only works if final_callback has been executed before active callback!
@@ -100,32 +114,22 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         val_data = self._save_dict["val_data"]
         grid_data = self._save_dict["grid"]
 
-        # obtain data from pool.
-        pool_set = self.datamodule.train_set.pool
-        acquired_data = []
-        for idx in active_store.requests:
-            x, y = pool_set[idx]
-            acquired_data.append(to_numpy(x))
-        acquired_data = np.array(acquired_data)
-
-        # create plots
-        # TODO: put this into ToyVisCallback
-        fig, axs = fig_class_full_2d(
-            train_data["data"],
-            val_data["data"],
-            train_data["label"],
-            val_data["label"],
-            grid_lab=grid_data["pred"],
-            grid_arrays=(grid_data["xx"], grid_data["yy"]),
-            pred_unlabelled=pool_data["data"],
-            pred_queries=acquired_data,
-        )
-        import matplotlib.pyplot as plt
-
         save_paths = (self.log_dir, utils.visuals_folder)
-        for save_path in save_paths:
-            plt.savefig(f"{save_path}/fig_class_full_2d-active.png")
-        close_figs()
+
+        # # obtain data from pool.
+        # pool_set = self.datamodule.train_set.pool
+        # acquired_data = []
+        # for idx in active_store.requests:
+        #     x, y = pool_set[idx]
+        #     acquired_data.append(to_numpy(x))
+        # acquired_data = np.array(acquired_data)
+
+        grid_unc = deepcopy(self._save_dict["grid"])
+        for key in train_data.keys():
+            grid_unc.pop(key)
+        ToyVisCallback.query_plot(
+            train_data, val_data, grid_data, pool_data, grid_unc, save_paths, self.count
+        )
         return active_store
 
 

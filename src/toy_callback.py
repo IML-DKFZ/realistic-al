@@ -15,11 +15,11 @@ from plotlib.toy_plots import (
     fig_uncertain_full_2d,
 )
 from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct
-from utils.torch_utils import (
+from utils.concat import (
     AbstractBatchData,
-    GetModelOutputs,
+    GetClassifierOutputs,
     get_batch_data,
-    get_functional_from_loader,
+    concat_functional,
 )
 from models.abstract_classifier import AbstractClassifier
 
@@ -108,7 +108,7 @@ class ToyVisCallback(pl.Callback):
             pool_loader = None
 
         # this stays only until better method for creating meshgrid is found!
-        test_data = get_functional_from_loader(test_loader)
+        test_data = concat_functional(test_loader)
 
         grid_arrays = create_2d_grid_from_data(test_data["data"])
         X_grid = np.c_[grid_arrays[0].ravel(), grid_arrays[1].ravel()]
@@ -169,7 +169,7 @@ class ToyVisCallback(pl.Callback):
                 pool_data[key] = None
 
         functions_unc = (GetModelUncertainties(pl_module, device=device),)
-        grid_unc = get_functional_from_loader(grid_loader, functions_unc)
+        grid_unc = concat_functional(grid_loader, functions_unc)
         grid_data["xx"] = grid_arrays[0]
         grid_data["yy"] = grid_arrays[1]
         return train_data, val_data, test_data, pool_data, grid_data, grid_unc
@@ -229,6 +229,39 @@ class ToyVisCallback(pl.Callback):
         close_figs()
 
     @staticmethod
+    def query_plot(
+        train_data: Dict[str, np.ndarray],
+        val_data: Dict[str, np.ndarray],
+        grid_data: Dict[str, np.ndarray],
+        pool_data: Dict[str, np.ndarray],
+        grid_unc: Dict[str, np.ndarray],
+        save_paths: Tuple[str],
+        loop: Optional[int] = None,
+        savetype="png",
+    ):
+        name_suffix = ""
+        if loop is not None:
+            name_suffix = "_{:05d}".format(loop)
+        acquired_data = pool_data["data"][pool_data["queries"]]
+        fig, axs = fig_class_full_2d(
+            train_data["data"],
+            val_data["data"],
+            train_data["label"],
+            val_data["label"],
+            grid_lab=grid_data["pred"],
+            grid_arrays=(grid_data["xx"], grid_data["yy"]),
+            pred_unlabelled=pool_data["data"],
+            pred_queries=acquired_data,
+        )
+
+        for save_path in save_paths:
+            file_path = os.path.join(
+                save_path, "fig_uncertain_full_2d{}.{}".format(name_suffix, savetype)
+            )
+            plt.savefig(file_path)
+        close_figs()
+
+    @staticmethod
     def get_outputs(
         model: nn.Module, dataloader: Iterable, device: str = "cuda:0"
     ) -> Dict[str, np.ndarray]:
@@ -242,8 +275,8 @@ class ToyVisCallback(pl.Callback):
         Returns:
             Dict[str, np.ndarray]: Data, Model outputs and predictions
         """
-        functions = (get_batch_data, GetModelOutputs(model, device=device))
-        loader_dict = get_functional_from_loader(dataloader, functions)
+        functions = (get_batch_data, GetClassifierOutputs(model, device=device))
+        loader_dict = concat_functional(dataloader, functions)
         return loader_dict
 
 
