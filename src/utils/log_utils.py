@@ -57,6 +57,12 @@ def log_git(repo_path: Union[Path, str], repo_name: str = None):
 
 
 def save_config_to_tests(cfg, save_name):
+    """Place this function inside of a main to extract the OmegaConf dictionary.
+
+    Args:
+        cfg (_type_): _description_
+        save_name (_type_): _description_
+    """
     from omegaconf import OmegaConf
     from utils.path_utils import test_data_folder
     import utils.io as io

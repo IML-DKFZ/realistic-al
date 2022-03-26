@@ -22,6 +22,15 @@ def save_json(data: Any, path: Union[Path, str], indent: int = 4, **kwargs):
         json.dump(data, f, indent=indent, **kwargs)
 
 
+def load_json(path: Union[Path, str], **kwargs) -> Any:
+    suffix = ".json"
+    path = prepare_path(path, suffix)
+
+    with open(path, "r") as f:
+        data = json.load(f, **kwargs)
+    return data
+
+
 def save_pickle(data: Any, path: Union[Path, str], **kwargs):
     suffix = ".pkl"
     path = prepare_path(path, suffix)
@@ -48,7 +57,7 @@ def save_yaml(data: Any, path: Union[Path, str], **kwargs):
 
 
 def load_yaml(path: Union[Path, str], **kwargs) -> Any:
-    suffix = ".pkl"
+    suffix = ".yaml"
     path = prepare_path(path, suffix)
 
     with open(path, "r") as f:
