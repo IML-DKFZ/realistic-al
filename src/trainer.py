@@ -223,7 +223,7 @@ class ActiveTrainingLoop(object):
         setup_..., init_..., fit, test, final_callback"""
         self.setup_log_struct()
         if self.active:
-            self.data_ckpt_path = os.path.join(self.log_dir, "data_ckpt.npz")
+            self.data_ckpt_path = os.path.join(self.log_dir, "data_ckpt")
             self.datamodule.train_set.save_checkpoint(self.data_ckpt_path)
         self.init_logger()
         self.init_model()

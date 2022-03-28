@@ -69,6 +69,7 @@ def train(cfg: DictConfig):
         cfg, datamodule, active=False, base_dir=os.getcwd()
     )
     training_loop.main()
+    training_loop.log_save_dict()
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import numpy as np
 import torch
 import torch.utils.data as torchdata
 from sklearn.utils import check_random_state
+from utils import io
 
 
 def _identity(x):
@@ -271,15 +272,15 @@ class ActiveLearningDataset(torchdata.Dataset):
         """Check if a datapoint is labelled."""
         return self.labelled[idx] == 1
 
-    def get_raw(self, idx: int) -> None:
+    def get_raw(self, idx: int) -> Any:
         """Get a datapoint from the underlying dataset."""
         return self._dataset[idx]
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
         """Return the state_dict, ie. the labelled map and random_state."""
         return {"labelled": self.labelled, "random_state": self.random_state}
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: dict):
         """Load the labelled map and random_state with give state_dict."""
         assert len(self._dataset) == len(
             state_dict["labelled"]
@@ -293,7 +294,7 @@ class ActiveLearningDataset(torchdata.Dataset):
         Args:
             save_path (str): Path to file which gets saved.
         """
-        np.savez_compressed(save_path, self.state_dict())
+        io.save_pickle(self.state_dict, save_path)
 
     def load_checkpoint(self, path: str):
         """Load statedict as .npz from path.
@@ -301,7 +302,7 @@ class ActiveLearningDataset(torchdata.Dataset):
         Args:
             path (str): Path to file from which to load data
         """
-        state_dict = np.load(path)
+        state_dict = io.load_pickle(path)
         self.load_state_dict(state_dict)
 
 

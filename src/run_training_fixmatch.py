@@ -52,6 +52,7 @@ def train(cfg: DictConfig):
 
     training_loop = FixTrainingLoop(cfg, datamodule, active=False, base_dir=os.getcwd())
     training_loop.main()
+    training_loop.log_save_dict()
 
 
 class FixTrainingLoop(ActiveTrainingLoop):

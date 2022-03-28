@@ -53,13 +53,14 @@ def active_loop(
     active_stores = []
     for i in range(num_iter):
         # Perform active learning iteration with training and labeling
-        trainer = ActiveTrainingLoop(
+        training_loop = ActiveTrainingLoop(
             cfg, count=i, datamodule=datamodule, base_dir=os.getcwd()
         )
-        trainer.main()
-        active_store = trainer.active_callback()
+        training_loop.main()
+        active_store = training_loop.active_callback()
         datamodule.train_set.label(active_store.requests)
         active_stores.append(active_store)
+        training_loop.log_save_dict()
 
     val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
     test_accs = np.array([active_store.accuracy_test for active_store in active_stores])
