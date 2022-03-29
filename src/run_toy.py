@@ -112,7 +112,8 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
         val_data = self._save_dict["val_data"]
         grid_data = self._save_dict["grid"]
 
-        save_paths = (self.log_dir, utils.visuals_folder)
+        # save_paths = (self.log_dir, utils.visuals_folder)
+        save_paths = (self.log_dir,)
 
         # # obtain data from pool.
         # pool_set = self.datamodule.train_set.pool
@@ -127,6 +128,14 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
             grid_unc.pop(key)
         ToyVisCallback.query_plot(
             train_data, val_data, grid_data, pool_data, grid_unc, save_paths, self.count
+        )
+        fig, axs = ToyVisCallback.fig_full_vis_2d([self._save_dict])
+        plt.savefig(os.path.join(self.log_dir, "fig_full_vis.png"))
+        ToyVisCallback.save_figs(
+            save_paths=save_paths,
+            save_name="fig_full_vis",
+            savetype="png",
+            name_suffix=ToyVisCallback.get_name_suffix(self.count),
         )
         return active_store
 

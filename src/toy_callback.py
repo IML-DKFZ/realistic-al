@@ -1,5 +1,7 @@
 import os
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union, List
+
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +15,9 @@ from plotlib.toy_plots import (
     create_2d_grid_from_data,
     fig_class_full_2d,
     fig_uncertain_full_2d,
+    vis_class_train_2d,
+    vis_unc_train_2d,
+    vis_class_val_2d,
 )
 from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct
 from utils.concat import (
@@ -197,9 +202,7 @@ class ToyVisCallback(pl.Callback):
             epoch (Optional[int], optional): _description_. Defaults to None.
             savetype (str, optional): _description_. Defaults to "png".
         """
-        name_suffix = ""
-        if epoch is not None:
-            name_suffix = "_{:05d}".format(epoch)
+        name_suffix = ToyVisCallback.get_name_suffix(epoch)
         grid_arrays = (grid_data["xx"], grid_data["yy"])
         fig, axs = fig_class_full_2d(
             train_data["data"],
@@ -239,9 +242,7 @@ class ToyVisCallback(pl.Callback):
         loop: Optional[int] = None,
         savetype="png",
     ):
-        name_suffix = ""
-        if loop is not None:
-            name_suffix = "_{:05d}".format(loop)
+        name_suffix = ToyVisCallback.get_name_suffix(loop)
         acquired_data = pool_data["data"][pool_data["queries"]]
         fig, axs = fig_class_full_2d(
             train_data["data"],
@@ -254,12 +255,32 @@ class ToyVisCallback(pl.Callback):
             pred_queries=acquired_data,
         )
 
-        for save_path in save_paths:
-            file_path = os.path.join(
-                save_path, "fig_uncertain_full_2d{}.{}".format(name_suffix, savetype)
-            )
-            plt.savefig(file_path)
+        ToyVisCallback.save_figs(
+            save_paths, "fig_uncertain_full_2d", savetype, name_suffix
+        )
         close_figs()
+
+    @staticmethod
+    def save_figs(
+        save_paths: Union[Path, str],
+        save_name: str,
+        savetype: Optional[str] = None,
+        name_suffix="",
+    ):
+        if savetype is not None:
+            for save_path in save_paths:
+                file_path = os.path.join(
+                    save_path,
+                    f"{save_name}{name_suffix}.{savetype}",
+                )
+                plt.savefig(file_path)
+
+    @staticmethod
+    def get_name_suffix(count: int):
+        name_suffix = ""
+        if count is not None:
+            name_suffix = "_{:05d}".format(count)
+        return name_suffix
 
     @staticmethod
     def get_outputs(
@@ -278,6 +299,100 @@ class ToyVisCallback(pl.Callback):
         functions = (get_batch_data, GetClassifierOutputs(model, device=device))
         loader_dict = concat_functional(dataloader, functions)
         return loader_dict
+
+    @staticmethod
+    def plot_full_vis_axis(
+        ax: plt.axis, data_dict: dict, x: int, y: int, keys: list, offset: int
+    ):
+        """Add the Plots for the full_vis.png plots given the axis and current location (x, y).
+
+        Args:
+            ax (plt.axis): axis on which plot is created
+            data_dict (dict): carrying inputs from save_dict of one training
+            x (int): plot grid, x
+            y (int): plot grid, y
+            keys (list): list of keys for uncertainties
+            offset (int): how many plots are to be created before uncertainties with keys
+        """
+        grid_arrays = (data_dict["grid"]["xx"], data_dict["grid"]["yy"])
+        if x == 0:
+            ax.set_title("Training Data")
+            ax = vis_class_train_2d(
+                ax=ax,
+                predictors=data_dict["train_data"]["data"],
+                labels=data_dict["train_data"]["label"],
+                grid_labels=data_dict["grid"]["pred"],
+                grid_arrays=grid_arrays,
+                predictors_unlabeled=data_dict["pool_data"]["data"],
+            )
+        if x == 1:
+            ax.set_title("Acquisition Plot")
+            pool_data = data_dict["pool_data"]
+            query_data = pool_data["data"][pool_data["queries"]]
+            ax = vis_class_train_2d(
+                ax=ax,
+                predictors=data_dict["train_data"]["data"],
+                labels=data_dict["train_data"]["label"],
+                grid_labels=data_dict["grid"]["pred"],
+                grid_arrays=grid_arrays,
+                predictors_unlabeled=data_dict["pool_data"]["data"],
+                predictors_query=query_data,
+            )
+        if x == 2:
+            ax.set_title("Validation Data")
+            ax = vis_class_val_2d(
+                ax=ax,
+                predictors=data_dict["val_data"]["data"],
+                labels=data_dict["val_data"]["label"],
+                grid_labels=data_dict["grid"]["pred"],
+                grid_arrays=grid_arrays,
+            )
+        if x >= offset:
+            index = x - offset
+            # print("Index", index)
+            key = keys[index]
+            ax.set_title("Uncertainty Map: {}".format(key))
+            ax = vis_unc_train_2d(
+                ax=ax,
+                predictors=data_dict["train_data"]["data"],
+                labels=data_dict["train_data"]["label"],
+                grid_arrays=grid_arrays,
+                grid_labels=data_dict["grid"][key],
+            )
+
+    @staticmethod
+    def fig_full_vis_2d(listdicts: List[dict]):
+
+        num_rows = len(listdicts)
+
+        grid_unc: dict = listdicts[0]["grid"]
+        keys = [
+            key
+            for key in grid_unc.keys()
+            if key not in ["data", "label", "pred", "xx", "yy", "prob"]
+        ]
+        # print(keys)
+        offset = 3
+        num_cols = offset + len(keys)
+        # num_cols = 5
+        num_plots = num_rows * num_cols
+
+        fig, axs = plt.subplots(
+            num_rows,
+            num_cols,
+            sharex="col",
+            sharey="row",
+            squeeze=False,
+            figsize=(num_cols * 3, num_rows * 3),
+        )
+        for y, ax_row in enumerate(axs):
+            data_dict = listdicts[y]
+            for x, ax in enumerate(ax_row):
+                count = x + num_cols * y
+                if count >= num_plots:
+                    continue
+                ToyVisCallback.plot_full_vis_axis(ax, data_dict, x, y, keys, offset)
+        return fig, axs
 
 
 class GetModelUncertainties(AbstractBatchData):
