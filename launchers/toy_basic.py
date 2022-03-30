@@ -3,20 +3,20 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "bayesian_mlp",
-    "query": ["random", "entropy", "kcentergreedy", "bald", "batchbald"],
+    "query": ["random", "entropy", "bald", "batchbald"],
     "data": "toy_moons",
     "active": "toy_two_moons",
 }
 
 hparam_dict = {
-    # "trainer.seed": [12345, 12346, 12347],
+    "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 40,
-    "trainer.seed": 12345,
+    # "trainer.seed": 12345,
     "trainer.vis_callback": True,
-    "model.dropout_p": [0, 0.5],
+    "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
 }
 naming_conv = (
-    "2dtoy/active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
+    "{data}/active_basic_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 )
 
 joint_iteration = None
