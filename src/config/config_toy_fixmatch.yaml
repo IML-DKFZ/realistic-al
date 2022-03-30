@@ -1,0 +1,38 @@
+defaults:
+  - data: toy_moons
+  - optim: adam
+  - model: bayesian_mlp
+  # - hydra/job_logging: colorlog
+  # - hydra/hydra_logging: colorlog
+  - sem_sl : fixmatch
+  - active: toy_two_moons
+  - query: entropy
+
+trainer:
+  seed: 12345
+  batch_size: 64
+  num_workers: 16
+  max_epochs: 40
+  min_epochs: 0
+  fast_dev_run: False
+  data_root: ${oc.env:DATA_ROOT}
+  experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
+  experiment_name: 2d_toy_fixtest
+  experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
+  n_gpus: 1
+  check_val_every_n_epoch: 1
+  progress_bar_refresh_rate: 10
+  gradient_clip_val: 0
+  early_stop: False
+  precision: 16
+  deterministic: False
+  profiler: Null
+  vis_callback: False # this enables or disables visualizations of training
+  # enable_progress_bar: True
+
+hydra:
+  run:
+    dir: ${trainer.experiments_root}/${trainer.experiment_name}/${trainer.experiment_id}
+
+# test:
+#   checkpoint_path:
