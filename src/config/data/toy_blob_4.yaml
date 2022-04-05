@@ -1,0 +1,12 @@
+name: blob_4
+shape: [2]
+num_classes: 2
+val_split: 200
+mean: [3.19817729, -1.14172817]
+std: [6.47398751, 3.90988173]
+transform_train: toy_identity
+transform_test: toy_identity
+# toy specific
+num_samples: 400
+num_test_samples: 5000
+noise: 1

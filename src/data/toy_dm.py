@@ -104,6 +104,22 @@ class ToyDM(pl.LightningDataModule):
 
         if self.dataset == "two_moons":
             self.dataset_generator = generate_moons_data
+        elif self.dataset == "blob_4c":
+
+            def gen_func(n_samples, noise=0.15, seed=12345):
+                return generate_blob_data(n_samples, noise=0.15, seed=12345, centers=4)
+
+            self.dataset_generator = gen_func
+        elif self.dataset == "blob_4":
+
+            def gen_func(n_samples, noise=0.15, seed=12345):
+                X, y = generate_blob_data(n_samples, noise=0.15, seed=12345, centers=4)
+                y = merge_labels(y, num_labels=2)
+                return X, y
+
+            self.dataset_generator = gen_func
+        elif self.dataset == "circles":
+            self.dataset_generator = generate_circles_data
         else:
             raise NotImplementedError
         self._setup_datasets()
