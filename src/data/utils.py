@@ -1,3 +1,4 @@
+from typing import Any, Iterable
 import torch
 import random
 import numpy as np
@@ -64,6 +65,22 @@ class ConcatDataloader:
         if len(batch) == 1:
             batch = batch[0]
         return batch
+
+
+class MultiHeadedTransform(object):
+    def __init__(self, transforms: Iterable):
+        """Multi Headed Transform on Data.
+
+        Args:
+            transforms (Iterable): Data Transformations
+        """
+        self.transforms = transforms
+
+    def __call__(self, x: Any):
+        out = list()
+        for transform in self.transforms:
+            out.append(transform(x))
+        return tuple(out)
 
 
 class TransformFixMatch(object):

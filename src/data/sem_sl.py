@@ -7,6 +7,7 @@ from .utils import (
     TransformFixMatch,
     activesubset_from_subset,
     seed_worker,
+    MultiHeadedTransform,
 )
 
 from .data import TorchVisionDM
@@ -26,7 +27,12 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
     if isinstance(dm, TorchVisionDM):
         train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
     elif isinstance(dm, ToyDM):
-        train_pool.transform = get_transform(name="toy_gauss")
+        train_pool.transform = MultiHeadedTransform(
+            [
+                get_transform(name="toy_identity", mean=dm.mean, std=dm.std),
+                get_transform(name="toy_gauss", mean=dm.mean, std=dm.std),
+            ]
+        )
     else:
         raise NotImplementedError(
             "For DataModule of Type {} no FixMatch Transformation is implemented.".format(

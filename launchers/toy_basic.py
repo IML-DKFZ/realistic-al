@@ -15,9 +15,7 @@ hparam_dict = {
     "trainer.vis_callback": True,
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
 }
-naming_conv = (
-    "{data}/active_basic_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
-)
+naming_conv = "{data}/active_basic_set-{active}_{model}_dop-{model.dropout_p}_acq-{query}_ep-{trainer.max_epochs}"
 
 joint_iteration = None
 

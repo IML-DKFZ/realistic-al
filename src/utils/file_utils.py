@@ -74,7 +74,7 @@ def get_experiment_df(
 
 def get_experiment_dicts(experiment_path: Path) -> List[dict]:
     file_paths = get_nested_file_list(
-        experiment_path, pardir="loop", subpath="save_dict"
+        experiment_path, pardir="loop", subfolder="save_dict"
     )
     dictlist = [load_files_to_dict(pathfiles) for pathfiles in file_paths]
     return dictlist
@@ -96,7 +96,7 @@ def load_files_to_dict(files: Iterable[Path]):
 
 
 def get_nested_file_list(
-    root_path: Path, pardir: str, subpath: str
+    root_path: Path, pardir: str, subfolder: str
 ) -> List[List[Path]]:
     """Scrape the level below for all folders matching name pardir,
     go into subpath and get paths to all files.
@@ -107,7 +107,7 @@ def get_nested_file_list(
     Args:
         experiment_path (Path): from where to look
         pardir (str): pattern to match
-        subpath (str): directory to go in
+        subfolder (str): directory to go in
 
     Returns:
         List[List[Path]]: files in lists according to *pardir
@@ -115,7 +115,7 @@ def get_nested_file_list(
     files = list()
     for path in root_path.iterdir():
         if path.is_dir() and pardir in path.name:
-            subpath = path / subpath
+            subpath = path / subfolder
             if subpath.is_dir():
                 path_files = list()
                 for file in subpath.iterdir():

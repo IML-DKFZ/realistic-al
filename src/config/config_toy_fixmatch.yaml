@@ -27,7 +27,7 @@ trainer:
   precision: 16
   deterministic: False
   profiler: Null
-  vis_callback: False # this enables or disables visualizations of training
+  vis_callback: True # this enables or disables visualizations of training
   # enable_progress_bar: True
 
 hydra:
