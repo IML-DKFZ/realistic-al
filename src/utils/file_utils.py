@@ -62,6 +62,10 @@ def get_experiment_df(
                 pop_keys.append(key)
         for key in pop_keys:
             out_dict.pop(key)
+
+        # TODO: Check if this is needed generally!
+        for key in out_dict:
+            out_dict[key] = out_dict[key].squeeze(1)
         df_temp = pd.DataFrame(out_dict)
         df_temp["version"] = i  # ToDo - change this to version
         dataframe.append(df_temp)

@@ -85,6 +85,9 @@ class MultiHeadedTransform(object):
 
 class TransformFixMatch(object):
     def __init__(self, mean, std):
+        """Transformation for FixMatch.
+        Callable returning (x_weak, x_strong)
+        """
         self.weak = transforms.Compose(
             [
                 transforms.RandomHorizontalFlip(),

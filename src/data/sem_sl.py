@@ -18,8 +18,6 @@ from torch.utils.data import Subset
 import numpy as np
 from .transformations import get_transform
 
-import pdb
-
 
 def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 6400):
     """Returns the Concatenated Daloader used for FixMatch Training given the datamodule"""
@@ -30,7 +28,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
         train_pool.transform = MultiHeadedTransform(
             [
                 get_transform(name="toy_identity", mean=dm.mean, std=dm.std),
-                get_transform(name="toy_gauss", mean=dm.mean, std=dm.std),
+                get_transform(name="toy_gauss_0.05", mean=dm.mean, std=dm.std),
             ]
         )
     else:
@@ -90,7 +88,6 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
         )
-    # pdb.set_trace()
     return ConcatDataloader(
         sup_loader,
         sem_loader,

@@ -36,7 +36,7 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = FixTrainingLoop(
+    training_loop = FixToyTrainingLoop(
         cfg,
         datamodule,
         active=active_dataset,
@@ -48,7 +48,7 @@ def train(cfg: DictConfig):
     training_loop.log_save_dict()
 
 
-class FixTrainingLoop(ToyActiveLearningLoop):
+class FixToyTrainingLoop(ToyActiveLearningLoop):
     def init_model(self):
         self.model = FixMatch(self.cfg)
 

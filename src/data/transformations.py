@@ -13,8 +13,8 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
     elif name == "cifar_randaugment":
         transform.append(get_randaug_cifar_transform())
     # TODO: Make this nice down the line -- see how other people do stuff like this!
-    elif name == "toy_gauss":
-        return ToyNoiseTransform()
+    elif name == "toy_gauss_0.05":
+        return ToyNoiseTransform(sig=0.05)
     elif name == "toy_identity":
         return IdentityTransform()
 

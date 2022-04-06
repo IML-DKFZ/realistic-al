@@ -1,0 +1,13 @@
+name: bayesian_mlp
+weight_decay:  0 # further experiments might change this
+learning_rate: 0.1 #  works better than 0.001 and 0.01 -- Dropout modles do not fit especially well... with 0.1
+# weight_decay:  0.001 
+load_pretrained: Null
+use_ema: False
+exclude_bn_bias: True
+hidden_dims : [20, 20, 20]
+dropout_p: 0
+use_bn: True
+k: 50
+freeze_encoder: False
+finetune: False
