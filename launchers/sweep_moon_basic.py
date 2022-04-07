@@ -2,7 +2,8 @@ from argparse import ArgumentParser
 from launcher import ExperimentLauncher
 
 config_dict = {
-    "model": ["bayesian_mlp", "deep_bayesian_mlp"],
+    "model": ["bayesian_mlp", "bayesian_mlp_deep"],
+    # "model": "bayesian_mlp_deep",
     "query": ["random"],
     "data": "toy_moons",
     "active": "toy_two_moons",
@@ -26,7 +27,7 @@ naming_conv = (
 
 joint_iteration = None
 
-path_to_ex_file = "src/run_toy_fixmatch.py"
+path_to_ex_file = "src/main_toy.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
