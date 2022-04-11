@@ -131,7 +131,7 @@ class ToyVisCallback(pl.Callback):
 
     @staticmethod
     def get_loaders_data(
-        pl_module,
+        pl_module: pl.LightningModule,
         train_loader,
         val_loader,
         test_loader,
@@ -157,6 +157,7 @@ class ToyVisCallback(pl.Callback):
         Returns:
             _type_: _description_
         """
+        pl_module.eval()
         train_data = ToyVisCallback.get_outputs(pl_module, train_loader)
         val_data = ToyVisCallback.get_outputs(pl_module, val_loader)
         if test:

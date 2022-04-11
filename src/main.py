@@ -61,6 +61,7 @@ def active_loop(
         datamodule.train_set.label(active_store.requests)
         active_stores.append(active_store)
         training_loop.log_save_dict()
+        cfg.active.num_labelled += cfg.active.acq_size
 
     val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
     test_accs = np.array([active_store.accuracy_test for active_store in active_stores])

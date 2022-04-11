@@ -2,27 +2,27 @@ from argparse import ArgumentParser
 from launcher import ExperimentLauncher
 
 config_dict = {
-    "model": ["bayesian_mlp", "bayesian_mlp_deep"],
+    "model": [
+        "bayesian_mlp"
+    ],  # , "bayesian_mlp_deep"], TODO: fix freezing for deep model!
     # "model": "bayesian_mlp_deep",
-    "query": ["random"],
+    # "query": ["random"],
+    "query": ["random", "entropy", "bald", "batchbald"],
     "data": "toy_moons",
     "active": "toy_two_moons",
 }
 
 hparam_dict = {
-    # "trainer.seed": [12345, 12346, 12347],
-    "trainer.seed": 12345,
-    "trainer.max_epochs": 40,
-    "active.num_labelled": [6],
-    "active.num_iter": 5,
-    "active.acq_size": 6,
+    "trainer.seed": [12345, 12346, 12347],
     # "trainer.seed": 12345,
+    "trainer.max_epochs": 40,
     "trainer.vis_callback": True,
-    "model.weight_decay": [0, 0.1, 0.01, 0.001],
-    "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
-    "sem_sl.lambda_u": [1, 3, 5, 7],
+    "model.weight_decay": [0.01],
+    "model.dropout_p": [0.25],  # dropout 0.5 does not work
+    "sem_sl.lambda_u": [3],
 }
-naming_conv = "{data}_sweeps/fixmatch_{model}_drop-{model.dropout_p}_wd-{model.weight_decay}_lambda-{sem_sl.lambda_u}"
+naming_conv = "{data}/active_fixmatch_set-{active}_{model}_dop-{model.dropout_p}_acq-{query}_ep-{trainer.max_epochs}"
+# naming_conv = "{data}_sweeps/fixmatch_{model}_drop-{model.dropout_p}_wd-{model.weight_decay}_lambda-{sem_sl.lambda_u}"
 
 joint_iteration = None
 
