@@ -10,7 +10,7 @@ from .batchbald_redux.batchbald import get_batchbald_batch
 # DEVICE = "cuda:0"
 ###
 
-names = """bald entropy random batchbald""".split()
+names = """bald entropy random batchbald variationratios""".split()
 
 
 def get_acq_function(cfg, pt_model) -> Callable[[torch.Tensor], torch.Tensor]:
@@ -175,7 +175,7 @@ def var_ratios(logits):
     k = logits.shape[1]
     out = F.log_softmax(logits, dim=2)  # BxkxD
     out = torch.logsumexp(out, dim=1) - math.log(k)  # BxkxD --> BxD
-    out = 1 - torch.exp(out.max(dim=-1))  # B
+    out = 1 - torch.exp(out.max(dim=-1).values)  # B
     return out
 
 

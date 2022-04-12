@@ -132,10 +132,13 @@ class QuerySampler:
                 acq_size=acq_size,
                 device=self.device,
             )
-        if self.acq_method.split("_")[0] in query_diversity.names:
+        elif self.acq_method.split("_")[0] in query_diversity.names:
             acq_ind, acq_scores = query_diversity.query_sampler(
                 self.cfg, self.model, labeled_loader, pool_loader, acq_size=acq_size
             )
+
+        else:
+            raise NotImplementedError()
 
         return acq_ind, acq_scores
 
