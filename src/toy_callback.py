@@ -19,7 +19,7 @@ from plotlib.toy_plots import (
     vis_unc_train_2d,
     vis_class_val_2d,
 )
-from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct
+from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct, get_var_ratios
 from utils.concat import (
     AbstractBatchData,
     GetClassifierOutputs,
@@ -354,6 +354,10 @@ class ToyVisCallback(pl.Callback):
             # print("Index", index)
             key = keys[index]
             ax.set_title("Uncertainty Map: {}".format(key))
+            if key == "variationratios":
+                contourf_kwargs = dict(vmin=0, vmax=1)
+            else:
+                contourf_kwargs = 0
             ax = vis_unc_train_2d(
                 ax=ax,
                 predictors=data_dict["train_data"]["data"],
@@ -414,6 +418,8 @@ class GetModelUncertainties(AbstractBatchData):
         x = x.to(self.device)
         bald_fct = get_bald_fct(self.model)
         entropy_fct = get_bay_entropy_fct(self.model)
+        varratios_fct = get_var_ratios(self.model)
         out_dict["entropy"] = entropy_fct(x)
         out_dict["bald"] = bald_fct(x)
+        out_dict["varratios"] = varratios_fct(x)
         return out_dict

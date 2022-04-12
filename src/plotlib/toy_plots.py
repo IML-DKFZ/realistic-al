@@ -125,12 +125,10 @@ def fig_uncertain_full_2d(
 
 
 def vis_unc_train_2d(
-    ax,
-    predictors,
-    labels,
-    grid_labels,
-    grid_arrays,
+    ax, predictors, labels, grid_labels, grid_arrays, contourf_kwargs: dict = None
 ):
+    if contourf_kwargs is None:
+        contourf_kwargs = dict()
     # ax = scatter_class(ax, predictors, labels)
 
     xx, yy = grid_arrays
@@ -139,7 +137,7 @@ def vis_unc_train_2d(
             "Object grid_arrays needs appropriate inputs with identical sizes!"
         )
 
-    ax = contourf_contin(ax, xx, yy, grid_labels)
+    ax = contourf_contin(ax, xx, yy, grid_labels, **contourf_kwargs)
     ax = scatter_class(ax, predictors, labels)
     ax.set_xlim(xx.min(), xx.max())
     ax.set_ylim(yy.min(), yy.max())
@@ -232,8 +230,15 @@ def contourf_class(ax, xx, yy, labels_grid):
     return ax
 
 
-def contourf_contin(ax, xx, yy, prob_grid):
-    ax.contourf(xx, yy, prob_grid.reshape(xx.shape), alpha=0.3, cmap="RdYlBu_r")
+def contourf_contin(ax, xx, yy, prob_grid, **contourf_kwargs):
+    ax.contourf(
+        xx,
+        yy,
+        prob_grid.reshape(xx.shape),
+        alpha=0.3,
+        cmap="RdYlBu_r",
+        **contourf_kwargs
+    )
     return ax
 
 
