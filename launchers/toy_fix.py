@@ -7,7 +7,14 @@ config_dict = {
     ],  # , "bayesian_mlp_deep"], TODO: fix freezing for deep model!
     # "model": "bayesian_mlp_deep",
     # "query": ["random"],
-    "query": ["random", "entropy", "bald", "batchbald"],
+    "query": [
+        "random",
+        "entropy",
+        "bald",
+        "batchbald",
+        "variationratios",
+        "kcentergreedy",
+    ],
     "data": "toy_moons",
     "active": "toy_two_moons",
 }
@@ -15,7 +22,7 @@ config_dict = {
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     # "trainer.seed": 12345,
-    "trainer.max_epochs": 40,
+    "trainer.max_epochs": 12,  # later change to 40?
     "trainer.vis_callback": True,
     "model.weight_decay": [0.01],
     "model.dropout_p": [0.25],  # dropout 0.5 does not work
