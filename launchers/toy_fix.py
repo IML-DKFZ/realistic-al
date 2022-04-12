@@ -15,7 +15,7 @@ config_dict = {
         "variationratios",
         "kcentergreedy",
     ],
-    "data": "toy_moons",
+    "data": ["toy_moons", "toy_circles"],
     "active": "toy_two_moons",
 }
 
