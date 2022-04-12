@@ -178,6 +178,7 @@ class ToyVisCallback(pl.Callback):
         grid_unc = concat_functional(grid_loader, functions_unc)
         grid_data["xx"] = grid_arrays[0]
         grid_data["yy"] = grid_arrays[1]
+        pl_module.train()
         return train_data, val_data, test_data, pool_data, grid_data, grid_unc
 
     @staticmethod

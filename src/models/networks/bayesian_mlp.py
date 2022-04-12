@@ -15,7 +15,11 @@ class BayesianMLP(BayesianModule):
             dim_out=num_classes,
             hidden_dims=hidden_dims,
             dropout_p=dropout_p,
+            # bn = bn change next! all experiments prior to 2022-04-12 have batchnorm as False!
         )
+
+    def get_features(self, x):
+        return x
 
     def mc_forward_impl(self, input: Tensor):
         input = self.mlp(input)
