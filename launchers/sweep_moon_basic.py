@@ -10,15 +10,15 @@ config_dict = {
 }
 
 hparam_dict = {
-    # "trainer.seed": [12345, 12346, 12347],
-    "trainer.seed": 12345,
+    "trainer.seed": [12345, 12346, 12347],
+    # "trainer.seed": 12345,
     "trainer.max_epochs": 40,
     "active.num_labelled": [6],
     "active.num_iter": 5,
     "active.acq_size": 6,
     # "trainer.seed": 12345,
     "trainer.vis_callback": True,
-    "model.weight_decay": [0, 0.1, 0.01, 0.001],
+    "model.weight_decay": [0, 0.01, 0.001],
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
 }
 naming_conv = (

@@ -5,7 +5,14 @@ config_dict = {
     "model": "bayesian_mnist",
     "data": ["mnist", "fashion_mnist"],
     "active": ["mnist_batchbald"],
-    "query": ["random", "bald", "entropy", "batchbald", "kcentergreedy"],
+    "query": [
+        "random",
+        "bald",
+        "entropy",
+        "batchbald",
+        "kcentergreedy",
+        "variationratios",
+    ],
 }
 
 hparam_dict = {
@@ -18,7 +25,7 @@ hparam_dict = {
     "data.transform_train": "basic",
 }
 
-naming_conv = "active_basic_{data}_set-{active}_{model}_ep-{trainer.max_epochs}"
+naming_conv = "{data}/active_basic_set-{active}_{model}_ep-{trainer.max_epochs}"
 path_to_ex_file = "src/main.py"
 
 joint_iteration = None

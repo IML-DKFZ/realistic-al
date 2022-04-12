@@ -4,7 +4,8 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "bayesian_mlp",
     "query": ["random", "entropy", "bald", "batchbald"],
-    "data": "toy_moons",
+    # "data": "toy_moons",
+    "data": "toy_circles",
     "active": "toy_two_moons",
 }
 
