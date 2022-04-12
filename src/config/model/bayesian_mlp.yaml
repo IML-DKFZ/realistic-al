@@ -7,7 +7,7 @@ use_ema: False
 exclude_bn_bias: True
 hidden_dims : [20, 20]
 dropout_p: 0
-use_bn: True
+use_bn: False
 k: 50
 freeze_encoder: False
 finetune: False
