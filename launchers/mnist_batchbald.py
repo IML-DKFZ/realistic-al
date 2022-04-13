@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "bayesian_mnist",
     "data": ["mnist", "fashion_mnist"],
-    "active": ["mnist_batchbald"],
+    "active": ["mnist_batchbald", "mnist_batchbald_double", "mnist_batchbald_start"],
     "query": [
         "random",
         "bald",
