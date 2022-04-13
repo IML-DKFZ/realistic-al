@@ -241,7 +241,7 @@ class ExperimentLauncher(BaseLauncher):
 
         if set(["query", "model.dropout_p"]).issubset(config_settings.keys()):
             if (
-                config_settings["query"] == "bald"
+                config_settings["query"] in ["bald", "batchbald"]
                 and config_settings["model.dropout_p"] == 0
             ):
                 return True
