@@ -86,6 +86,13 @@ if __name__ == "__main__":
     # TODO: move all of this to tests
     import matplotlib.pyplot as plt
     import seaborn as sns
+    # from utils.path_utils import visuals_folder
+    from pathlib import Path 
+    import os 
+    visuals_folder = Path(__file__).resolve().parent.parent.parent / "visuals"
+    save_folder = visuals_folder / "toy_data"
+    if os.path.exists(save_folder) is False:
+        os.makedirs(save_folder)
 
     n_samples = 200
     datasets = {
@@ -111,13 +118,13 @@ if __name__ == "__main__":
             print("Label Shape: {}".format(y.shape))
 
             plt.scatter(X[:, 0], X[:, 1], c=y)
-            plt.savefig("toy_{}.png".format(dataname))
+            plt.savefig(save_folder/"toy_{}.png".format(dataname))
             plt.cla()
             plt.clf()
 
             if dataname == "blob_4":
                 plt.scatter(X[:, 0], X[:, 1], c=merge_labels(y, num_labels=2))
-                plt.savefig("toy_{}_split.png".format(dataname))
+                plt.savefig(save_folder/"toy_{}_split.png".format(dataname))
                 plt.cla()
                 plt.clf()
 

@@ -1,4 +1,6 @@
+from email.policy import default
 from typing import Dict, Tuple
+from xml.dom.pulldom import default_bufsize
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -7,6 +9,18 @@ from math import ceil
 import seaborn as sns
 
 sns.set_style()
+# default_cmap = sns.color_palette("Set2", as_cmap=True)
+# default_cmap = sns.color_palette("pastel", as_cmap=True)
+# default_cmap = sns.color_palette("tab10", as_cmap=True)
+default_cmap = None
+sns.set_palette(sns.color_palette())
+
+### generally useful pyplot functions
+
+
+def close_figs():
+    plt.close("all")
+
 
 ### data helper functions
 
@@ -31,6 +45,24 @@ def fig_class_full_2d(
     pred_unlabelled: np.ndarray = None,
     pred_queries: np.ndarray = None,
 ):
+    """Create 2 Baseline Plots for 2d Classification tasks.
+    Scatters predictors with labels as colors with contourplot for decision boundaries.
+    1 Plot for Training Data(which can have additional unlabeled (Gray) and Queries (Red))
+    1 Plot for Validation Data.
+
+    Args:
+        pred_train (np.ndarray): predictors for training data
+        pred_val (np.ndarray): predictors for validation data
+        lab_train (np.ndarray): vis. labels for training data
+        lab_val (np.ndarray): vis. labels for validation data
+        grid_lab (np.ndarray): vis. labels for grid contour plot.
+        grid_arrays (Tuple[np.ndarray, np.ndarray]): xx, yy from np.meshgrid
+        pred_unlabelled (np.ndarray, optional): predictors for pool. Defaults to None.
+        pred_queries (np.ndarray, optional): predictors for queries. Defaults to None.
+
+    Returns:
+        Tupe(plt.figure, plt.axes): figure and axes for plots
+    """
     fig, axes = plt.subplots(1, 2, sharex="col", sharey="row")
     axes[0].set_title("Training Data")
     axes[0] = vis_class_train_2d(
@@ -93,13 +125,11 @@ def fig_uncertain_full_2d(
 
 
 def vis_unc_train_2d(
-    ax,
-    predictors,
-    labels,
-    grid_labels,
-    grid_arrays,
+    ax, predictors, labels, grid_labels, grid_arrays, contourf_kwargs: dict = None
 ):
-    ax = scatter_class(ax, predictors, labels)
+    if contourf_kwargs is None:
+        contourf_kwargs = dict()
+    # ax = scatter_class(ax, predictors, labels)
 
     xx, yy = grid_arrays
     if xx.shape != yy.shape:
@@ -107,7 +137,8 @@ def vis_unc_train_2d(
             "Object grid_arrays needs appropriate inputs with identical sizes!"
         )
 
-    ax = contourf_contin(ax, xx, yy, grid_labels)
+    ax = contourf_contin(ax, xx, yy, grid_labels, **contourf_kwargs)
+    ax = scatter_class(ax, predictors, labels)
     ax.set_xlim(xx.min(), xx.max())
     ax.set_ylim(yy.min(), yy.max())
     return ax
@@ -122,26 +153,35 @@ def vis_class_train_2d(
     predictors_unlabeled=None,
     predictors_query=None,
 ):
+    # ax = contourf_class(ax, xx, yy, grid_labels)
+    # if predictors_unlabeled is not None:
+    #     ax = scatter_unlabeled(ax, predictors_unlabeled)
+    # if predictors_query is not None:
+    #     ax = scatter_query(ax, predictors_query)
+    # ax = scatter_class(ax, predictors, labels)
+
+    xx, yy = grid_arrays
+    if xx.shape != yy.shape:
+        raise ValueError(
+            "Object grid_arrays needs appropriate inputs with identical sizes!"
+        )
+
+    ax = contourf_class(ax, xx, yy, grid_labels)
+
+    ax = contourf_class(ax, xx, yy, grid_labels)
     if predictors_unlabeled is not None:
         ax = scatter_unlabeled(ax, predictors_unlabeled)
     if predictors_query is not None:
         ax = scatter_query(ax, predictors_query)
     ax = scatter_class(ax, predictors, labels)
 
-    xx, yy = grid_arrays
-    if xx.shape != yy.shape:
-        raise ValueError(
-            "Object grid_arrays needs appropriate inputs with identical sizes!"
-        )
-
-    ax = contourf_class(ax, xx, yy, grid_labels)
     ax.set_xlim(xx.min(), xx.max())
     ax.set_ylim(yy.min(), yy.max())
     return ax
 
 
 def vis_class_val_2d(ax, predictors, labels, grid_labels, grid_arrays):
-    ax = scatter_class(ax, predictors, labels)
+    # ax = scatter_class(ax, predictors, labels)
 
     xx, yy = grid_arrays
     if xx.shape != yy.shape:
@@ -150,6 +190,7 @@ def vis_class_val_2d(ax, predictors, labels, grid_labels, grid_arrays):
         )
 
     ax = contourf_class(ax, xx, yy, grid_labels)
+    ax = scatter_class(ax, predictors, labels)
     ax.set_xlim(xx.min(), xx.max())
     ax.set_ylim(yy.min(), yy.max())
     return ax
@@ -159,7 +200,14 @@ def vis_class_val_2d(ax, predictors, labels, grid_labels, grid_arrays):
 
 
 def scatter_class(ax, predictors, labels):
-    ax.scatter(predictors[:, 0], predictors[:, 1], c=labels, s=20, edgecolor="k")
+    ax.scatter(
+        predictors[:, 0],
+        predictors[:, 1],
+        c=labels,
+        s=20,
+        edgecolor="k",
+        cmap=default_cmap,
+    )
     return ax
 
 
@@ -169,17 +217,28 @@ def scatter_query(ax, predictors, labels=None):
 
 
 def scatter_unlabeled(ax, predictors, labels=None):
-    ax.scatter(predictors[:, 0], predictors[:, 1], c="gray", s=15, edgecolor="k")
+    # ax.scatter(predictors[:, 0], predictors[:, 1], c="gray", s=15)  # , edgecolor="k")
+    ax.scatter(
+        predictors[:, 0], predictors[:, 1], marker="s", c="gray", s=15
+    )  # , edgecolor="k")
+
     return ax
 
 
 def contourf_class(ax, xx, yy, labels_grid):
-    ax.contourf(xx, yy, labels_grid.reshape(xx.shape), alpha=0.3)
+    ax.contourf(xx, yy, labels_grid.reshape(xx.shape), alpha=0.3, cmap=default_cmap)
     return ax
 
 
-def contourf_contin(ax, xx, yy, prob_grid):
-    ax.contourf(xx, yy, prob_grid.reshape(xx.shape), alpha=0.3, cmap="RdYlBu_r")
+def contourf_contin(ax, xx, yy, prob_grid, **contourf_kwargs):
+    ax.contourf(
+        xx,
+        yy,
+        prob_grid.reshape(xx.shape),
+        alpha=0.3,
+        cmap="RdYlBu_r",
+        **contourf_kwargs
+    )
     return ax
 
 
@@ -191,6 +250,7 @@ def imshow_contin(ax, xx, yy, prob):
 
 
 def run_example_data():
+    """Example with SK-Learn to showcase how functions work."""
     from sklearn import datasets
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.model_selection import train_test_split

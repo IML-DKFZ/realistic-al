@@ -7,12 +7,14 @@ from utils import config_utils
 
 import utils
 
-from trainer import ActiveTrainingLoop
+from run_toy import ToyActiveLearningLoop, get_toy_dm
+
+# from trainer import ActiveTrainingLoop
 
 active_dataset = True
 
 
-@hydra.main(config_path="./config", config_name="config_fixmatch")
+@hydra.main(config_path="./config", config_name="config_toy_fixmatch")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)
@@ -24,23 +26,7 @@ def train(cfg: DictConfig):
     num_classes = cfg.data.num_classes
     num_labelled = cfg.active.num_labelled
 
-    datamodule = TorchVisionDM(
-        data_root=cfg.trainer.data_root,
-        batch_size=cfg.trainer.batch_size,
-        dataset=cfg.data.name,
-        min_train=cfg.active.min_train,
-        val_split=cfg.data.val_split,
-        random_split=cfg.active.random_split,
-        active=active_dataset,
-        num_classes=cfg.data.num_classes,
-        mean=cfg.data.mean,
-        std=cfg.data.std,
-        transform_train=cfg.data.transform_train,
-        transform_test=cfg.data.transform_test,
-        shape=cfg.data.shape,
-        num_workers=cfg.trainer.num_workers,
-        seed=cfg.trainer.seed,
-    )
+    datamodule = get_toy_dm(cfg, active_dataset)
     num_classes = cfg.data.num_classes
     if active_dataset:
         if balanced:
@@ -50,12 +36,19 @@ def train(cfg: DictConfig):
         else:
             datamodule.train_set.label_randomly(num_labelled)
 
-    training_loop = FixTrainingLoop(cfg, datamodule, active=False, base_dir=os.getcwd())
+    training_loop = FixToyTrainingLoop(
+        cfg,
+        datamodule,
+        active=active_dataset,
+        base_dir=os.getcwd(),
+    )
     training_loop.main()
+    if active_dataset:
+        active_store = training_loop.active_callback()
     training_loop.log_save_dict()
 
 
-class FixTrainingLoop(ActiveTrainingLoop):
+class FixToyTrainingLoop(ToyActiveLearningLoop):
     def init_model(self):
         self.model = FixMatch(self.cfg)
 

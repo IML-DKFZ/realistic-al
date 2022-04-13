@@ -5,11 +5,12 @@ import torch
 import torch.nn.functional as F
 
 from typing import Callable, Tuple
+from .batchbald_redux.batchbald import get_batchbald_batch
 
 # DEVICE = "cuda:0"
 ###
 
-names = """bald entropy random batchbald""".split()
+names = """bald entropy random batchbald variationratios""".split()
 
 
 def get_acq_function(cfg, pt_model) -> Callable[[torch.Tensor], torch.Tensor]:
@@ -22,6 +23,8 @@ def get_acq_function(cfg, pt_model) -> Callable[[torch.Tensor], torch.Tensor]:
         return get_random_fct()
     elif name == "batchbald":
         return get_bay_logits(pt_model)
+    elif name == "variationratios":
+        return get_var_ratios(pt_model)
     else:
         raise NotImplementedError
 
@@ -31,7 +34,6 @@ def get_post_acq_function(
 ) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
     names = str(cfg.query.name).split("_")
     if cfg.query.name == "batchbald":
-        from batchbald_redux.batchbald import get_batchbald_batch
 
         # This values should only be used to select the entropy computation
         # TODO: verify this! -- true
@@ -130,6 +132,17 @@ def get_bay_logits(pt_model):
     return acq_logits
 
 
+def get_var_ratios(pt_model):
+    def acq_var_ratios(x: torch.Tensor):
+        """Returns the variation ratio values."""
+        with torch.no_grad():
+            out = pt_model(x, agg=False)
+            out = var_ratios(out)
+        return out
+
+    return acq_var_ratios
+
+
 def get_random_fct():
     def acq_random(x: torch.Tensor, c: float = 0.0001):
         """Returns random values over the interval [0, c)"""
@@ -156,6 +169,14 @@ def bay_entropy(logits):
     out = torch.logsumexp(out, dim=1) - math.log(k)  # BxkxD --> BxD
     ent = torch.sum(-torch.exp(out) * out, dim=1)  # B
     return ent
+
+
+def var_ratios(logits):
+    k = logits.shape[1]
+    out = F.log_softmax(logits, dim=2)  # BxkxD
+    out = torch.logsumexp(out, dim=1) - math.log(k)  # BxkxD --> BxD
+    out = 1 - torch.exp(out.max(dim=-1).values)  # B
+    return out
 
 
 def mean_entropy(logits):

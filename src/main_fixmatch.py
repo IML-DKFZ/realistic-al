@@ -4,7 +4,7 @@ from utils import config_utils
 from run_training_fixmatch import FixTrainingLoop
 import utils
 
-from main import active_loop
+from main import active_loop, get_torchvision_dm
 
 
 @hydra.main(config_path="./config", config_name="config_fixmatch")
@@ -15,6 +15,7 @@ def main(cfg: DictConfig):
     active_loop(
         cfg,
         FixTrainingLoop,
+        get_torchvision_dm,
         cfg.active.num_labelled,
         cfg.active.balanced,
         cfg.active.acq_size,

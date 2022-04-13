@@ -3,8 +3,6 @@ import pytest
 import os
 
 import numpy as np
-import torch
-from torch.utils.data import Dataset
 
 ############# Needed to execute as main ############
 import sys
@@ -17,50 +15,61 @@ sys.path.append(src_folder)
 
 from utils import set_seed
 from data.data import TorchVisionDM
+from data.toy_dm import ToyDM
 
 shape = (3, 128, 128)
 bs = 64
 num_labelled = 100
 SEED = 12345
 
-label = torch.cat([torch.ones(bs // 2), torch.zeros(bs // 2)])
-test_batch = torch.randn(bs, *shape)
 
-dm_params = {
-    "data_root": os.getenv("DATA_ROOT"),
-}
+# dm_params = {
+#     "data_root": os.getenv("DATA_ROOT"),
+# }
+
 
 # TODO: How can Tests access environment Variables??? -- or make tests agnostic to saved Datasets!
 dm_params = {"data_root": "/home/c817h/Documents/datasets"}
 
 
-def setup_active_datamodule(seed):
+def setup_active_vision_datamodule(seed):
     set_seed(seed)
     dm = TorchVisionDM(**dm_params, seed=seed)
     dm.train_set.label_randomly(num_labelled)
     return dm
 
 
-class TestSet(Dataset):
-    def __init__(self, length=5000):
-        super().__init__()
-        self.data = torch.randn(*shape)
-        self.label = label
-        self.len = length
+# TODO: Change the logic of these tests, so that they can
+def setup_active_toy_datamodule(seed):
+    set_seed(seed)
+    dm = ToyDM(seed=seed)
+    dm.train_set.label_randomly(num_labelled)
+    return dm
 
-    def __getitem__(self, i):
-        batch = (self.data, self.label)
-        return batch
 
-    def __len__(self):
-        return self.len
+# This is not needed here!
+# label = torch.cat([torch.ones(bs // 2), torch.zeros(bs // 2)])
+# test_batch = torch.randn(bs, *shape)
+# class TestSet(Dataset):
+#     def __init__(self, length=5000):
+#         super().__init__()
+#         self.data = torch.randn(*shape)
+#         self.label = label
+#         self.len = length
+
+#     def __getitem__(self, i):
+#         batch = (self.data, self.label)
+#         return batch
+
+#     def __len__(self):
+#         return self.len
 
 
 def test_active_dataset_identical_seed():
     """Test whether two datasets are identical for the same Seed"""
-    dm_1 = setup_active_datamodule(SEED)
+    dm_1 = setup_active_vision_datamodule(SEED)
 
-    dm_2 = setup_active_datamodule(SEED)
+    dm_2 = setup_active_vision_datamodule(SEED)
     # check whether first layer, the split of training set is identical
     assert dm_1.train_set._dataset.indices == dm_2.train_set._dataset.indices
     # check whether the same samples are labeled
@@ -73,7 +82,7 @@ def test_active_dataset_identical_seed():
 def test_active_dataset_different_seeds():
     """Test whether two datasets differ for different SEEDS"""
     seed = SEED
-    dm_1 = setup_active_datamodule(seed)
+    dm_1 = setup_active_vision_datamodule(seed)
 
     train_ident = []
     val_ident = []
@@ -81,7 +90,7 @@ def test_active_dataset_different_seeds():
     for i in range(1, 10):
         seed = SEED + i
 
-        dm_2 = setup_active_datamodule(seed)
+        dm_2 = setup_active_vision_datamodule(seed)
 
         # check whether first layer, the split of training set is identical
         train_ident.append(

@@ -51,7 +51,8 @@ class FixMatch(AbstractClassifier):
         self.acc_train.update(preds, y)
         # only save very first batch of first epoch to minimize loading times and memory footprint
         if batch_idx == 0 and self.current_epoch == 0:
-            self.visualize_inputs(x, x_w, x_s)
+            if len(x.shape) == 4:
+                self.visualize_inputs(x, x_w, x_s)
         return loss
 
     def step_logits(self, logits, y):
@@ -105,7 +106,8 @@ class FixMatch(AbstractClassifier):
                 .cpu()
                 .detach()
             )
-            self.logger.experiment.add_image(
+            # Works only for Tensorboard!
+            self.logger.experiment[0].add_image(
                 title,
                 grid,
                 self.current_epoch,
@@ -123,6 +125,7 @@ class FixMatch(AbstractClassifier):
         return super().on_test_epoch_end()
 
     def wrap_dm(self, dm: TorchVisionDM) -> TorchVisionDM:
+        # TODO: a deepcopy might be useful here!
         dm.train_dataloader = wrap_fixmatch_train_dataloader(dm, self.mu)
         return dm
 

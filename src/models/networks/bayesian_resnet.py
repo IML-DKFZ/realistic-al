@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 
-from utils.consistent_mc_dropout import BayesianModule, ConsistentMCDropout
+from models.bayesian_module import BayesianModule, ConsistentMCDropout
 from .mlp import MLP
 
 from .registry import register_model

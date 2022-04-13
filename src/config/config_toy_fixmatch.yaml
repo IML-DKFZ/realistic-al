@@ -4,6 +4,7 @@ defaults:
   - model: bayesian_mlp
   # - hydra/job_logging: colorlog
   # - hydra/hydra_logging: colorlog
+  - sem_sl : fixmatch
   - active: toy_two_moons
   - query: entropy
 
@@ -16,7 +17,7 @@ trainer:
   fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
   experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
-  experiment_name: 2d_toy_test
+  experiment_name: 2d_toy_fixtest
   experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
   n_gpus: 1
   check_val_every_n_epoch: 1
@@ -26,7 +27,7 @@ trainer:
   precision: 16
   deterministic: False
   profiler: Null
-  vis_callback: False # this enables or disables visualizations of training
+  vis_callback: True # this enables or disables visualizations of training
   # enable_progress_bar: True
 
 hydra:
@@ -35,4 +36,3 @@ hydra:
 
 # test:
 #   checkpoint_path:
-

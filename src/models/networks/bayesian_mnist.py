@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from torch.utils import data
-from utils.consistent_mc_dropout import (
+from models.bayesian_module import (
     ConsistenMCDropout2D,
     ConsistentMCDropout,
     BayesianModule,

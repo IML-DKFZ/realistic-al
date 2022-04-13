@@ -2,34 +2,32 @@ from argparse import ArgumentParser
 from launcher import ExperimentLauncher
 
 config_dict = {
-    "model": "bayesian_mnist",
-    "data": ["mnist", "fashion_mnist"],
-    "active": ["mnist_batchbald", "mnist_batchbald_double", "mnist_batchbald_start"],
-    "query": [
-        "random",
-        "bald",
-        "entropy",
-        "batchbald",
-        "kcentergreedy",
-        "variationratios",
-    ],
+    "model": ["bayesian_mlp", "bayesian_mlp_deep"],
+    # "model": "bayesian_mlp_deep",
+    "query": ["random"],
+    "data": "toy_moons",
+    "active": "toy_two_moons",
 }
 
 hparam_dict = {
-    # "model.dropout_p": [0, 0.5],
-    # "model.learning_rate": 0.01,  # is more stable than 0.1!
-    # "model.use_ema": [True, False],
-    "model.use_ema": False,
-    "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": "basic",
+    # "trainer.seed": 12345,
+    "trainer.max_epochs": 40,
+    "active.num_labelled": [6],
+    "active.num_iter": 5,
+    "active.acq_size": 6,
+    # "trainer.seed": 12345,
+    "trainer.vis_callback": True,
+    "model.weight_decay": [0, 0.01, 0.001],
+    "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
 }
-
-naming_conv = "{data}/active_basic_set-{active}_{model}_ep-{trainer.max_epochs}"
-path_to_ex_file = "src/main.py"
+naming_conv = (
+    "{data}_sweeps/basic_{model}_drop-{model.dropout_p}_wd-{model.weight_decay}"
+)
 
 joint_iteration = None
 
+path_to_ex_file = "src/main_toy.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)

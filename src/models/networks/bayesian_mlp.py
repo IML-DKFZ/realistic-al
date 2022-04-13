@@ -1,5 +1,5 @@
 from torch import Tensor
-from utils.consistent_mc_dropout import BayesianModule
+from models.bayesian_module import BayesianModule
 
 from .mlp import MLP
 from .registry import register_model
@@ -15,7 +15,11 @@ class BayesianMLP(BayesianModule):
             dim_out=num_classes,
             hidden_dims=hidden_dims,
             dropout_p=dropout_p,
+            bn=bn,  # all experiments prior to 2022-04-12 have batchnorm as False!
         )
+
+    def get_features(self, x):
+        return x
 
     def mc_forward_impl(self, input: Tensor):
         input = self.mlp(input)

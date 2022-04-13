@@ -1,6 +1,8 @@
 # code is adapted from: https://github.com/MIC-DKFZ/nnDetection/blob/main/nndet/utils/info.py
 
 # from loguru import logger
+import os
+from omegaconf import OmegaConf
 
 from pathlib import Path
 from typing import Union, Optional
@@ -52,3 +54,20 @@ def log_git(repo_path: Union[Path, str], repo_name: str = None):
         #     "Was not able to read git information, trying to continue without."
         # )
         return {}
+
+
+def save_config_to_tests(cfg, save_name):
+    """Place this function inside of a main to extract the OmegaConf dictionary.
+
+    Args:
+        cfg (_type_): _description_
+        save_name (_type_): _description_
+    """
+    from omegaconf import OmegaConf
+    from utils.path_utils import test_data_folder
+    import utils.io as io
+    import os
+
+    save_name = save_name.replace(".py", "")
+    save_file = os.path.join(test_data_folder, save_name)
+    io.save_omega_conf(cfg, save_file)

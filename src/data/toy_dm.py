@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Optional, Sequence, Union
 
 import numpy as np
@@ -59,8 +60,8 @@ class ToyDM(pl.LightningDataModule):
         transform_test: str = "basic",
         transform_train: str = "basic",
         shape: Sequence = (2,),
-        mean: Sequence = (0,),
-        std: Sequence = (1,),
+        mean: Sequence = (0, 0),
+        std: Sequence = (1, 1),
         seed: int = 12345,
     ):
         super().__init__()
@@ -103,6 +104,22 @@ class ToyDM(pl.LightningDataModule):
 
         if self.dataset == "two_moons":
             self.dataset_generator = generate_moons_data
+        elif self.dataset == "blob_4c":
+
+            def gen_func(n_samples, noise=0.15, seed=12345):
+                return generate_blob_data(n_samples, noise=0.15, seed=12345, centers=4)
+
+            self.dataset_generator = gen_func
+        elif self.dataset == "blob_4":
+
+            def gen_func(n_samples, noise=0.15, seed=12345):
+                X, y = generate_blob_data(n_samples, noise=0.15, seed=12345, centers=4)
+                y = merge_labels(y, num_labels=2)
+                return X, y
+
+            self.dataset_generator = gen_func
+        elif self.dataset == "circles":
+            self.dataset_generator = generate_circles_data
         else:
             raise NotImplementedError
         self._setup_datasets()
@@ -268,16 +285,30 @@ class ToyDM(pl.LightningDataModule):
         """Returns the indices of the underlying pool given the indices from the pool loader"""
         return self.indices[inds]
 
-    def labeled_dataloader(self, batch_size=64):
+    def labeled_dataloader(self, batch_size: Optional[int] = None):
         """Returns the dataloader for the labeled set with test time transformations"""
-        loader = DataLoader(
-            self.train_set.labelled_set,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            drop_last=self.drop_last,
-        )
+        if batch_size is None:
+            batch_size = self.batch_size
+        if hasattr(self.train_set, "labelled_set"):
+            loader = DataLoader(
+                self.train_set.labelled_set,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+            )
+        else:
+            labelled_dset = deepcopy(self.train_set)
+            labelled_dset.transform = self.test_transforms
+            loader = DataLoader(
+                labelled_dset,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                pin_memory=self.pin_memory,
+                drop_last=self.drop_last,
+            )
         return loader
 
 

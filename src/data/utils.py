@@ -1,3 +1,4 @@
+from typing import Any, Iterable
 import torch
 import random
 import numpy as np
@@ -66,8 +67,27 @@ class ConcatDataloader:
         return batch
 
 
+class MultiHeadedTransform(object):
+    def __init__(self, transforms: Iterable):
+        """Multi Headed Transform on Data.
+
+        Args:
+            transforms (Iterable): Data Transformations
+        """
+        self.transforms = transforms
+
+    def __call__(self, x: Any):
+        out = list()
+        for transform in self.transforms:
+            out.append(transform(x))
+        return tuple(out)
+
+
 class TransformFixMatch(object):
     def __init__(self, mean, std):
+        """Transformation for FixMatch.
+        Callable returning (x_weak, x_strong)
+        """
         self.weak = transforms.Compose(
             [
                 transforms.RandomHorizontalFlip(),
