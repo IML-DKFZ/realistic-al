@@ -73,31 +73,61 @@ from utils.path_utils import visuals_folder
 #     "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-entropy_ep-40",
 #     "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-random_ep-40",
 # ]
-base_path = "/home/c817h/Documents/logs/activelearning/toy_moons"
+# base_path = "/home/c817h/Documents/logs/activelearning/toy_moons"
+
+# Version 2
+# paths = [
+#     # Deep Models
+#     # "basic_bayesian_mlp_deep_drop-0.25_wd-0",
+#     # "basic_bayesian_mlp_deep_drop-0.25_wd-0.01",
+#     # "basic_bayesian_mlp_deep_drop-0.25_wd-0.001",
+#     # # "basic_bayesian_mlp_deep_drop-0.25_wd-0.1",
+#     # "basic_bayesian_mlp_deep_drop-0_wd-0",
+#     # "basic_bayesian_mlp_deep_drop-0_wd-0.01",
+#     # "basic_bayesian_mlp_deep_drop-0_wd-0.001",
+#     # # "basic_bayesian_mlp_deep_drop-0_wd-0.1",
+#     #
+#     # Normal Models
+#     #
+#     "basic_bayesian_mlp_drop-0.25_wd-0",
+#     "basic_bayesian_mlp_drop-0.25_wd-0.01",
+#     "basic_bayesian_mlp_drop-0.25_wd-0.001",
+#     #
+#     "basic_bayesian_mlp_drop-0_wd-0",
+#     "basic_bayesian_mlp_drop-0_wd-0.01",
+#     "basic_bayesian_mlp_drop-0_wd-0.001",
+# ]
+# hue_names = None
+# base_path = "/home/c817h/Documents/logs/activelearning/toy_moons_sweeps"
+
+##############
+# Version 3
+##############
 paths = [
-    # Deep Models
-    # "basic_bayesian_mlp_deep_drop-0.25_wd-0",
-    # "basic_bayesian_mlp_deep_drop-0.25_wd-0.01",
-    # "basic_bayesian_mlp_deep_drop-0.25_wd-0.001",
-    # # "basic_bayesian_mlp_deep_drop-0.25_wd-0.1",
-    # "basic_bayesian_mlp_deep_drop-0_wd-0",
-    # "basic_bayesian_mlp_deep_drop-0_wd-0.01",
-    # "basic_bayesian_mlp_deep_drop-0_wd-0.001",
-    # # "basic_bayesian_mlp_deep_drop-0_wd-0.1",
+    # Normal Models dropout 0.25
     #
-    # Normal Models
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-bald_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-bald_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-batchbald_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-entropy_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-kcentergreedy_ep-12",
+    "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-random_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-variationratios_ep-12",
     #
-    "basic_bayesian_mlp_drop-0.25_wd-0",
-    "basic_bayesian_mlp_drop-0.25_wd-0.01",
-    "basic_bayesian_mlp_drop-0.25_wd-0.001",
+    # No Dropout
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-entropy_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-kcentergreedy_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-random_ep-12",
+    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-variationratios_ep-12",
     #
-    "basic_bayesian_mlp_drop-0_wd-0",
-    "basic_bayesian_mlp_drop-0_wd-0.01",
-    "basic_bayesian_mlp_drop-0_wd-0.001",
+    "active_fixmatch_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-random_ep-12",
 ]
-hue_names = None
-base_path = "/home/c817h/Documents/logs/activelearning/toy_moons_sweeps"
+hue_names = [
+    path.split("_")[1] + " " + path.split("-")[-2].split("_")[0] for path in paths
+]
+base_path = "/home/c817h/Documents/logs/activelearning/toy_circles"
 experiment_paths = [os.path.join(base_path, path) for path in paths]
+# Note: Means over multiple different data allows simple
 if __name__ == "__main__":
     from argparse import ArgumentParser
 

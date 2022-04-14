@@ -18,7 +18,7 @@ hparam_dict = {
     "active.num_iter": 5,
     "active.acq_size": 6,
     # "trainer.seed": 12345,
-    "trainer.vis_callback": True,
+    "trainer.vis_callback": False,
     "model.weight_decay": [0, 0.01, 0.001],  # 0.1 is much too high!
     "model.dropout_p": [0.25],  # dropout 0.5 does not work
     "model.use_ema": [True, False],

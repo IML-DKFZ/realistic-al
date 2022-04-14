@@ -9,18 +9,33 @@ config_dict = {
 }
 
 hparam_dict = {
-    # "trainer.seed": [12345, 12346, 12347],
-    "trainer.seed": 12345,
-    "trainer.max_epochs": 40,
+    "trainer.seed": [12345, 12346, 12347],
+    # "trainer.seed": 12345,
+    "trainer.max_epochs": [40],
     "active.num_labelled": [6, 12, 24],
     # "trainer.seed": 12345,
-    "trainer.vis_callback": True,
+    "trainer.vis_callback": False,
     "model.weight_decay": [0, 0.01, 0.001],
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
+    "model.use_ema": [False],
+    "sem_sl.lambda_u": [1, 3, 5],
 }
-naming_conv = (
-    "{data}_sweep/fixmatch_{model}_drop-{model.dropout_p}_ep-{trainer.max_epochs}"
-)
+naming_conv = "{data}_sweep_22/fixmatch_{model}_drop-{model.dropout_p}_wd-{model.weight_decay}_lambda-{sem_sl.lambda_u}_ema-{model.use_ema}/labelled-{active.num_labelled}"
+
+#  How many epochs?
+# hparam_dict = {
+#     "trainer.seed": [12345, 12346, 12347],
+#     # "trainer.seed": 12345,
+#     "trainer.max_epochs": [12, 24, 40],
+#     "active.num_labelled": [6, 12, 24, 60],
+#     # "trainer.seed": 12345,
+#     "trainer.vis_callback": True,
+#     "model.weight_decay": [0.01],
+#     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
+#     "model.use_ema": [True, False],
+#     "sem_sl.lambda_u": [1, 3, 5],
+# }
+# naming_conv = "{data}_sweep_epochs/fixmatch_{model}_epochs-{trainer.max_epochs}"
 
 joint_iteration = None
 
