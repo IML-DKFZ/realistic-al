@@ -17,7 +17,7 @@ sys.path.append(src_folder)
 
 # from toy_callback import ToyVisCallback
 # from utils.path_utils import visuals_folder
-from utils.file_utils import get_experiment_df
+from utils.file_utils import get_experiment_df, get_experiment_configs_df
 from utils.path_utils import visuals_folder
 
 # from argparse import ArgumentParser
@@ -155,6 +155,10 @@ if __name__ == "__main__":
         # IPython.embed()
         # try:
         experiment_frame = get_experiment_df(base_dir, name)
+        experiment_param_frame = get_experiment_configs_df(base_dir, name)
+        import IPython
+
+        IPython.embed()
         df.append(experiment_frame)
         # except:
         #     for path in base_dir.iterdir():

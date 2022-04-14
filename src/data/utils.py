@@ -55,8 +55,11 @@ class ConcatDataloader:
                 except StopIteration:
                     if len(dl) == len(self):
                         # the longest data iterator has reached the end
-                        raise
+                        raise StopIteration
                     # re-initialize data loader iterators if necessary
+                    print("\n\n")
+                    print("Reinitializing Dataloader{}".format(i))
+                    print("\n\n")
                     dl = iter(self.data_loaders[i])
                     self.iterators[i] = dl
                     data = next(dl)

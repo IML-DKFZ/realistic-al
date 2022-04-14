@@ -1,5 +1,5 @@
 num_labelled: 6
-min_train: 5500
+min_train: 1280
 balanced: True
 acq_size: 6
 num_iter: 10

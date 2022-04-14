@@ -25,7 +25,7 @@ hparam_dict = {
     "data.transform_train": "basic",
 }
 
-naming_conv = "{data}/active_basic_set-{active}_{model}_ep-{trainer.max_epochs}"
+naming_conv = "{data}/active_basic_set-{active}_model-{model}_query-{query}_ep-{trainer.max_epochs}"
 path_to_ex_file = "src/main.py"
 
 joint_iteration = None

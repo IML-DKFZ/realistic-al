@@ -11,6 +11,7 @@ from data.data import TorchVisionDM
 from trainer import ActiveTrainingLoop
 from run_training import get_torchvision_dm
 from utils import config_utils
+import time
 
 
 @hydra.main(config_path="./config", config_name="config")
@@ -62,6 +63,9 @@ def active_loop(
         active_stores.append(active_store)
         training_loop.log_save_dict()
         cfg.active.num_labelled += cfg.active.acq_size
+
+        del training_loop
+        time.sleep(5)
 
     val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
     test_accs = np.array([active_store.accuracy_test for active_store in active_stores])

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from optparse import Option
 import os
 from pathlib import Path
@@ -15,6 +16,7 @@ from utils.log_utils import log_git
 from utils.io import save_json
 
 
+
 class ActiveTrainingLoop(object):
     def __init__(
         self,
@@ -26,7 +28,7 @@ class ActiveTrainingLoop(object):
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
-        self.datamodule = datamodule
+        self.datamodule = deepcopy(datamodule)
         self.count = count
         self.active = active
         self.model = None
