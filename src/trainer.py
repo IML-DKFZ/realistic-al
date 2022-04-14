@@ -130,7 +130,7 @@ class ActiveTrainingLoop(object):
         """Performs the fit, selects the best performing model and cleans up cache."""
         datamodule = self.model.wrap_dm(self.datamodule)
         self.trainer.fit(model=self.model, datamodule=datamodule)
-        if not self.cfg.trainer.fast_dev_run:
+        if not self.cfg.trainer.fast_dev_run and self.cfg.trainer.load_best_ckpt:
             best_path = self.ckpt_callback.best_model_path
             print("\nModel for Testing is selected from path: {}\n".format(best_path))
             self.model = self.model.load_from_checkpoint(best_path)
