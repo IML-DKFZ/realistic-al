@@ -45,14 +45,14 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             train_pool,
             batch_size=dm.batch_size * mu,
             num_workers=workers_sem,
-            # sampler=RandomFixedLengthSampler(train_pool, min_samples * mu),
-            sampler=RandomSampler(
-                train_pool, replacement=True, num_samples=min_samples * mu
-            ),
+            sampler=RandomFixedLengthSampler(train_pool, min_samples * mu),
+            # sampler=RandomSampler(
+            #     train_pool, replacement=True, num_samples=min_samples * mu
+            # ),
             pin_memory=dm.pin_memory,
             drop_last=True,
             worker_init_fn=seed_worker,
-            # persistent_workers=True,
+            persistent_workers=True,
         )
     else:
         sem_loader = DataLoader(
@@ -63,7 +63,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             pin_memory=dm.pin_memory,
             drop_last=True,
             worker_init_fn=seed_worker,
-            # persistent_workers=True,
+            persistent_workers=True,
         )
 
     # Increase size of small datasets to make use of multiple workers
@@ -81,15 +81,15 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
         sup_loader = DataLoader(
             dm.train_set,
             batch_size=dm.batch_size,
-            # sampler=RandomFixedLengthSampler(dm.train_set, resample_size),
-            sampler=RandomSampler(
-                dm.train_set, replacement=True, num_samples=resample_size
-            ),
+            sampler=RandomFixedLengthSampler(dm.train_set, resample_size),
+            # sampler=RandomSampler(
+            #     dm.train_set, replacement=True, num_samples=resample_size
+            # ),
             num_workers=dm.num_workers,
             pin_memory=dm.pin_memory,
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
-            # persistent_workers=True,
+            persistent_workers=True,
         )
     else:
         sup_loader = DataLoader(
@@ -100,7 +100,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             pin_memory=dm.pin_memory,
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
-            # persistent_workers=True,
+            persistent_workers=True,
         )
     return ConcatDataloader(
         sup_loader,

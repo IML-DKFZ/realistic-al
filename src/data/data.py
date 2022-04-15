@@ -149,7 +149,7 @@ class TorchVisionDM(pl.LightningDataModule):
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
                 worker_init_fn=seed_worker,
-                # persistent_workers=True,
+                persistent_workers=True,
             )
         else:
             return DataLoader(
@@ -160,7 +160,7 @@ class TorchVisionDM(pl.LightningDataModule):
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
                 worker_init_fn=seed_worker,
-                # persistent_workers=True,
+                persistent_workers=True,
             )
 
     def val_dataloader(self):
@@ -171,7 +171,7 @@ class TorchVisionDM(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=False,
-            # persistent_workers=True,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):
