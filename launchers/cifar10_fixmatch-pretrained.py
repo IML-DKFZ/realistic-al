@@ -42,9 +42,9 @@ joint_iteration = ["trainer.seed", "model.load_pretrained"]
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    # parser.add_argument("--data", type=str, default=config_dict["data"])
+    parser.add_argument("--data", type=str, default=config_dict["data"])
     parser.add_argument("--model", type=str, default=config_dict["model"])
-    # parser.add_argument("--active", type=str, default=config_dict["active"])
+    parser.add_argument("--active", type=str, default=config_dict["active"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
 
