@@ -1,6 +1,7 @@
 from abc import abstractclassmethod
 import math
 from urllib.parse import non_hierarchical
+from omegaconf import DictConfig
 
 import torch
 import pytorch_lightning as pl
@@ -15,10 +16,7 @@ from .callbacks.ema_callback import EMAWeightUpdate
 
 
 class AbstractClassifier(pl.LightningModule):
-    def __init__(
-        self,
-        eman: bool = True,
-    ):
+    def __init__(self, eman: bool = True):
         """Abstract Classifier carrying the logic for Bayesian Models with MC Dropout and logging for base values.
         Dropout is per default used always, also during validation due to nature of Bayesian Model (Yarin Gal)"""
         super().__init__()
@@ -105,12 +103,10 @@ class AbstractClassifier(pl.LightningModule):
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_test.update(preds, y)
 
-    def on_train_batch_end(
-        self, outputs, batch, batch_idx: int, dataloader_idx: int
-    ) -> None:
+    def on_train_batch_end(self, outputs, batch, batch_idx: int) -> None:
         if self.ema_model is not None:
             self.ema_weight_update.on_train_batch_end(
-                self.trainer, self, outputs, batch, batch_idx, dataloader_idx
+                self.trainer, self, outputs, batch, batch_idx
             )
 
     def on_train_epoch_start(self) -> None:
@@ -151,8 +147,8 @@ class AbstractClassifier(pl.LightningModule):
         mode = "test"
         self.log(f"{mode}/acc", self.acc_test.compute(), on_step=False, on_epoch=True)
 
-    def setup(self, *args, **kwargs) -> None:
-        self.train_iters_per_epoch = len(self.train_dataloader())
+    def setup_data_params(self, dm: pl.LightningDataModule):
+        self.train_iters_per_epoch = len(dm.train_dataloader())
 
     def configure_optimizers(self):
         optimizer_name = self.hparams.optim.optimizer.name
