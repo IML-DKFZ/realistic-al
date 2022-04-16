@@ -53,13 +53,13 @@ class ConcatDataloader:
                 try:
                     data = next(dl)
                 except StopIteration:
+                    # if the first dataloader in self.dataloaders is not the longest
+                    # this could lead to an unnecessary iterator creation.
+                    # However, this seems not to be a problem right now.
                     if len(dl) == len(self):
                         # the longest data iterator has reached the end
                         raise StopIteration
                     # re-initialize data loader iterators if necessary
-                    print("\n\n")
-                    print("Reinitializing Dataloader{}".format(i))
-                    print("\n\n")
                     dl = iter(self.data_loaders[i])
                     self.iterators[i] = dl
                     data = next(dl)

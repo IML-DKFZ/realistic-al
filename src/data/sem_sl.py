@@ -68,15 +68,11 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
 
     # Increase size of small datasets to make use of multiple workers
     # and limit the amount of dataloader reinits in concat dataloader
-    # import pdb
-
-    # pdb.set_trace()
     sample_trainset = len(dm.train_set)
     len_sem_loader = len(sem_loader)
     if sample_trainset // dm.batch_size < len_sem_loader:
         resample_size = len_sem_loader * dm.batch_size
 
-        # (len_sem_loader // max(1, sample_trainset // dm.batch_size))
         resample_size = max(min_samples, resample_size)
         sup_loader = DataLoader(
             dm.train_set,
