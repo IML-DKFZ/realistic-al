@@ -52,7 +52,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             pin_memory=dm.pin_memory,
             drop_last=True,
             worker_init_fn=seed_worker,
-            persistent_workers=True,
+            persistent_workers=dm.persistent_workers,
         )
     else:
         sem_loader = DataLoader(
@@ -63,7 +63,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             pin_memory=dm.pin_memory,
             drop_last=True,
             worker_init_fn=seed_worker,
-            persistent_workers=True,
+            persistent_workers=dm.persistent_workers,
         )
 
     # Increase size of small datasets to make use of multiple workers
@@ -85,7 +85,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             pin_memory=dm.pin_memory,
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
-            persistent_workers=True,
+            persistent_workers=dm.persistent_workers,
         )
     else:
         sup_loader = DataLoader(

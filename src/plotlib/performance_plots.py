@@ -1,3 +1,4 @@
+from typing import Optional
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -5,8 +6,21 @@ import pandas as pd
 
 
 def plot_standard_dev(
-    ax: plt.axis, data: pd.DataFrame, x="num_samples", y="test_acc", hue="Sampling"
-):
+    ax: plt.Axes,
+    data: pd.DataFrame,
+    x: str = "num_samples",
+    y: str = "test_acc",
+    hue: str = "Sampling",
+    style: Optional[str] = None,
+    units: Optional[str] = None,
+) -> plt.Axes:
+    """Creates a lineplot from dataframe with sns.lineplot.
+    For information see:
+    https://seaborn.pydata.org/generated/seaborn.lineplot.html
+
+    Returns:
+        plt.Axes: _description_
+    """
     sns.lineplot(
         ax=ax,
         data=data,
@@ -17,5 +31,7 @@ def plot_standard_dev(
         markers=True,
         marker="o",
         dashes=False,
+        units=units,
+        style=style,
     )
     return ax

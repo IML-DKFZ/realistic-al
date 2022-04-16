@@ -34,6 +34,7 @@ class TorchVisionDM(pl.LightningDataModule):
         mean: Sequence = (0,),
         std: Sequence = (1,),
         seed: int = 12345,
+        persistent_workers=True,
     ):
         super().__init__()
 
@@ -50,6 +51,7 @@ class TorchVisionDM(pl.LightningDataModule):
         self.active = active
         self.random_split = random_split
         self.num_classes = num_classes
+        self.persistent_workers = persistent_workers
 
         # Used for the traning validation split
         self.seed = seed
@@ -149,7 +151,7 @@ class TorchVisionDM(pl.LightningDataModule):
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
                 worker_init_fn=seed_worker,
-                persistent_workers=True,
+                persistent_workers=self.persistent_workers,
             )
         else:
             return DataLoader(
@@ -160,7 +162,7 @@ class TorchVisionDM(pl.LightningDataModule):
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
                 worker_init_fn=seed_worker,
-                persistent_workers=True,
+                persistent_workers=self.persistent_workers,
             )
 
     def val_dataloader(self):
@@ -171,7 +173,7 @@ class TorchVisionDM(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=False,
-            persistent_workers=True,
+            persistent_workers=self.persistent_workers,
         )
 
     def test_dataloader(self):

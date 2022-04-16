@@ -27,6 +27,7 @@ trainer:
   deterministic: False
   profiler: Null
   load_best_ckpt: True
+  save_last: False
   # enable_progress_bar: True
 
 hydra:

@@ -53,7 +53,7 @@ class ActiveTrainingLoop(object):
                 dirpath=ckpt_path,
                 monitor="val/acc",
                 mode="max",
-                save_last=True,
+                save_last=self.cfg.trainer.save_last,
             )
         else:
             ckpt_callback = pl.callbacks.ModelCheckpoint(
