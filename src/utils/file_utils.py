@@ -6,6 +6,7 @@ from typing import List, Iterable, Any, Optional
 import numpy as np
 import pandas as pd
 from utils.tensor import to_numpy
+from utils import io
 
 
 def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
@@ -25,6 +26,51 @@ def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
         files.append(file)
     files.sort()
     return files
+
+
+from collections import MutableMapping
+
+# code to convert ini_dict to flattened dictionary
+# default separator '_'
+def convert_flatten(d: MutableMapping, parent_key="", sep="."):
+    items = []
+    for k in d.keys():
+        new_key = parent_key + sep + k if parent_key else k
+        try:
+            v = d[k]
+        except:
+            v = "NaN"
+
+        if isinstance(v, MutableMapping):
+            items.extend(convert_flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+
+    return dict(items)
+
+
+def get_experiment_configs_df(
+    experiment_path: Path, name: Optional[str] = None, pattern: str = "config.yaml"
+):
+    files = get_all_files_naming(experiment_path, pattern)
+    out_dicts = []
+    print("Loading Experiment:", experiment_path)
+    for file in files:
+        print("Loading File:", file)
+        loaded = io.load_omega_conf(file)
+        flattened = convert_flatten(loaded)
+        out_dicts.append(flattened)
+
+    dataframe = []
+    for i, out_dict in enumerate(out_dicts):
+        df_temp = pd.DataFrame(out_dict)
+        df_temp["version"] = i  # ToDo - change this to version
+        dataframe.append(df_temp)
+    dataframe = pd.concat(dataframe)
+    if name is None:
+        name = experiment_path.name
+    dataframe["Name"] = name
+    return dataframe
 
 
 def get_experiment_df(
@@ -65,7 +111,12 @@ def get_experiment_df(
 
         # TODO: Check if this is needed generally!
         for key in out_dict:
-            out_dict[key] = out_dict[key].squeeze(1)
+            # if len(out_dict[key].shape) == 2:
+            # out_dict[key] = out_dict[key].squeeze(1)
+            pass
+        # import IPython
+
+        # IPython.embed()
         df_temp = pd.DataFrame(out_dict)
         df_temp["version"] = i  # ToDo - change this to version
         dataframe.append(df_temp)

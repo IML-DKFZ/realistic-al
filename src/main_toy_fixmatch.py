@@ -10,10 +10,12 @@ from run_toy import get_toy_dm
 import matplotlib.pyplot as plt
 from toy_callback import ToyVisCallback
 from utils.file_utils import get_experiment_dicts
+import multiprocessing
 
 
 @hydra.main(config_path="./config", config_name="config_toy_fixmatch")
 def main(cfg: DictConfig):
+    # multiprocessing.set_start_method("spawn")
     config_utils.print_config(cfg)
     utils.set_seed(cfg.trainer.seed)
 

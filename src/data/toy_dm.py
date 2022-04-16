@@ -14,7 +14,7 @@ from .random_fixed_length_sampler import RandomFixedLengthSampler
 from .toy_data import *
 from .transformations import get_transform
 from .utils import ActiveSubset, activesubset_from_subset, seed_worker
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, RandomSampler
 
 
 def make_toy_dataset(X: np.ndarray, y: np.ndarray):
@@ -202,10 +202,14 @@ class ToyDM(pl.LightningDataModule):
                 self.train_set,
                 batch_size=self.batch_size,
                 sampler=RandomFixedLengthSampler(self.train_set, self.min_train),
+                # sampler=RandomSampler(
+                #     self.train_set, replacement=True, num_samples=self.min_train
+                # ),
                 num_workers=self.num_workers,
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
                 worker_init_fn=seed_worker,
+                persistent_workers=True,
             )
         else:
             return DataLoader(
@@ -216,6 +220,7 @@ class ToyDM(pl.LightningDataModule):
                 pin_memory=self.pin_memory,
                 drop_last=self.drop_last,
                 worker_init_fn=seed_worker,
+                persistent_workers=True,
             )
 
     def val_dataloader(self):
@@ -226,6 +231,7 @@ class ToyDM(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             drop_last=False,
+            persistent_workers=True,
         )
 
     def test_dataloader(self):

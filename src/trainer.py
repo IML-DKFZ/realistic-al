@@ -1,9 +1,12 @@
+from copy import deepcopy
 from optparse import Option
 import os
 from pathlib import Path
 
 import numpy as np
+from omegaconf import DictConfig
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import TQDMProgressBar
 from models.bayesian import BayesianModule
 from data.data import TorchVisionDM
 from query import QuerySampler
@@ -18,7 +21,7 @@ from utils.io import save_json
 class ActiveTrainingLoop(object):
     def __init__(
         self,
-        cfg,
+        cfg: DictConfig,
         datamodule: TorchVisionDM,
         count: Union[None, int] = None,
         active: bool = True,
@@ -26,7 +29,7 @@ class ActiveTrainingLoop(object):
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
-        self.datamodule = datamodule
+        self.datamodule = deepcopy(datamodule)
         self.count = count
         self.active = active
         self.model = None
@@ -60,6 +63,10 @@ class ActiveTrainingLoop(object):
         if self.cfg.trainer.early_stop and self.datamodule.val_dataloader is not None:
             callbacks.append(pl.callbacks.EarlyStopping("val/acc", mode="max"))
         self.ckpt_callback = ckpt_callback
+        # add progress bar
+        callbacks.append(
+            TQDMProgressBar(refresh_rate=self.cfg.trainer.progress_bar_refresh_rate)
+        )
         self.callbacks = callbacks
 
     def init_paths(self):
@@ -113,10 +120,10 @@ class ActiveTrainingLoop(object):
             max_epochs=self.cfg.trainer.max_epochs,
             min_epochs=self.cfg.trainer.min_epochs,
             fast_dev_run=self.cfg.trainer.fast_dev_run,
-            terminate_on_nan=True,
+            detect_anomaly=True,
             callbacks=self.callbacks,
             check_val_every_n_epoch=self.cfg.trainer.check_val_every_n_epoch,
-            progress_bar_refresh_rate=self.cfg.trainer.progress_bar_refresh_rate,
+            # progress_bar_refresh_rate=self.cfg.trainer.progress_bar_refresh_rate,
             gradient_clip_val=self.cfg.trainer.gradient_clip_val,
             precision=self.cfg.trainer.precision,
             benchmark=self.cfg.trainer.deterministic is False,
@@ -126,12 +133,14 @@ class ActiveTrainingLoop(object):
         )
 
     def fit(self):
+        """Performs the fit, selects the best performing model and cleans up cache."""
         datamodule = self.model.wrap_dm(self.datamodule)
+        self.model.setup_data_params(datamodule)
         self.trainer.fit(model=self.model, datamodule=datamodule)
-        if not self.cfg.trainer.fast_dev_run:
+        if not self.cfg.trainer.fast_dev_run and self.cfg.trainer.load_best_ckpt:
             best_path = self.ckpt_callback.best_model_path
-            print("Model for Testing is selected from path: {}".format(best_path))
-            self.model.load_from_checkpoint(best_path)
+            print("\nModel for Testing is selected from path: {}\n".format(best_path))
+            self.model = self.model.load_from_checkpoint(best_path)
         gc.collect()
         torch.cuda.empty_cache()
 

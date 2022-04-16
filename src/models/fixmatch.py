@@ -1,5 +1,6 @@
 from typing import Any, List, Optional, Tuple
 import math
+from omegaconf import DictConfig
 
 import torch
 import torchvision
@@ -14,7 +15,7 @@ from data.sem_sl import wrap_fixmatch_train_dataloader
 class FixMatch(AbstractClassifier):
     def __init__(
         self,
-        config,
+        config: DictConfig,
     ):
         """FixMatch Classifier, which can be extended to a bayesian Neural network by setting config.dropout_p to values greater 0."""
         super().__init__(eman=config.sem_sl.eman)
@@ -46,8 +47,13 @@ class FixMatch(AbstractClassifier):
         loss = loss_s + self.lambda_u * loss_u
         self.log(f"{mode}/loss_s", loss_s, on_step=False, on_epoch=True)
         self.log(f"{mode}/loss_u", loss_u, on_step=False, on_epoch=True)
-        self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
+        # define batchsize for mean computation due to ambiguity
+        self.log(
+            f"{mode}/loss", loss, on_step=False, on_epoch=True, batch_size=x.shape[0]
+        )
         self.log(f"{mode}/mask_u", mask_u, on_step=False, on_epoch=True)
+        # compute estimate for accuracy additionally to mask
+        # self.log(f"{mode}/mask_acc", logits.argmax())
         self.acc_train.update(preds, y)
         # only save very first batch of first epoch to minimize loading times and memory footprint
         if batch_idx == 0 and self.current_epoch == 0:
@@ -125,7 +131,6 @@ class FixMatch(AbstractClassifier):
         return super().on_test_epoch_end()
 
     def wrap_dm(self, dm: TorchVisionDM) -> TorchVisionDM:
-        # TODO: a deepcopy might be useful here!
         dm.train_dataloader = wrap_fixmatch_train_dataloader(dm, self.mu)
         return dm
 

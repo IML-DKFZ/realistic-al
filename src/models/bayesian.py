@@ -1,5 +1,6 @@
 from typing import Any, List, Optional
 import math
+from omegaconf import DictConfig
 
 import torch
 from models.networks import build_model
@@ -7,10 +8,7 @@ from .abstract_classifier import AbstractClassifier
 
 
 class BayesianModule(AbstractClassifier):
-    def __init__(
-        self,
-        config,
-    ):
+    def __init__(self, config: DictConfig):
         """Simple Bayesian Neural Network which can be used with BatchBALD.
         For a Non-Bayesian Network set config.dopout_p to 0."""
         super().__init__(eman=True)

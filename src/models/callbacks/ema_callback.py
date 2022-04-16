@@ -25,7 +25,6 @@ class EMAWeightUpdate(Callback):
         outputs: Sequence,
         batch: Sequence,
         batch_idx: int,
-        dataloader_idx: int,
     ) -> None:
         model = pl_module.model
         ema_model = pl_module.ema_model

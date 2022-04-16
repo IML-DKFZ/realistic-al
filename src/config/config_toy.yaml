@@ -27,6 +27,7 @@ trainer:
   deterministic: False
   profiler: Null
   vis_callback: False # this enables or disables visualizations of training
+  load_best_ckpt: True
   # enable_progress_bar: True
 
 hydra:

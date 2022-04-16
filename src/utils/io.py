@@ -1,6 +1,6 @@
 import json
 import pickle
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 import yaml
 from typing import Any, Union
 from pathlib import Path
@@ -80,7 +80,7 @@ def save_omega_conf(
         OmegaConf.save(cfg, f, resolve=resolve)
 
 
-def load_omega_conf(path: Union[Path, str]):
+def load_omega_conf(path: Union[Path, str]) -> DictConfig:
     path = Path(path)
     if path.suffix not in [".yaml", ".pkl"]:
         raise TypeError("File can only be loaded from .pkl or .yaml")
