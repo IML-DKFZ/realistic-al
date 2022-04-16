@@ -13,21 +13,24 @@ config_dict = {
         "bald",
         "batchbald",
         "variationratios",
-        "kcentergreedy",
+        # "kcentergreedy", # TODO: make k-CenterGreedy run
     ],
     "data": ["toy_moons", "toy_circles"],
     "active": "toy_two_moons",
 }
 
+
+# TODO: Update based on
 hparam_dict = {
-    "trainer.seed": [12345, 12346, 12347],
-    # "trainer.seed": 12345,
-    "trainer.max_epochs": 12,  # later change to 40?
-    "trainer.vis_callback": True,
+    "trainer.seed": [12345 + i for i in range(10)],
+    "trainer.max_epochs": 40,  # later change to 40?
+    "trainer.vis_callback": False,
+    "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
     "model.weight_decay": [0.01],
     "model.dropout_p": [0.25],  # dropout 0.5 does not work
     "sem_sl.lambda_u": [3],
 }
+
 naming_conv = "{data}/active_fixmatch_set-{active}_{model}_dop-{model.dropout_p}_acq-{query}_ep-{trainer.max_epochs}"
 # naming_conv = "{data}_sweeps/fixmatch_{model}_drop-{model.dropout_p}_wd-{model.weight_decay}_lambda-{sem_sl.lambda_u}"
 

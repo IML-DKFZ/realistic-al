@@ -9,19 +9,18 @@ config_dict = {
         "bald",
         "batchbald",
         "variationratios",
-        "kcentergreedy",
+        # "kcentergreedy", # TODO: make k-CenterGreedy run
     ],
     "data": ["toy_moons", "toy_circles"],
-    # "data": "toy_circles",
     "active": "toy_two_moons",
 }
 
 hparam_dict = {
-    "trainer.seed": [12345, 12346, 12347],
-    "trainer.max_epochs": 12,  # later change to 40?
-    # "trainer.seed": 12345,
-    "trainer.vis_callback": True,
+    "trainer.seed": [12345 + i for i in range(10)],
+    "trainer.max_epochs": 40,  # later change to 40?
+    "trainer.vis_callback": False,
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
+    "model.use_bn": False,  # for low data regime batchnorm does not work well!
 }
 naming_conv = "{data}/active_basic_set-{active}_{model}_dop-{model.dropout_p}_acq-{query}_ep-{trainer.max_epochs}"
 
