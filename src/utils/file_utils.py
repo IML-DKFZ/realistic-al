@@ -111,7 +111,12 @@ def get_experiment_df(
 
         # TODO: Check if this is needed generally!
         for key in out_dict:
-            out_dict[key] = out_dict[key].squeeze(1)
+            # if len(out_dict[key].shape) == 2:
+            # out_dict[key] = out_dict[key].squeeze(1)
+            pass
+        # import IPython
+
+        # IPython.embed()
         df_temp = pd.DataFrame(out_dict)
         df_temp["version"] = i  # ToDo - change this to version
         dataframe.append(df_temp)

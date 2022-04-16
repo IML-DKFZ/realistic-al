@@ -103,29 +103,58 @@ from utils.path_utils import visuals_folder
 ##############
 # Version 3
 ##############
+# paths = [
+#     # Normal Models dropout 0.25
+#     #
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-bald_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-bald_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-batchbald_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-entropy_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-kcentergreedy_ep-12",
+#     "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-random_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-variationratios_ep-12",
+#     #
+#     # No Dropout
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-entropy_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-kcentergreedy_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-random_ep-12",
+#     # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-variationratios_ep-12",
+#     #
+#     "active_fixmatch_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-random_ep-12",
+# ]
+# hue_names = [
+#     path.split("_")[1] + " " + path.split("-")[-2].split("_")[0] for path in paths
+# ]
+# base_path = "/home/c817h/Documents/logs/activelearning/toy_circles"
+
+##############
+# Version 4
+##############
 paths = [
-    # Normal Models dropout 0.25
-    #
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-bald_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-bald_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-batchbald_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-entropy_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-kcentergreedy_ep-12",
-    "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-random_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-variationratios_ep-12",
-    #
-    # No Dropout
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-entropy_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-kcentergreedy_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-random_ep-12",
-    # "active_basic_set-toy_two_moons_bayesian_mlp_dop-0_acq-variationratios_ep-12",
-    #
-    "active_fixmatch_set-toy_two_moons_bayesian_mlp_dop-0.25_acq-random_ep-12",
+    "basic_set-mnist_batchbald_double_query-bald_model-bayesian_mnist_ep-200",
+    "basic_set-mnist_batchbald_double_query-batchbald_model-bayesian_mnist_ep-200",
+    "basic_set-mnist_batchbald_double_query-entropy_model-bayesian_mnist_ep-200",
+    "basic_set-mnist_batchbald_double_query-variationratios_model-bayesian_mnist_ep-200",
+    "basic_set-mnist_batchbald_double_query-random_model-bayesian_mnist_ep-200",
 ]
-hue_names = [
-    path.split("_")[1] + " " + path.split("-")[-2].split("_")[0] for path in paths
-]
-base_path = "/home/c817h/Documents/logs/activelearning/toy_circles"
+# paths = [
+#     "basic_set-mnist_batchbald_query-bald_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_query-batchbald_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_query-entropy_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_query-variationratios_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_query-random_model-bayesian_mnist_ep-200",
+# ]
+# paths = [
+#     "basic_set-mnist_batchbald_start_query-bald_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_start_query-batchbald_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_start_query-entropy_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_start_query-variationratios_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_start_query-random_model-bayesian_mnist_ep-200",
+# ]
+hue_names = [path.split("query-")[1].split("_")[0] for path in paths]
+# base_path = "/home/c817h/Documents/logs_cluster/activelearning/mnist"
+base_path = "/home/c817h/Documents/logs_cluster/activelearning/fashion_mnist"
+
 experiment_paths = [os.path.join(base_path, path) for path in paths]
 # Note: Means over multiple different data allows simple
 if __name__ == "__main__":
@@ -155,10 +184,10 @@ if __name__ == "__main__":
         # IPython.embed()
         # try:
         experiment_frame = get_experiment_df(base_dir, name)
-        experiment_param_frame = get_experiment_configs_df(base_dir, name)
-        import IPython
 
-        IPython.embed()
+        # this is currently highly experimental -- try to get the configs for later use.
+        # experiment_param_frame = get_experiment_configs_df(base_dir, name)
+
         df.append(experiment_frame)
         # except:
         #     for path in base_dir.iterdir():
