@@ -15,7 +15,7 @@ hparam_dict = {
     "active.num_labelled": [6],
     "active.num_iter": 5,
     "active.acq_size": 12,
-    "trainer.vis_callback": True,
+    "trainer.vis_callback": False,
     "model.use_bn": False,  # batchnorm is known for instabilities in low data regime.
     "model.weight_decay": [0, 0.01, 0.001],
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
