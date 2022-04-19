@@ -62,7 +62,6 @@ class ToyVisCallback(pl.Callback):
         self,
         trainer: pl.Trainer,
         pl_module: pl.LightningModule,
-        unused: Optional[Any] = None,
     ) -> None:
         epoch = trainer.current_epoch
 
@@ -90,8 +89,6 @@ class ToyVisCallback(pl.Callback):
         self.baseline_plots(
             train_data, val_data, grid_data, pool_data, grid_unc, save_paths, epoch
         )
-
-        return super().on_train_epoch_end(trainer, pl_module, unused)
 
     # TODO: Put Data into better format -- this long tuple is not really workable!
     @staticmethod
