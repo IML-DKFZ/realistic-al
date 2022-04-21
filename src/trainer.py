@@ -3,6 +3,8 @@ from optparse import Option
 import os
 from pathlib import Path
 
+
+from loguru import logger
 import numpy as np
 from omegaconf import DictConfig
 import pytorch_lightning as pl
@@ -139,8 +141,10 @@ class ActiveTrainingLoop(object):
         self.trainer.fit(model=self.model, datamodule=datamodule)
         if not self.cfg.trainer.fast_dev_run and self.cfg.trainer.load_best_ckpt:
             best_path = self.ckpt_callback.best_model_path
-            print("\nModel for Testing is selected from path: {}\n".format(best_path))
+            logger.info("Final Model from: {}".format(best_path))
             self.model = self.model.load_from_checkpoint(best_path)
+        else:
+            logger.info("Final Model from last iteration.")
         gc.collect()
         torch.cuda.empty_cache()
 

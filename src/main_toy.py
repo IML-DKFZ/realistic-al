@@ -4,6 +4,7 @@ from utils import config_utils
 from run_toy import ToyActiveLearningLoop
 import utils
 from pathlib import Path
+from loguru import logger
 
 from main import active_loop
 from run_toy import get_toy_dm
@@ -14,7 +15,10 @@ from utils.file_utils import get_experiment_dicts
 
 @hydra.main(config_path="./config", config_name="config_toy")
 def main(cfg: DictConfig):
+    logger.add(__file__.split(".")[0] + ".log")
+    logger.info("Start logging")
     config_utils.print_config(cfg)
+    logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
 
     active_loop(

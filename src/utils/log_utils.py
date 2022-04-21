@@ -1,6 +1,6 @@
 # code is adapted from: https://github.com/MIC-DKFZ/nnDetection/blob/main/nndet/utils/info.py
 
-# from loguru import logger
+from loguru import logger
 import os
 from omegaconf import OmegaConf
 
@@ -49,10 +49,9 @@ def log_git(repo_path: Union[Path, str], repo_name: str = None):
         git_info = get_repo_info(repo_path)
         return git_info
     except Exception:
-        print("Was not able to read git information, trying to continue without.")
-        # logger.error(
-        #     "Was not able to read git information, trying to continue without."
-        # )
+        logger.error(
+            "Was not able to read git information, trying to continue without."
+        )
         return {}
 
 

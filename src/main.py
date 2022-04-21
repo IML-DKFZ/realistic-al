@@ -12,11 +12,15 @@ from trainer import ActiveTrainingLoop
 from run_training import get_torchvision_dm
 from utils import config_utils
 import time
+from loguru import logger
 
 
 @hydra.main(config_path="./config", config_name="config")
 def main(cfg: DictConfig):
+    logger.add(__file__.split(".")[0] + ".log")
+    logger.info("Start logging")
     config_utils.print_config(cfg)
+    logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
 
     active_loop(
@@ -30,6 +34,7 @@ def main(cfg: DictConfig):
     )
 
 
+@logger.catch
 def active_loop(
     cfg: DictConfig,
     ActiveTrainingLoop=ActiveTrainingLoop,
@@ -39,6 +44,7 @@ def active_loop(
     acq_size: int = 10,
     num_iter: int = 0,
 ):
+    logger.info("Instantiating Datamodule")
     datamodule = get_active_dm_from_config(cfg)
     num_classes = cfg.data.num_classes
     if balanced:
@@ -53,19 +59,23 @@ def active_loop(
 
     active_stores = []
     for i in range(num_iter):
+        logger.info("Start Active Loop {}".format(i))
         # Perform active learning iteration with training and labeling
         training_loop = ActiveTrainingLoop(
             cfg, count=i, datamodule=datamodule, base_dir=os.getcwd()
         )
+        logger.info("Start Training of Loop {}".format(i))
         training_loop.main()
+        logger.info("Start Acquisition of Loop {}".format(i))
         active_store = training_loop.active_callback()
         datamodule.train_set.label(active_store.requests)
         active_stores.append(active_store)
         training_loop.log_save_dict()
         cfg.active.num_labelled += cfg.active.acq_size
+        logger.info("Finalized Loop {}".format(i))
 
         del training_loop
-        time.sleep(5)
+        time.sleep(1)
 
     val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
     test_accs = np.array([active_store.accuracy_test for active_store in active_stores])
@@ -94,6 +104,7 @@ def active_loop(
         num_samples=num_samples,
         added_labels=add_labels,
     )
+    logger.success("Active Loop was finalized")
 
 
 if __name__ == "__main__":

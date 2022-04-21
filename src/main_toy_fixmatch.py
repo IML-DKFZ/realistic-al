@@ -4,19 +4,21 @@ from utils import config_utils
 from run_toy_fixmatch import FixToyTrainingLoop
 import utils
 from pathlib import Path
+from loguru import logger
 
 from main import active_loop
 from run_toy import get_toy_dm
 import matplotlib.pyplot as plt
 from toy_callback import ToyVisCallback
 from utils.file_utils import get_experiment_dicts
-import multiprocessing
 
 
 @hydra.main(config_path="./config", config_name="config_toy_fixmatch")
 def main(cfg: DictConfig):
-    # multiprocessing.set_start_method("spawn")
+    logger.add(__file__.split(".")[0] + ".log")
+    logger.info("Start logging")
     config_utils.print_config(cfg)
+    logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
 
     active_loop(
