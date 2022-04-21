@@ -18,7 +18,7 @@ hparam_dict = {
     "trainer.vis_callback": False,
     "model.weight_decay": [0, 0.01, 0.001],  # 0.1 is much too high!
     "model.dropout_p": [0.25],  # dropout 0.5 does not work
-    "model.use_ema": [True, False],
+    "model.use_ema": False,  # [True, False],
     "sem_sl.lambda_u": [1, 3, 5],
 }
 naming_conv = "{data}_sweeps/fixmatch_{model}_drop-{model.dropout_p}_wd-{model.weight_decay}_lambda-{sem_sl.lambda_u}_ema-{model.use_ema}"

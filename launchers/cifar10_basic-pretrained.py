@@ -4,9 +4,20 @@ from config_launcher import get_pretrained_arch
 
 config_dict = {
     "model": "resnet",
-    "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "query": [
+        "random",
+        "entropy",
+        "kcentergreedy",
+        "bald",
+        "variationratios",
+        # "batchbald",
+    ],
     "data": ["cifar10"],  # , "cifar100"],
-    "active": ["standard"],  # did not run! "standard_250", "cifar10_low_data"
+    "active": [
+        "standard",
+        "standard_250",
+        "cifar10_low_data",
+    ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
 
@@ -18,7 +29,7 @@ load_pretrained = [
 ]
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.max_epochs": 200,
+    "trainer.max_epochs": 40,  # Think about this before commiting (or sweep!)
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [True, False],
@@ -28,7 +39,7 @@ hparam_dict = {
 }
 
 naming_conv = (
-    "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
+    "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}",
 )
 
 
@@ -38,12 +49,12 @@ path_to_ex_file = "src/main.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    # parser.add_argument("--data", type=str, default=config_dict["data"])
+    parser.add_argument("--data", type=str, default=config_dict["data"])
     parser.add_argument("--model", type=str, default=config_dict["model"])
     ExperimentLauncher.add_argparse_args(parser)
     launcher_args = parser.parse_args()
 
-    # config_dict["data"] = launcher_args.data
+    config_dict["data"] = launcher_args.data
     config_dict["model"] = launcher_args.model
 
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
