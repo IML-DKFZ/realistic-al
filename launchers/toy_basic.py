@@ -2,14 +2,14 @@ from argparse import ArgumentParser
 from launcher import ExperimentLauncher
 
 config_dict = {
-    "model": "bayesian_mlp",
+    "model": "bayesian_mlp_deep",
     "query": [
         "random",
         "entropy",
         "bald",
         "batchbald",
-        "variationratios",
-        # "kcentergreedy", # TODO: make k-CenterGreedy run
+        # "variationratios",
+        # "kcentergreedy",  # TODO: make k-CenterGreedy run
     ],
     "data": ["toy_moons", "toy_circles"],
     "active": "toy_two_moons",
@@ -20,6 +20,8 @@ hparam_dict = {
     "trainer.max_epochs": 40,  # later change to 40?
     "trainer.vis_callback": False,
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
+    # "model.dropout_p": [0],
+    "model.wd": [0.001],
     "model.use_bn": False,  # for low data regime batchnorm does not work well!
 }
 naming_conv = "{data}/active_basic_set-{active}_{model}_dop-{model.dropout_p}_acq-{query}_ep-{trainer.max_epochs}"

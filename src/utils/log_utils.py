@@ -7,6 +7,13 @@ from omegaconf import OmegaConf
 from pathlib import Path
 from typing import Union, Optional
 from git import Repo, InvalidGitRepositoryError
+import __main__
+
+
+def setup_logger():
+    logpath = Path(os.getcwd()) / (__main__.__file__.split(".")[0] + ".log")
+    logger.add(logpath)
+    logger.info("Logging to file: {}".format(logpath))
 
 
 def get_repo_info(path: Union[str, Path]):

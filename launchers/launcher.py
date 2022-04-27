@@ -28,6 +28,7 @@ class BaseLauncher:
     ):
         """Launcher allowing fast parsing of parameters and experiments on both Cluster and the local Workstation"""
         if default_struct:
+            # TODO: Change __file__ since this will always lead to the directory here where launcher.py is located!
             current_dir = os.path.dirname(os.path.realpath(__file__))
             base_dir = "/".join(current_dir.split("/")[:-1])
             path_to_ex_file = os.path.join(base_dir, path_to_ex_file)

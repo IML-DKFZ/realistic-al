@@ -2,8 +2,8 @@ from argparse import ArgumentParser
 from launcher import ExperimentLauncher
 
 config_dict = {
-    "model": ["bayesian_mlp", "bayesian_mlp_deep"],
-    # "model": "bayesian_mlp_deep",
+    # "model": ["bayesian_mlp", "bayesian_mlp_deep"],
+    "model": "bayesian_mlp_deep",
     "query": ["random"],
     "data": "toy_moons",
     "active": "toy_two_moons",
@@ -11,13 +11,14 @@ config_dict = {
 
 hparam_dict = {
     "trainer.seed": [12345 + i for i in range(10)],
+    "trainer.precision": 32,
     "trainer.max_epochs": 40,
     "active.num_labelled": [6],
     "active.num_iter": 5,
     "active.acq_size": 12,
     "trainer.vis_callback": False,
     "model.weight_decay": [0, 0.01, 0.001],  # 0.1 is much too high!
-    "model.dropout_p": [0.25],  # dropout 0.5 does not work
+    "model.dropout_p": [0, 0.25],  # [0.25],  # dropout 0.5 does not work
     "model.use_ema": False,  # [True, False],
     "sem_sl.lambda_u": [1, 3, 5],
 }

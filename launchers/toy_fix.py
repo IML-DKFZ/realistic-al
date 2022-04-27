@@ -3,7 +3,7 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": [
-        "bayesian_mlp"
+        "bayesian_mlp_deep"
     ],  # , "bayesian_mlp_deep"], TODO: fix freezing for deep model!
     # "model": "bayesian_mlp_deep",
     # "query": ["random"],
@@ -12,8 +12,8 @@ config_dict = {
         "entropy",
         "bald",
         "batchbald",
-        "variationratios",
-        # "kcentergreedy", # TODO: make k-CenterGreedy run
+        # "variationratios",
+        # "kcentergreedy",  # TODO: make k-CenterGreedy run
     ],
     "data": ["toy_moons", "toy_circles"],
     "active": "toy_two_moons",
@@ -25,9 +25,9 @@ hparam_dict = {
     "trainer.seed": [12345 + i for i in range(10)],
     "trainer.max_epochs": 40,  # later change to 40?
     "trainer.vis_callback": False,
+    # "model.dropout_p": [0],  # dropout 0.5 does not work
     "model.dropout_p": [0, 0.25],  # dropout 0.5 does not work
-    "model.weight_decay": [0.01],
-    "model.dropout_p": [0.25],  # dropout 0.5 does not work
+    "model.weight_decay": [0.0],  # 0 works best according to two_moons sweep
     "sem_sl.lambda_u": [3],
 }
 

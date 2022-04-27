@@ -23,7 +23,7 @@ trainer:
   progress_bar_refresh_rate: 10
   gradient_clip_val: 0
   early_stop: False
-  precision: 16
+  precision: 32
   deterministic: False
   profiler: Null
   vis_callback: False # this enables or disables visualizations of training

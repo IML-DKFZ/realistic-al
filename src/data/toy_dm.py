@@ -39,6 +39,7 @@ class ToyDataset(Dataset):
         return len(self.predictors)
 
 
+# TODO: check why persistent workers=True throws errors!
 class ToyDM(pl.LightningDataModule):
     def __init__(
         self,
@@ -63,7 +64,7 @@ class ToyDM(pl.LightningDataModule):
         mean: Sequence = (0, 0),
         std: Sequence = (1, 1),
         seed: int = 12345,
-        persistent_workers=True,
+        persistent_workers=False,
     ):
         super().__init__()
 
