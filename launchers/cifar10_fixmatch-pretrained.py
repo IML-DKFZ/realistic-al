@@ -6,7 +6,11 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet_fixmatch",  # wideresnet-cifar10
     "data": "cifar10",
-    "active": ["cifar10_low_data"],  # standard
+    "active": [
+        "cifar10_low_data",
+        "standard_250",
+        "cifar10_low_data",
+    ],  # standard
     "query": ["random", "entropy", "kcentergreedy", "bald"],
     "optim": "sgd_fixmatch",
 }
@@ -20,7 +24,8 @@ load_pretrained = [
 
 hparam_dict = {
     "model.dropout_p": [0.5],
-    "model.learning_rate": 0.003,  # is more stable than 0.1!
+    # "model.learning_rate": 0.003,  # is more stable than 0.1!
+    "model.learning_rate": 0.01,
     "model.small_head": [False],
     # "model.use_ema": [True],
     "model.use_ema": False,
@@ -36,6 +41,7 @@ hparam_dict = {
     # "sem_sl.eman": [True],
     "sem_sl.eman": [False],
     "model.freeze_encoder": True,
+    # "model.freeze_encoder": False,
 }
 
 # naming_conv = "active_fixmatch-pretrained_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
