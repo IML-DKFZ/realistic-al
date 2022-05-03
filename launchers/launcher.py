@@ -7,7 +7,7 @@ from config_launcher import get_pretrained_arch
 import yaml
 
 cluster_sync_call = "cluster_sync"
-cluster_log_path = "/gpu/checkpoints/OE0612/c817h"
+cluster_log_path = "/dkfz/cluster/gpu/checkpoints/OE0612/c817h"
 cluster_ex_call = "cluster_run"
 
 local_ex_call = "python"
