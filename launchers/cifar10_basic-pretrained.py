@@ -29,18 +29,20 @@ load_pretrained = [
 ]
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.max_epochs": 40,  # Think about this before commiting (or sweep!)
+    "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": [0.001],
-    "model.freeze_encoder": [True, False],
+    # "model.freeze_encoder": [False],  # possibly add True
     "model.finetune": [False],
     "model.use_ema": False,
     "model.load_pretrained": True,
+    "data.transform_train": "cifar_basic",
+    # experiment with big head and frozen encoder
+    "model.freeze_encoder": True,
+    "model.small_head": [False],
 }
 
-naming_conv = (
-    "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}",
-)
+naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
 
 
 joint_iteration = ["model.load_pretrained", "trainer.seed"]
