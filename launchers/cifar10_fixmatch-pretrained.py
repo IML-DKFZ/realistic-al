@@ -29,10 +29,10 @@ hparam_dict = {
     "model.small_head": [False],
     # "model.use_ema": [True],
     "model.use_ema": False,
-    # "model.finetune": [True],
-    "model.finetune": False,
+    "model.finetune": [True],
+    # "model.finetune": False,
     "model.load_pretrained": True,
-    "trainer.max_epochs": 200,
+    "trainer.max_epochs": 400,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
@@ -40,8 +40,8 @@ hparam_dict = {
     ],
     # "sem_sl.eman": [True],
     "sem_sl.eman": [False],
-    "model.freeze_encoder": True,
-    # "model.freeze_encoder": False,
+    # "model.freeze_encoder": True,
+    "model.freeze_encoder": False,
 }
 
 # naming_conv = "active_fixmatch-pretrained_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
