@@ -9,4 +9,4 @@ transform_test: toy_identity
 # toy specific
 num_samples: 400
 num_test_samples: 5000
-noise: 0.15
+noise: 0.1
