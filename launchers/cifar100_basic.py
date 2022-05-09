@@ -14,14 +14,17 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": [0.01],
+    "model.load_pretrained": True,
     "model.use_ema": False,
+    "data.transform_train": [
+        # "cifar_basic",
+        "cifar_randaugment",
+    ],
 }
-naming_conv = (
-    "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
-)
+naming_conv = "{data}/active-{active}/model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
 
-joint_iteration = None
+joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 path_to_ex_file = "src/main.py"
 
