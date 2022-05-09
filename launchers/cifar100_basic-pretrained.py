@@ -7,7 +7,7 @@ config_dict = {
     "query": [
         "random",
         "entropy",
-        # "kcentergreedy",
+        "kcentergreedy",
         "bald",
         "variationratios",
         # "batchbald",

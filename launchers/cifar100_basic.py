@@ -3,7 +3,7 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "query": ["random", "entropy", "kcentergreedy", "bald", "variationratios"],
     "data": ["cifar100"],  # , "cifar100"],
     "active": ["standard"],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
