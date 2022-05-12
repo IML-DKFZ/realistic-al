@@ -14,7 +14,8 @@ config_dict = {
     ],
     "data": ["cifar100"],
     "active": [
-        "standard",
+        # "standard",
+        "cifar100",
     ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }

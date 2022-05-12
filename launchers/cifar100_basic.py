@@ -5,7 +5,10 @@ config_dict = {
     "model": "resnet",
     "query": ["random", "entropy", "kcentergreedy", "bald", "variationratios"],
     "data": ["cifar100"],  # , "cifar100"],
-    "active": ["standard"],  # did not run! "standard_250", "cifar10_low_data"
+    "active": [
+        # "standard",
+        "cifar100",
+    ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
 
@@ -17,7 +20,7 @@ hparam_dict = {
     "model.load_pretrained": True,
     "model.use_ema": False,
     "data.transform_train": [
-        # "cifar_basic",
+        "cifar_basic",
         "cifar_randaugment",
     ],
     "trainer.precision": 32,
