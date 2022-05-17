@@ -254,9 +254,7 @@ class ToyVisCallback(pl.Callback):
             pred_queries=acquired_data,
         )
 
-        ToyVisCallback.save_figs(
-            save_paths, "fig_uncertain_full_2d", savetype, name_suffix
-        )
+        ToyVisCallback.save_figs(save_paths, "fig_query_full_2d", savetype, name_suffix)
         close_figs()
 
     @staticmethod
@@ -380,13 +378,20 @@ class ToyVisCallback(pl.Callback):
         # num_cols = 5
         num_plots = num_rows * num_cols
 
+        width_factor = 3
+
+        if num_rows == 1:
+            height_factor = 3.3
+        else:
+            height_factor = width_factor
+
         fig, axs = plt.subplots(
             num_rows,
             num_cols,
             sharex="col",
             sharey="row",
             squeeze=False,
-            figsize=(num_cols * 3, num_rows * 3),
+            figsize=(num_cols * width_factor, num_rows * height_factor),
         )
         for y, ax_row in enumerate(axs):
             data_dict = listdicts[y]

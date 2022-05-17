@@ -130,6 +130,8 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
             train_data, val_data, grid_data, pool_data, grid_unc, save_paths, self.count
         )
         fig, axs = ToyVisCallback.fig_full_vis_2d([self._save_dict])
+        fig.suptitle("Acquisition Step {}".format(self.count))
+        fig.tight_layout()
         plt.savefig(os.path.join(self.log_dir, "fig_full_vis.png"))
         ToyVisCallback.save_figs(
             save_paths=save_paths,
@@ -187,6 +189,7 @@ def get_toy_dm(cfg: DictConfig, active_dataset: bool = True) -> ToyDM:
         shape=cfg.data.shape,
         num_workers=cfg.trainer.num_workers,
         seed=cfg.trainer.seed,
+        persistent_workers=cfg.trainer.persistent_workers,
     )
 
     return datamodule

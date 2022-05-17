@@ -12,6 +12,7 @@ trainer:
   seed: 12345
   batch_size: 64
   num_workers: 16
+  persistent_workers: False
   max_epochs: 40
   min_epochs: 0
   fast_dev_run: False

@@ -44,6 +44,7 @@ def get_torchvision_dm(
         num_workers=config.trainer.num_workers,
         seed=config.trainer.seed,
         active=active_dataset,
+        persistent_workers=config.trainer.persistent_workers,
     )
 
     return datamodule
