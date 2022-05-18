@@ -11,11 +11,12 @@ from run_toy import get_toy_dm
 import matplotlib.pyplot as plt
 from toy_callback import ToyVisCallback
 from utils.file_utils import get_experiment_dicts
+from utils.log_utils import setup_logger
 
 
 @hydra.main(config_path="./config", config_name="config_toy_fixmatch")
 def main(cfg: DictConfig):
-    logger.add(__file__.split(".")[0] + ".log")
+    setup_logger()
     logger.info("Start logging")
     config_utils.print_config(cfg)
     logger.info("Set seed")

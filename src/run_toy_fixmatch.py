@@ -9,9 +9,7 @@ import utils
 
 from run_toy import ToyActiveLearningLoop, get_toy_dm
 
-# from trainer import ActiveTrainingLoop
-
-active_dataset = True
+active_dataset = True  # unlabeled pool is necessary for training
 
 
 @hydra.main(config_path="./config", config_name="config_toy_fixmatch")

@@ -1,6 +1,6 @@
 import math
 import os
-from typing import Callable
+from typing import Callable, Union
 
 import hydra
 import numpy as np
@@ -13,11 +13,12 @@ from run_training import get_torchvision_dm
 from utils import config_utils
 import time
 from loguru import logger
+from utils.log_utils import setup_logger
 
 
 @hydra.main(config_path="./config", config_name="config")
 def main(cfg: DictConfig):
-    logger.add(__file__.split(".")[0] + ".log")
+    setup_logger()
     logger.info("Start logging")
     config_utils.print_config(cfg)
     logger.info("Set seed")
@@ -39,7 +40,7 @@ def active_loop(
     cfg: DictConfig,
     ActiveTrainingLoop=ActiveTrainingLoop,
     get_active_dm_from_config: Callable = get_torchvision_dm,
-    num_labelled: int = 100,
+    num_labelled: Union[None, int] = 100,
     balanced: bool = True,
     acq_size: int = 10,
     num_iter: int = 0,

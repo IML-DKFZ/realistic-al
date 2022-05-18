@@ -7,8 +7,6 @@ from utils import config_utils
 import utils
 from trainer import ActiveTrainingLoop
 
-active_dataset = True
-
 
 @hydra.main(config_path="./config", config_name="config")
 def main(cfg: DictConfig):
@@ -51,6 +49,7 @@ def get_torchvision_dm(
 
 
 def train(cfg: DictConfig):
+    active_dataset = cfg.active.num_labelled is not None
     utils.set_seed(cfg.trainer.seed)
     balanced = cfg.active.balanced
     num_classes = cfg.data.num_classes

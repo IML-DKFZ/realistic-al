@@ -6,11 +6,12 @@ import utils
 from loguru import logger
 
 from main import active_loop, get_torchvision_dm
+from utils.log_utils import setup_logger
 
 
 @hydra.main(config_path="./config", config_name="config_fixmatch")
 def main(cfg: DictConfig):
-    logger.add(__file__.split(".")[0] + ".log")
+    setup_logger()
     logger.info("Start logging")
     config_utils.print_config(cfg)
     logger.info("Set seed")

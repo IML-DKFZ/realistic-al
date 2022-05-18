@@ -1,0 +1,7 @@
+num_labelled: Null # this leads to using the full dataset
+min_train: 5500 # can be ignored
+balanced: True # can be ignored
+acq_size: 0 # tells model not to acquire any datapoints
+num_iter: 1 # only one iteration
+random_split: True 
+m: Null

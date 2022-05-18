@@ -16,8 +16,6 @@ from data.toy_dm import ToyDM
 from toy_callback import ToyVisCallback
 from query.storing import ActiveStore
 
-active_dataset = True
-
 
 def close_figs():
     plt.close("all")
@@ -143,6 +141,7 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
 
 
 def train(cfg: DictConfig):
+    active_dataset = cfg.active.num_labelled is not None
     utils.set_seed(cfg.trainer.seed)
     balanced = cfg.active.balanced
     num_classes = cfg.data.num_classes
