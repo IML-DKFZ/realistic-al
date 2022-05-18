@@ -4,6 +4,7 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
+    # "model": "wideresnet-cifar10",
     "model": "wideresnet-cifar10",
     "data": "cifar10",
     "active": ["cifar10_low_data"],  # standard
@@ -17,7 +18,7 @@ hparam_dict = {
     "model.small_head": [True],
     "model.use_ema": [True],
     "model.finetune": [False],
-    # "model.load_pretrained": None, # if this is set to None, weird errors appear!
+    "model.load_pretrained": None,  # if this is set to None, weird errors appear!
     "trainer.max_epochs": 2000,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [

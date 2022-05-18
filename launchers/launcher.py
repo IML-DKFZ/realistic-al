@@ -327,6 +327,9 @@ class ExperimentLauncher(BaseLauncher):
                     on_cluster=launcher_args.cluster,
                 )
 
+            if hparam_dict[load_arch] is None:
+                hparam_dict["model.load_pretrained"] = "Null"
+
         return config_dict, hparam_dict
 
     @staticmethod
