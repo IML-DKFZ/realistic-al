@@ -6,8 +6,8 @@ config_dict = {
     "query": [
         "random",
     ],
-    # "data": ["cifar10"],  # , "cifar100"],
-    "data": ["cifar100"],  # , "cifar100"],
+    "data": ["cifar10", "cifar100"],
+    # "data": ["cifar100"],  # , "cifar100"],
     "active": [
         "full_data",
     ],

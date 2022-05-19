@@ -23,6 +23,7 @@ hparam_dict = {
         "cifar_basic",
         "cifar_randaugment",
     ],
+    "trainer.precision": 32,
 }
 naming_conv = (
     "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
