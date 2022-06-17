@@ -12,7 +12,7 @@ from .utils import (
 
 from .data import TorchVisionDM
 from .toy_dm import ToyDM
-from .random_fixed_length_sampler import RandomFixedLengthSampler
+from .utils import RandomFixedLengthSampler
 
 from torch.utils.data import Subset, RandomSampler
 import numpy as np
