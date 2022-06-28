@@ -9,7 +9,7 @@ config_dict = {
     "active": [
         "cifar10_low_data",
         "standard_250",
-        "cifar10_low_data",
+        "standard",
     ],  # standard
     "query": ["random", "entropy", "kcentergreedy", "bald"],
     "optim": "sgd_fixmatch",

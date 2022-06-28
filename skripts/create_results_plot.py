@@ -13,13 +13,17 @@ src_folder = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"
 )
 # print(src_folder)
-sys.path.append(src_folder)
+sys.path.append(str(src_path))
 
 # from toy_callback import ToyVisCallback
 # from utils.path_utils import visuals_folder
 from utils.file_utils import get_experiment_df, get_experiment_configs_df
 from utils.path_utils import visuals_folder
 
+style_name = None
+unit_name = None
+style_vals = None
+unit_vals = None
 # from argparse import ArgumentParser
 
 # parser = ArgumentParser()
@@ -130,13 +134,15 @@ from utils.path_utils import visuals_folder
 ##############
 # Version 4
 ##############
-paths = [
-    "basic_set-mnist_batchbald_double_query-bald_model-bayesian_mnist_ep-200",
-    "basic_set-mnist_batchbald_double_query-batchbald_model-bayesian_mnist_ep-200",
-    "basic_set-mnist_batchbald_double_query-entropy_model-bayesian_mnist_ep-200",
-    "basic_set-mnist_batchbald_double_query-variationratios_model-bayesian_mnist_ep-200",
-    "basic_set-mnist_batchbald_double_query-random_model-bayesian_mnist_ep-200",
-]
+
+# all runs are full!
+# paths = [
+#     "basic_set-mnist_batchbald_double_query-bald_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_double_query-batchbald_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_double_query-entropy_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_double_query-variationratios_model-bayesian_mnist_ep-200",
+#     "basic_set-mnist_batchbald_double_query-random_model-bayesian_mnist_ep-200",
+# ]
 # paths = [
 #     "basic_set-mnist_batchbald_query-bald_model-bayesian_mnist_ep-200",
 #     "basic_set-mnist_batchbald_query-batchbald_model-bayesian_mnist_ep-200",
@@ -151,10 +157,103 @@ paths = [
 #     "basic_set-mnist_batchbald_start_query-variationratios_model-bayesian_mnist_ep-200",
 #     "basic_set-mnist_batchbald_start_query-random_model-bayesian_mnist_ep-200",
 # ]
-hue_names = [path.split("query-")[1].split("_")[0] for path in paths]
+# hue_names = [path.split("query-")[1].split("_")[0] for path in paths]
 # base_path = "/home/c817h/Documents/logs_cluster/activelearning/mnist"
-base_path = "/home/c817h/Documents/logs_cluster/activelearning/fashion_mnist"
+# base_path = "/home/c817h/Documents/logs_cluster/activelearning/fashion_mnist"
 
+##############
+# Version 5
+##############
+
+# all runs should have 10 seeds/files!
+# paths = [
+#     "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0.001_lambda-1_ema-False",
+#     "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0.001_lambda-3_ema-False",
+#     "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0.001_lambda-5_ema-False",
+#     # "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0.01_lambda-1_ema-False", # TODO: Rerun this one! - ema=False
+#     # "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0.01_lambda-3_ema-False",
+#     # "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0.01_lambda-5_ema-False",
+#     "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0_lambda-1_ema-False",
+#     "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0_lambda-3_ema-False",
+#     "fixmatch_bayesian_mlp_deep_drop-0.25_wd-0_lambda-5_ema-False",
+#     "fixmatch_bayesian_mlp_drop-0.25_wd-0.001_lambda-1_ema-False",
+#     "fixmatch_bayesian_mlp_drop-0.25_wd-0.001_lambda-3_ema-False",
+#     "fixmatch_bayesian_mlp_drop-0.25_wd-0.001_lambda-5_ema-False",
+#     # "fixmatch_bayesian_mlp_drop-0.25_wd-0.01_lambda-1_ema-False",
+#     # "fixmatch_bayesian_mlp_drop-0.25_wd-0.01_lambda-3_ema-False",
+#     # "fixmatch_bayesian_mlp_drop-0.25_wd-0.01_lambda-5_ema-False", # Outlier for ema=True
+#     "fixmatch_bayesian_mlp_drop-0.25_wd-0_lambda-1_ema-False",
+#     "fixmatch_bayesian_mlp_drop-0.25_wd-0_lambda-3_ema-False",
+#     "fixmatch_bayesian_mlp_drop-0.25_wd-0_lambda-5_ema-False",
+# ]
+# hue_names = [
+#     "wd="
+#     + path.split("wd-")[1].split("_")[0]
+#     + " lambda="
+#     + path.split("lambda-")[1].split("_")[0]
+#     for path in paths
+# ]
+# base_path = "/home/c817h/Documents/logs/activelearning/toy_moons_sweeps"
+# style_vals = [path.find("deep") != -1 for path in paths]
+# style_name = "Deep Model"
+# experiment_paths = [os.path.join(base_path, path) for path in paths]
+
+##############
+# Version 6
+##############
+
+# # all runs should have 10 seeds/files!
+# paths = [
+#     # "basic_bayesian_mlp_deep_drop-0.25_wd-0",
+#     "basic_bayesian_mlp_deep_drop-0.25_wd-0.001",
+#     "basic_bayesian_mlp_deep_drop-0.25_wd-0.01",
+#     "basic_bayesian_mlp_deep_drop-0_wd-0",
+#     "basic_bayesian_mlp_deep_drop-0_wd-0.001",
+#     "basic_bayesian_mlp_deep_drop-0_wd-0.01",
+#     "basic_bayesian_mlp_drop-0.25_wd-0",
+#     "basic_bayesian_mlp_drop-0.25_wd-0.001",
+#     "basic_bayesian_mlp_drop-0.25_wd-0.01",
+#     # "basic_bayesian_mlp_drop-0_wd-0",
+#     "basic_bayesian_mlp_drop-0_wd-0.001",
+#     "basic_bayesian_mlp_drop-0_wd-0.01",
+# ]
+# hue_names = [
+#     "wd="
+#     + path.split("wd-")[1].split("_")[0]
+#     + " drop="
+#     + path.split("drop-")[1].split("_")[0]
+#     for path in paths
+# ]
+# # style_name = None
+# # units_name = None
+# base_path = "/home/c817h/Documents/logs/activelearning/toy_moons_sweeps"
+# style_name = "Deep MLP"
+# style_vals = [path.find("deep") != -1 for path in paths]
+# experiment_paths = [os.path.join(base_path, path) for path in paths]
+
+paths = [
+    "model-resnet_drop-0.5_aug-cifar_basic_acq-bald_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_basic_acq-entropy_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_basic_acq-kcentergreedy_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_basic_acq-random_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_basic_acq-variationratios_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_randaugment_acq-bald_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_randaugment_acq-entropy_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_randaugment_acq-kcentergreedy_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_randaugment_acq-random_ep-200",
+    "model-resnet_drop-0.5_aug-cifar_randaugment_acq-variationratios_ep-200",
+]
+
+# base_path = (
+#     "/home/c817h/Documents/logs_cluster/activelearning/cifar10/active-cifar10_low_data"
+# )
+base_path = "/home/c817h/Documents/logs_cluster/activelearning/cifar10/active-standard"
+# base_path = (
+#     "/home/c817h/Documents/logs_cluster/activelearning/cifar10/active-standard_250"
+# )
+hue_names = ["Acq: " + path.split("acq-")[1].split("_")[0] for path in paths]
+style_name = "Randaugment"
+style_vals = [path.find("cifar_randaugment_acq") != -1 for path in paths]
 experiment_paths = [os.path.join(base_path, path) for path in paths]
 # Note: Means over multiple different data allows simple
 if __name__ == "__main__":
@@ -175,33 +274,65 @@ if __name__ == "__main__":
             hue_names = [None for i in range(len(experiment_paths))]
     if hue_names is None:
         hue_names = [None for i in range(len(experiment_paths))]
-
+    # if style_vals is None:
+    #     style_vals = ["None" for i in range(len(experiment_paths))]
+    # if unit_vals is None:
+    #     unit_vals = ["None" for i in range(len(experiment_paths))]
+    hue_name = "Name"
+    if style_name is None:
+        style_name = "Style"
+    if unit_name is None:
+        unit_name = "Unit"
     df = []
-    for name, base_dir in zip(hue_names, experiment_paths):
+
+    for i, (base_dir) in enumerate(experiment_paths):
         base_dir = Path(base_dir)
-        # import IPython
+        if hue_names is not None:
+            hue_val = hue_names[i]
+        else:
+            hue_val = None
+        if style_vals is not None:
+            style_val = style_vals[i]
+        else:
+            style_val = None
+        if unit_vals is not None:
+            unit_val = unit_vals[i]
+        else:
+            unit_val = None
 
-        # IPython.embed()
-        # try:
-        experiment_frame = get_experiment_df(base_dir, name)
+        experiment_frame = get_experiment_df(base_dir, hue_val)
+        # experiment_frame[hue_name] = hue_val
+        if experiment_frame is None:
+            continue
 
-        # this is currently highly experimental -- try to get the configs for later use.
-        # experiment_param_frame = get_experiment_configs_df(base_dir, name)
-
+        experiment_frame[style_name] = style_val
+        experiment_frame[unit_name] = unit_val
         df.append(experiment_frame)
-        # except:
-        #     for path in base_dir.iterdir():
-        #         if path.is_dir():
-        #             experiment_frame = get_experiment_df(path, name)
-        #             df.append(experiment_frame)
-        # df.append(experiment_frame)
     df = pd.concat(df)
     df.reset_index(inplace=True)
 
     from plotlib.performance_plots import plot_standard_dev
 
     fig, ax = plt.subplots()
-    plot_standard_dev(ax, df, hue="Name")
+    if style_vals is None:
+        style_name = None
+    if unit_vals is None:
+        unit_name = None
+    plot_standard_dev(
+        ax, df, hue=hue_name, style=style_name, units=unit_name
+    )  # , units=unit_name)
 
     save_path = Path(visuals_folder) / "performance_plot.png"
+    plt.savefig(save_path)
+
+    fig, ax = plt.subplots()
+    if style_vals is None:
+        style_name = None
+    if unit_vals is None:
+        unit_name = None
+    plot_standard_dev(
+        ax, df, hue=hue_name, style=style_name, units=unit_name, ci=None
+    )  # , units=unit_name)
+
+    save_path = Path(visuals_folder) / "performance_plot-noci.png"
     plt.savefig(save_path)

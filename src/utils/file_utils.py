@@ -74,7 +74,10 @@ def get_experiment_configs_df(
 
 
 def get_experiment_df(
-    experiment_path: Path, name: Optional[str] = None, pattern: str = "stored.npz"
+    experiment_path: Path,
+    name: Optional[str] = None,
+    pattern: str = "stored.npz",
+    verbose: bool = False,
 ) -> pd.DataFrame:
     """Returns a cleaned dataframe with results from an experiment with a npz save structure.
 
@@ -89,8 +92,12 @@ def get_experiment_df(
     files = get_all_files_naming(experiment_path, pattern)
     out_dicts = []
     print("Loading Experiment:", experiment_path)
+    print(f"Found num files: {len(files)}")
+    if len(files) == 0:
+        return None
     for file in files:
-        print("Loading File:", file)
+        if verbose:
+            print("\tLoading File:", file)
         loaded = np.load(file)
         data_dict = dict()
         for key, val in loaded.items():
@@ -111,8 +118,8 @@ def get_experiment_df(
 
         # TODO: Check if this is needed generally!
         for key in out_dict:
-            # if len(out_dict[key].shape) == 2:
-            # out_dict[key] = out_dict[key].squeeze(1)
+            if len(out_dict[key].shape) == 2:
+                out_dict[key] = out_dict[key].squeeze(1)
             pass
         # import IPython
 

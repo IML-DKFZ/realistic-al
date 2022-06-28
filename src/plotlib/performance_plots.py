@@ -13,6 +13,7 @@ def plot_standard_dev(
     hue: str = "Sampling",
     style: Optional[str] = None,
     units: Optional[str] = None,
+    ci: Optional[str] = "sd",
 ) -> plt.Axes:
     """Creates a lineplot from dataframe with sns.lineplot.
     For information see:
@@ -27,10 +28,10 @@ def plot_standard_dev(
         x=x,
         y=y,
         hue=hue,
-        ci="sd",
+        ci=ci,
         markers=True,
         marker="o",
-        dashes=False,
+        dashes=True,
         units=units,
         style=style,
     )

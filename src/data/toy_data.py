@@ -57,6 +57,21 @@ def generate_circles_data(n_samples, noise=0.15, seed=12345, factor=0.5):
     )
     return X, y
 
+
+# WIP
+# def generate_multi_moons(n_samples, noise=0.15, seed=12345, factor=0.5, num_clusters=4):
+#     # Generate Multiple Clusters of the Two-Moons Dataset
+#     X_arr = []
+#     y_arr = []
+#     for i in num_clusters:
+#         X, y = make_circles(
+#             n_samples, shuffle=True, random_state=seed, noise=noise, factor=factor
+#         )
+#         X_arr.append(X)
+#         y_arr.append(y)
+    
+    
+#     return X, y
 # Generating Checkerboard Data is super interesting, but needs to be implemented!
 # def generate_checkerboard_data(n_samples, n_dim, seed=12345):
 #     X, y = make_checkerboard()

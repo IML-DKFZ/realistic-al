@@ -28,10 +28,14 @@ hparam_dict = {
     "sem_sl.eman": [False],
 }
 
-naming_conv = (
-    "active_fixmatch_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
-)
-path_to_ex_file = "src/main_fixmatch.py"
+# naming_conv = (
+#     "active_fixmatch_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
+# )
+
+naming_conv = "{data}/active-{active}/single-fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_ep-{trainer.max_epochs}"
+
+# path_to_ex_file = "src/main_fixmatch.py"
+path_to_ex_file = "src/run_training_fixmatch.py"
 
 joint_iteration = ["query", "model.dropout_p"]
 
