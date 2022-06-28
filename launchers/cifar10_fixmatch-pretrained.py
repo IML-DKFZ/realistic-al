@@ -42,10 +42,11 @@ hparam_dict = {
     "sem_sl.eman": [False],
     # "model.freeze_encoder": True,
     "model.freeze_encoder": False,
+    "trainer.persistent_workers": True,
 }
 
 # naming_conv = "active_fixmatch-pretrained_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
-naming_conv = "{data}/active-{active}/fixmatch-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
+naming_conv = "{data}/test-{active}/fixmatch-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
 
 path_to_ex_file = "src/main_fixmatch.py"
 
