@@ -1,5 +1,4 @@
 from copy import deepcopy
-from optparse import Option
 import os
 from pathlib import Path
 
@@ -8,6 +7,7 @@ from loguru import logger
 import numpy as np
 from omegaconf import DictConfig
 import pytorch_lightning as pl
+
 from pytorch_lightning.callbacks import TQDMProgressBar
 from models.bayesian import BayesianModule
 from data.data import TorchVisionDM
@@ -110,7 +110,7 @@ class ActiveTrainingLoop(object):
             name=self.name,
             version=self.version,
         )
-        self.logger = [tb_logger, csv_logger]
+        self.loggers = [tb_logger, csv_logger]
 
     def init_model(self):
         self.model = BayesianModule(self.cfg)
@@ -118,7 +118,7 @@ class ActiveTrainingLoop(object):
     def init_trainer(self):
         self.trainer = pl.Trainer(
             gpus=self.cfg.trainer.n_gpus,
-            logger=self.logger,
+            logger=self.loggers,
             max_epochs=self.cfg.trainer.max_epochs,
             min_epochs=self.cfg.trainer.min_epochs,
             fast_dev_run=self.cfg.trainer.fast_dev_run,

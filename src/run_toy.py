@@ -21,7 +21,7 @@ def close_figs():
     plt.close("all")
 
 
-@hydra.main(config_path="./config", config_name="config_toy")
+@hydra.main(config_path="./config", config_name="config_toy", version_base="1.1")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)

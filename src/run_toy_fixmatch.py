@@ -12,7 +12,7 @@ from run_toy import ToyActiveLearningLoop, get_toy_dm
 active_dataset = True  # unlabeled pool is necessary for training
 
 
-@hydra.main(config_path="./config", config_name="config_toy_fixmatch")
+@hydra.main(config_path="./config", config_name="config_toy_fixmatch", version_base="1.1")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)

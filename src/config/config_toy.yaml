@@ -1,4 +1,5 @@
 defaults:
+  - _self_
   - data: toy_moons
   - optim: adam
   - model: bayesian_mlp
@@ -24,7 +25,7 @@ trainer:
   progress_bar_refresh_rate: 10
   gradient_clip_val: 0
   early_stop: False
-  precision: 32
+  precision: 16
   deterministic: False
   profiler: Null
   vis_callback: False # this enables or disables visualizations of training

@@ -2,8 +2,11 @@ from argparse import ArgumentParser
 from launcher import BaseLauncher
 
 config_dict = {
-    "data": ["cifar10", "cifar100"],
-    "model": ["cifar_resnet18", "cifar_wideresnet28-2"],  # verify correctness here!
+    # "data": ["cifar10", "cifar100"],
+    "data": ["cifar10_imb"],
+    "model": [
+        "cifar_resnet18"
+    ],  # , "cifar_wideresnet28-2"],  # verify correctness here!
 }
 
 hparam_dict = {
@@ -11,7 +14,7 @@ hparam_dict = {
     "trainer.max_epochs": 1000,
 }
 
-naming_conv = "{model}"
+naming_conv = "{data}/{model}"
 
 path_to_ex_file = "skripts/train_simclr.py"
 

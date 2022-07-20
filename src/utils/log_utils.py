@@ -11,7 +11,11 @@ import __main__
 
 
 def setup_logger():
-    logpath = Path(os.getcwd()) / (__main__.__file__.split(".")[0] + ".log")
+    logger.info("Current Working Directory: {}".format(os.getcwd()))
+    logger.info("Main: {}".format((__main__.__file__.split(".")[0] + ".log")))
+    logpath = Path(os.getcwd()) / (
+        Path(__main__.__file__).name.split(".")[0].__str__() + ".log"
+    )
     logger.add(logpath)
     logger.info("Logging to file: {}".format(logpath))
 

@@ -34,7 +34,7 @@ base:
 trainer:
   seed: 12345
   fast_dev_run: False
-  experiments_root: ${oc.env:EXPERIMENT_ROOT}/SSL/${data.dataset}
+  experiments_root: ${oc.env:EXPERIMENT_ROOT}/SSL/
   experiment_name: test
   experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
   gpus: 1

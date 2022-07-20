@@ -14,6 +14,7 @@ from .utils import (
     seed_worker,
     RandomFixedLengthSampler,
 )
+from .longtail import create_imbalanced_dataset
 from .base_datamodule import BaseDataModule
 from .transformations import get_transform
 
@@ -40,6 +41,7 @@ class TorchVisionDM(BaseDataModule):
         std: Sequence = (1,),
         seed: int = 12345,
         persistent_workers=True,
+        imbalance=False,
     ):
         super().__init__(
             val_split=val_split,
@@ -73,6 +75,7 @@ class TorchVisionDM(BaseDataModule):
         self.test_transforms = get_transform(
             transform_test, self.mean, self.std, self.shape
         )
+        self.imbalance = imbalance
 
         if self.dataset == "mnist":
             self.dataset_cls = MNIST
@@ -100,6 +103,11 @@ class TorchVisionDM(BaseDataModule):
             self.data_root, train=True, transform=self.train_transforms
         )
         self.train_set = self._split_dataset(self.train_set, train=True)
+
+        if self.imbalance:
+            self.train_set = create_imbalanced_dataset(
+                self.train_set, imb_type="exp", imb_factor=0.02
+            )
 
         if self.active:
             self.train_set = ActiveLearningDataset(

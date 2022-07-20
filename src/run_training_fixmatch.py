@@ -12,7 +12,7 @@ from trainer import ActiveTrainingLoop
 active_dataset = True
 
 
-@hydra.main(config_path="./config", config_name="config_fixmatch")
+@hydra.main(config_path="./config", config_name="config_fixmatch", version_base="1.1")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)

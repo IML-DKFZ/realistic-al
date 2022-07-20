@@ -1,0 +1,11 @@
+dataset: cifar10
+shape: [32, 32, 3]
+num_classes: 10
+val_split: 5000
+mean: [0.4914, 0.4822, 0.4465]
+std: [0.2023, 0.1994, 0.2010]
+transform_train: cifar_basic
+transform_test: basic
+imbalance: True
+rho: 0.02 # default parameter -- not to be changed!
+type: exp # default parameter -- not to be changed!

@@ -24,6 +24,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
     train_pool = activesubset_from_subset(dm.train_set.pool._dataset)
     if isinstance(dm, TorchVisionDM):
         train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
+        # train_pool.transform = dm.train_transforms
     elif isinstance(dm, ToyDM):
         train_pool.transform = MultiHeadedTransform(
             [
@@ -38,8 +39,14 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             )
         )
     # Keep amount of workers fixed for training.
-    workers_sup = max(2, (dm.num_workers) // (mu + 1))
+    # workers_sup = 0
+    if dm.num_workers > 2:
+        workers_sup = max(2, (dm.num_workers) // (mu + 1))
+    else:
+        workers_sup = 0
+    # print("Workers Sup={}".format(workers_sup))
     workers_sem = dm.num_workers - workers_sup
+    # print("Workers Semi={}".format(workers_sem))
     if len(train_pool) < dm.batch_size * mu:
         sem_loader = DataLoader(
             train_pool,
@@ -96,12 +103,9 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             pin_memory=dm.pin_memory,
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
-            persistent_workers=True,
+            persistent_workers=dm.persistent_workers,
         )
-    return ConcatDataloader(
-        sup_loader,
-        sem_loader,
-    )
+    return [sup_loader, sem_loader]
 
 
 def wrap_fixmatch_train_dataloader(dm: TorchVisionDM, mu: int):

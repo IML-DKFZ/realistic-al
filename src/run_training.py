@@ -8,7 +8,7 @@ import utils
 from trainer import ActiveTrainingLoop
 
 
-@hydra.main(config_path="./config", config_name="config")
+@hydra.main(config_path="./config", config_name="config", version_base="1.1")
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)
@@ -26,6 +26,11 @@ def get_torchvision_dm(
     Returns:
         TorchVisionDM: _description_
     """
+    try:
+        imbalance = config.data.imbalance
+    except:
+        imbalance = False
+
     datamodule = TorchVisionDM(
         data_root=config.trainer.data_root,
         batch_size=config.trainer.batch_size,
@@ -43,6 +48,7 @@ def get_torchvision_dm(
         seed=config.trainer.seed,
         active=active_dataset,
         persistent_workers=config.trainer.persistent_workers,
+        imbalance=imbalance,
     )
 
     return datamodule
