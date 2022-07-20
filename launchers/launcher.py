@@ -122,9 +122,23 @@ class BaseLauncher:
         # add here 1. Verifying that all values have the same length
         # 2. A way to jump over configs, where these values are different
         joint_dict = self.merge_dictionaries(self.config_args, self.overwrite_args)
-        accept_dicts = self.unfold_zip_dictionary(joint_dict)
+        accept_dicts = [dict()]
+        accept_dicts_arr = []
+        if isinstance(self.joint_iteration[0], (list, tuple)):
+            for joint_iteration in self.joint_iteration:
+                accept_dicts_arr.append(
+                    self.unfold_zip_dictionary(joint_dict, joint_iteration)
+                )
 
-        final_product = []
+        else:
+            accept_dicts_arr.append(
+                self.unfold_zip_dictionary(joint_dict, self.joint_iteration)
+            )
+
+        # full_dicts = []
+        config_dicts = []
+        param_dicts = []
+
         for args in deepcopy(self.product):
             config_dict = dict(
                 zip(self.config_args.keys(), args[: len(self.config_args)])
@@ -132,29 +146,45 @@ class BaseLauncher:
             param_dict = dict(
                 zip(self.overwrite_args.keys(), args[len(self.config_args) :])
             )
-            full_dict = self.merge_dictionaries(config_dict, param_dict)
+            config_dicts.append(config_dict)
+            param_dicts.append(param_dict)
 
-            if not self.skip_config(full_dict):
-                # Check whether the the acc_dict lies in the full_dict
-                # If yes, then it is is accepted for execution
-                for acc_dict in accept_dicts:
-                    if (
-                        all(
-                            full_dict.get(key, None) == val
-                            for key, val in acc_dict.items()
-                        )
-                        and (config_dict, param_dict) not in final_product
-                    ):
-                        final_product.append((config_dict, param_dict))
+        for accept_dicts in accept_dicts_arr:
+            config_dicts_new = []
+            param_dicts_new = []
+
+            for config_dict, param_dict in zip(config_dicts, param_dicts):
+                full_dict = self.merge_dictionaries(config_dict, param_dict)
+                if not self.skip_config(full_dict):
+                    full_dict = self.merge_dictionaries(config_dict, param_dict)
+                    # Check whether the the acc_dict lies in the full_dict
+                    # If yes, then it is is accepted for execution
+                    for acc_dict in accept_dicts:
+                        if (
+                            all(
+                                full_dict.get(key, None) == val
+                                for key, val in acc_dict.items()
+                            )
+                            # and (config_dict, param_dict) not in final_product
+                        ):
+                            config_dicts_new.append(config_dict)
+                            param_dicts_new.append(param_dict)
+            config_dicts = config_dicts_new
+            param_dicts = param_dicts_new
+
+        final_product = []
+        for config_dict, param_dict in zip(config_dicts, param_dicts):
+            if (config_dict, param_dict) not in final_product:
+                final_product.append((config_dict, param_dict))
         return final_product
 
-    def unfold_zip_dictionary(self, joint_dict):
+    def unfold_zip_dictionary(self, joint_dict, joint_iteration):
         """Creates a list of dictionaries with combinations that
         should be launched according to joint_iteration.
         The format of the output is identical to the one obtained by itertools!"""
         accept_dicts = [dict()]
-        if self.joint_iteration is not None:
-            for i, key in enumerate(self.joint_iteration):
+        if joint_iteration is not None:
+            for i, key in enumerate(joint_iteration):
                 if i == 0:
                     check_length = len(joint_dict[key])
                     accept_dicts = [dict() for i in range(check_length)]
@@ -194,6 +224,9 @@ class BaseLauncher:
     def prepare_launch(self):
         if self.launcher_args.cluster and self.launcher_args.debug is False:
             self.sync_cluster()
+
+    def skip_config(self, config_settings: dict):
+        return False
 
     @staticmethod
     def dict_to_arg(dict, prefix="", key_to_arg="="):
@@ -279,11 +312,7 @@ class ExperimentLauncher(BaseLauncher):
                     )
                 filename = filename[0]
             path_to_config = os.path.join(
-                base_dir,
-                "src",
-                "config",
-                config_name,
-                filename + file_ending,
+                base_dir, "src", "config", config_name, filename + file_ending,
             )
             print(path_to_config)
             assert os.path.isfile(

@@ -56,10 +56,16 @@ class SimCLR_algo(SimCLR):
             raise NotImplementedError
 
 
-@hydra.main(config_path="./config", config_name="simclr_base")
+@hydra.main(config_path="./config", config_name="simclr_base", version_base="1.1")
 def cli_cluster(cfg: DictConfig):
     print_config(cfg, fields=["model", "trainer", "data"])
     utils.set_seed(cfg.trainer.seed)
+
+    imbalance = False
+    try:
+        imbalance = cfg.data.imbalance
+    except:
+        pass
 
     dm = TorchVisionDM(
         data_root=cfg.base.data_root,
@@ -76,6 +82,7 @@ def cli_cluster(cfg: DictConfig):
         transform_test=cfg.data.transform_test,
         shape=cfg.data.shape,
         seed=cfg.trainer.seed,
+        imbalance=imbalance,
     )
 
     normalization = torchvision.transforms.Normalize(cfg.data.mean, cfg.data.std)

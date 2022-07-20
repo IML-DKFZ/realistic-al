@@ -16,7 +16,7 @@ from loguru import logger
 from utils.log_utils import setup_logger
 
 
-@hydra.main(config_path="./config", config_name="config")
+@hydra.main(config_path="./config", config_name="config", version_base="1.1")
 def main(cfg: DictConfig):
     setup_logger()
     logger.info("Start logging")

@@ -120,10 +120,10 @@ class AbstractClassifier(pl.LightningModule):
 
     def on_fit_start(self) -> None:
         """Initialize metrics for the tensorboard_logger.
-        Either self.logger is a list with tb_logger as first,
+        Either self.loggers is a list with tb_logger as first,
         or only tb_logger is present."""
         metric_placeholder = {"val/acc": 0.0, "test/acc": 0.0}
-        self.logger[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
+        self.loggers[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
         # if isinstance(self.logger, (tuple, list)):
         #     self.logger[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
         # else:
@@ -148,7 +148,19 @@ class AbstractClassifier(pl.LightningModule):
         self.log(f"{mode}/acc", self.acc_test.compute(), on_step=False, on_epoch=True)
 
     def setup_data_params(self, dm: pl.LightningDataModule):
-        self.train_iters_per_epoch = len(dm.train_dataloader())
+        """Create internal parameter with the amount of training iterations per epoch.
+
+        Args:
+            dm (pl.LightningDataModule): DataModule
+        """
+        train_loader = dm.train_dataloader()
+        if isinstance(train_loader, (tuple, list)):
+            self.train_iters_per_epoch = max([len(loader) for loader in train_loader])
+        else:
+            self.train_iters_per_epoch = len(train_loader)
+        # print(
+        #     "Optimizer uses train iters per epoch {}".format(self.train_iters_per_epoch)
+        # )
 
     def configure_optimizers(self):
         optimizer_name = self.hparams.optim.optimizer.name
@@ -186,17 +198,11 @@ class AbstractClassifier(pl.LightningModule):
                 learning_rate=lr,
             )
         if optimizer_name == "adam":
-            optimizer = torch.optim.Adam(
-                params,
-            )
+            optimizer = torch.optim.Adam(params,)
         elif optimizer_name == "sgd":
             momentum = self.hparams.optim.optimizer.momentum
             nesterov = self.hparams.optim.optimizer.nesterov
-            optimizer = torch.optim.SGD(
-                params,
-                momentum=momentum,
-                nesterov=nesterov,
-            )
+            optimizer = torch.optim.SGD(params, momentum=momentum, nesterov=nesterov,)
         else:
             raise NotImplementedError
 
@@ -226,8 +232,7 @@ class AbstractClassifier(pl.LightningModule):
             if step_size == 0:
                 step_size += 1
             scheduler = torch.optim.lr_scheduler.StepLR(
-                optimizer=optimizer,
-                step_size=step_size,
+                optimizer=optimizer, step_size=step_size,
             )
             return [optimizer], [scheduler]
         elif scheduler_name == "steplr_resnet":

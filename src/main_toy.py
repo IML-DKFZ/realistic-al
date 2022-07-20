@@ -14,7 +14,7 @@ from utils.file_utils import get_experiment_dicts
 from utils.log_utils import setup_logger
 
 
-@hydra.main(config_path="./config", config_name="config_toy")
+@hydra.main(config_path="./config", config_name="config_toy", version_base="1.1")
 def main(cfg: DictConfig):
     setup_logger()
     # logger.add(__file__.split(".")[0] + ".log")

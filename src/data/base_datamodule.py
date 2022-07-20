@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import Dataset, DataLoader, Subset, random_split
 import pytorch_lightning as pl
 
-from data.active import ActiveLearningDataset
 from data.utils import (
     ActiveSubset,
     seed_worker,
@@ -49,20 +48,6 @@ class BaseDataModule(pl.LightningDataModule):
 
         if not self.shuffle:
             raise ValueError("shuffle flag has to be set to true")
-
-    # @property
-    # @abstractmethod
-    # def train_set(self) -> Dataset:
-    #     pass
-
-    # @property
-    # @abstractmethod
-    # def val_set(self) -> Dataset:
-    #     pass
-
-    # @property
-    # def test_set(self) -> Dataset:
-    #     raise NotImplementedError("There is currently no Test Set defined")
 
     def _split_dataset(self, dataset: Dataset, train: bool = True):
         """Splits the dataset into train and validation set."""

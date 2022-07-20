@@ -45,13 +45,31 @@ class FixMatch(AbstractClassifier):
         loss_u, mask_u = self.semi_step(logits_w, logits_s)
         loss_s, preds, y = self.step_logits(logits, y)
         loss = loss_s + self.lambda_u * loss_u
-        self.log(f"{mode}/loss_s", loss_s, on_step=False, on_epoch=True)
-        self.log(f"{mode}/loss_u", loss_u, on_step=False, on_epoch=True)
+        self.log(
+            f"{mode}/loss_s",
+            loss_s,
+            on_step=False,
+            on_epoch=True,
+            batch_size=x.shape[0],
+        )
+        self.log(
+            f"{mode}/loss_u",
+            loss_u,
+            on_step=False,
+            on_epoch=True,
+            batch_size=x.shape[0],
+        )
         # define batchsize for mean computation due to ambiguity
         self.log(
             f"{mode}/loss", loss, on_step=False, on_epoch=True, batch_size=x.shape[0]
         )
-        self.log(f"{mode}/mask_u", mask_u, on_step=False, on_epoch=True)
+        self.log(
+            f"{mode}/mask_u",
+            mask_u,
+            on_step=False,
+            on_epoch=True,
+            batch_size=x_w.shape[0],
+        )
         # compute estimate for accuracy additionally to mask
         # self.log(f"{mode}/mask_acc", logits.argmax())
         self.acc_train.update(preds, y)
@@ -113,7 +131,7 @@ class FixMatch(AbstractClassifier):
                 .detach()
             )
             # Works only for Tensorboard!
-            self.logger.experiment[0].add_image(
+            self.loggers[0].experiment.add_image(
                 title,
                 grid,
                 self.current_epoch,
