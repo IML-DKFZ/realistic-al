@@ -1,4 +1,5 @@
 defaults:
+  - trainer: base
   - _self_
   - data: mnist
   - optim: adam
@@ -9,28 +10,12 @@ defaults:
   - query: bald
 
 trainer:
-  seed: 12345
   batch_size: 64
   num_workers: 16
   persistent_workers: True
   max_epochs: 200
   min_epochs: 50
-  fast_dev_run: False
-  data_root: ${oc.env:DATA_ROOT}
-  experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
-  experiment_name: test_new
-  experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
-  n_gpus: 1
-  check_val_every_n_epoch: 1
-  progress_bar_refresh_rate: 10
-  gradient_clip_val: 0
-  early_stop: False
-  precision: 16 
-  deterministic: False
-  profiler: Null
-  load_best_ckpt: True
-  save_last: False
-  # enable_progress_bar: True
+  experiment_name: test
 
 hydra:
   run:

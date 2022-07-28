@@ -27,7 +27,8 @@ class BaseDataModule(pl.LightningDataModule):
         active: bool = True,
         random_split: bool = True,
         seed: int = 12345,
-        persistent_workers=True,
+        persistent_workers: bool = True,
+        timeout: int = 0,
     ):
         super().__init__()
         self.batch_size = batch_size
@@ -48,6 +49,8 @@ class BaseDataModule(pl.LightningDataModule):
 
         if not self.shuffle:
             raise ValueError("shuffle flag has to be set to true")
+
+        self.timeout = timeout
 
     def _split_dataset(self, dataset: Dataset, train: bool = True):
         """Splits the dataset into train and validation set."""

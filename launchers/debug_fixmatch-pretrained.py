@@ -36,7 +36,7 @@ hparam_dict = {
     # "model.finetune": [True],
     "model.finetune": False,
     "model.load_pretrained": True,
-    "trainer.max_epochs": 800,
+    "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
@@ -47,7 +47,7 @@ hparam_dict = {
     "model.freeze_encoder": True,
     # "model.freeze_encoder": False,
     "trainer.deterministic": True,
-    "trainer.num_workers": 0,
+    "trainer.num_workers": 10,
     "trainer.persistent_workers": [
         # True,
         False,

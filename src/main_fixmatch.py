@@ -1,10 +1,13 @@
+from typing import Optional
 import hydra
 from omegaconf import DictConfig
 from utils import config_utils
-from run_training_fixmatch import FixTrainingLoop
 import utils
 from loguru import logger
 
+import pytorch_lightning as pl
+
+from trainer_fix import FixTrainingLoop
 from main import active_loop, get_torchvision_dm
 from utils.log_utils import setup_logger
 

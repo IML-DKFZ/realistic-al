@@ -1,5 +1,4 @@
 import os
-from models.fixmatch import FixMatch
 from data.data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
@@ -7,7 +6,7 @@ from utils import config_utils
 
 import utils
 
-from trainer import ActiveTrainingLoop
+from trainer_fix import FixTrainingLoop
 
 active_dataset = True
 
@@ -53,11 +52,6 @@ def train(cfg: DictConfig):
     training_loop = FixTrainingLoop(cfg, datamodule, active=False, base_dir=os.getcwd())
     training_loop.main()
     training_loop.log_save_dict()
-
-
-class FixTrainingLoop(ActiveTrainingLoop):
-    def init_model(self):
-        self.model = FixMatch(self.cfg)
 
 
 if __name__ == "__main__":
