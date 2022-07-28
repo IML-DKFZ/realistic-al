@@ -124,12 +124,15 @@ class BaseLauncher:
         joint_dict = self.merge_dictionaries(self.config_args, self.overwrite_args)
         accept_dicts = [dict()]
         accept_dicts_arr = []
-        if isinstance(self.joint_iteration[0], (list, tuple)):
+        if self.joint_iteration is None:
+            accept_dicts_arr.append(
+                self.unfold_zip_dictionary(joint_dict, self.joint_iteration)
+            )
+        elif isinstance(self.joint_iteration[0], (list, tuple)):
             for joint_iteration in self.joint_iteration:
                 accept_dicts_arr.append(
                     self.unfold_zip_dictionary(joint_dict, joint_iteration)
                 )
-
         else:
             accept_dicts_arr.append(
                 self.unfold_zip_dictionary(joint_dict, self.joint_iteration)
@@ -336,19 +339,20 @@ class ExperimentLauncher(BaseLauncher):
         )
         load_arch = "model.load_pretrained"
         if load_arch in hparam_dict:
-            if hparam_dict["model.load_pretrained"] is True:
-                model_type = ExperimentLauncher.access_config_value(
-                    "name", "model", config_dict, hparam_dict
-                )
-                dataset = ExperimentLauncher.access_config_value(
-                    "name", "data", config_dict, hparam_dict
-                )
-                hparam_dict["model.load_pretrained"] = [
-                    get_pretrained_arch(dataset, model_type, seed).ckpt_path
-                    for seed in hparam_dict["trainer.seed"]
-                ]
-
-            if hparam_dict[load_arch] is not None:
+            if hparam_dict[load_arch] is None:
+                hparam_dict["model.load_pretrained"] = "Null"
+            else:
+                if hparam_dict["model.load_pretrained"] is True:
+                    model_type = ExperimentLauncher.access_config_value(
+                        "name", "model", config_dict, hparam_dict
+                    )
+                    dataset = ExperimentLauncher.access_config_value(
+                        "name", "data", config_dict, hparam_dict
+                    )
+                    hparam_dict["model.load_pretrained"] = [
+                        get_pretrained_arch(dataset, model_type, seed).ckpt_path
+                        for seed in hparam_dict["trainer.seed"]
+                    ]
                 hparam_dict[
                     "model.load_pretrained"
                 ] = ExperimentLauncher.finalize_paths(
@@ -356,8 +360,28 @@ class ExperimentLauncher(BaseLauncher):
                     on_cluster=launcher_args.cluster,
                 )
 
-            if hparam_dict[load_arch] is None:
-                hparam_dict["model.load_pretrained"] = "Null"
+            # if hparam_dict["model.load_pretrained"] is True:
+            #     model_type = ExperimentLauncher.access_config_value(
+            #         "name", "model", config_dict, hparam_dict
+            #     )
+            #     dataset = ExperimentLauncher.access_config_value(
+            #         "name", "data", config_dict, hparam_dict
+            #     )
+            #     hparam_dict["model.load_pretrained"] = [
+            #         get_pretrained_arch(dataset, model_type, seed).ckpt_path
+            #         for seed in hparam_dict["trainer.seed"]
+            #     ]
+
+            # if hparam_dict[load_arch] is not None:
+            #     hparam_dict[
+            #         "model.load_pretrained"
+            #     ] = ExperimentLauncher.finalize_paths(
+            #         hparam_dict["model.load_pretrained"],
+            #         on_cluster=launcher_args.cluster,
+            #     )
+
+            # if hparam_dict[load_arch] is None:
+            #     hparam_dict["model.load_pretrained"] = "Null"
 
         return config_dict, hparam_dict
 

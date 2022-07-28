@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
-    "model": ["resnet_fixmatch", "wideresnet-cifar10"],
+    "model": ["resnet_fixmatch"],  # , "wideresnet-cifar10"],
     # "model": "wideresnet-cifar10",
     "data": "cifar10",
     "active": "standard",
@@ -24,7 +24,7 @@ hparam_dict = {
         # "cifar_randaugment",
     ],
     "sem_sl.eman": [False],
-    "model.load_pretrained": None,
+    "model.load_pretrained": True,
 }
 
 naming_conv = (
@@ -34,7 +34,7 @@ naming_conv = (
 # naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
 path_to_ex_file = "src/run_training_fixmatch.py"
 
-joint_iteration = None
+joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 
 if __name__ == "__main__":
