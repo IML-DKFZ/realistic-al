@@ -28,7 +28,7 @@ hparam_dict = {
 }
 
 naming_conv = (
-    "sweep/{data}/fixmatch_basic_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
+    "sweep/{data}/fixmatch_basic_pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
     # "sweep_fixmatch_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
 )
 # naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
