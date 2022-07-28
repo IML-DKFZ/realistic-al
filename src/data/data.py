@@ -42,6 +42,7 @@ class TorchVisionDM(BaseDataModule):
         seed: int = 12345,
         persistent_workers=True,
         imbalance=False,
+        timeout=0,
     ):
         super().__init__(
             val_split=val_split,
@@ -55,6 +56,7 @@ class TorchVisionDM(BaseDataModule):
             random_split=random_split,
             seed=seed,
             persistent_workers=persistent_workers,
+            timeout=timeout,
         )
 
         self.data_root = data_root

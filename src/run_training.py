@@ -49,6 +49,7 @@ def get_torchvision_dm(
         active=active_dataset,
         persistent_workers=config.trainer.persistent_workers,
         imbalance=imbalance,
+        timeout=config.trainer.timeout,
     )
 
     return datamodule

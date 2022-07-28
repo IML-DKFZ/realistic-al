@@ -7,7 +7,7 @@ dropout_p: 0
 load_pretrained: /home/c817h/Documents/logs_cluster/SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt
 # freeze_encoder: False
 freeze_encoder: False
-use_ema: True
+use_ema: False # True
 exclude_bn_bias: True
 k: 50
 finetune: False # Finetuning accoring to: https://arxiv.org/abs/2101.08482

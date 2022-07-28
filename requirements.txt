@@ -1,3 +1,4 @@
+batchgenerators==0.24
 GitPython==3.1.27
 hydra-core==1.2.0
 lightning_bolts==0.5.0

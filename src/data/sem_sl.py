@@ -1,9 +1,7 @@
 from torch.utils.data import DataLoader
 
-from copy import deepcopy
 
 from .utils import (
-    ConcatDataloader,
     TransformFixMatch,
     activesubset_from_subset,
     seed_worker,
@@ -14,8 +12,6 @@ from .data import TorchVisionDM
 from .toy_dm import ToyDM
 from .utils import RandomFixedLengthSampler
 
-from torch.utils.data import Subset, RandomSampler
-import numpy as np
 from .transformations import get_transform
 
 
@@ -38,6 +34,8 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
                 type(dm)
             )
         )
+
+    timeout = dm.timeout
     # Keep amount of workers fixed for training.
     # workers_sup = 0
     if dm.num_workers > 2:
@@ -60,6 +58,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=True,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
+            timeout=timeout,
         )
     else:
         sem_loader = DataLoader(
@@ -71,6 +70,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=True,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
+            timeout=timeout,
         )
 
     # Increase size of small datasets to make use of multiple workers
@@ -93,6 +93,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
+            timeout=timeout,
         )
     else:
         sup_loader = DataLoader(
@@ -104,6 +105,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
+            timeout=timeout,
         )
     return [sup_loader, sem_loader]
 
