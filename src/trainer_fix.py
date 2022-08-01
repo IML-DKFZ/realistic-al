@@ -116,7 +116,6 @@ class FixTrainingLoop(ActiveTrainingLoop):
         val_dataloader = datamodule.val_dataloader()
 
         self.model.train_iters_per_epoch = self.cfg.trainer.train_iters_per_epoch
-        self.model.setup_data_params(datamodule)
         self.trainer.fit(
             model=self.model,
             train_dataloaders=train_dataloader,
