@@ -90,7 +90,7 @@ def query_sampler(
     acq_list = np.concatenate(acq_list)
     acq_ind, acq_scores = post_acq_function(acq_list, acq_size)
 
-    return acq_scores, acq_ind
+    return acq_ind, acq_scores
 
 
 # def sample_acq_fct(batch):

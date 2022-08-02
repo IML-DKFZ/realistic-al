@@ -19,17 +19,18 @@ def query_sampler(cfg, model, labeled_dataloader, unlabeled_dataloader, acq_size
         raise NotImplementedError
 
 
-def get_kcg(model, labeled_dataloader, unlabeled_dataloader, acq_size=100):
-    """Returns the core-set of the model via the k-center Greedy approach."""
-    features = torch.tensor([]).to(DEVICE)
+def get_kcg(model, labeled_dataloader, pool_loader, acq_size=100):
+    """Returns the indices of the core-set for the pool of the model via the k-center Greedy approach."""
     with torch.no_grad():
+        features = torch.tensor([]).to(DEVICE)
         for inputs, _ in labeled_dataloader:
             inputs = inputs.to(DEVICE)
             features_batch = model.get_features(inputs)
             features = torch.cat((features, features_batch), 0)
         feat_labeled = features.detach().cpu().numpy()
 
-        for inputs, _ in unlabeled_dataloader:
+        features = torch.tensor([]).to(DEVICE)
+        for inputs, _ in pool_loader:
             inputs = inputs.to(DEVICE)
             features_batch = model.get_features(inputs)
             features = torch.cat((features, features_batch), 0)
@@ -37,13 +38,15 @@ def get_kcg(model, labeled_dataloader, unlabeled_dataloader, acq_size=100):
 
         feat_merge = np.concatenate([feat_labeled, feat_unlabeled], axis=0)
         indices_labeled = np.arange(feat_labeled.shape[0])
+        del features
         del feat_labeled
         del feat_unlabeled
         sampling = KCenterGreedy(feat_merge)
-        batch = sampling.select_batch_(indices_labeled, acq_size)
-        # other_idx = [x for x in range(SUBSET) if x not in batch] # SUBSET: int unlabeled data  (random selection)
-    # return other_idx + batch # does not make sense - why first obtain samples not in subset and then add them again.... - why
-    return batch
+        acq_indices = np.array(sampling.select_batch_(indices_labeled, acq_size))
+
+        # subtract the indices of the labeled data to get pool indices
+        acq_indices -= indices_labeled.shape[0]
+    return acq_indices
 
 
 # from https://github.com/cubeyoung/TA-VAAL

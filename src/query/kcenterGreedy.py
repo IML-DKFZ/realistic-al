@@ -36,6 +36,8 @@ from scipy.spatial import distance
 import abc
 import numpy as np
 
+from loguru import logger
+
 
 class SamplingMethod(object):
     __metaclass__ = abc.ABCMeta
@@ -115,23 +117,14 @@ class KCenterGreedy(SamplingMethod):
         to minimize the maximum distance to a cluster center among all unlabeled
         datapoints.
         Args:
-          model: model with scikit-like API with decision_function implemented
           already_selected: index of datapoints already selected
           N: batch size
         Returns:
           indices of points selected to minimize distance to cluster centers
         """
 
-        try:
-            # Assumes that the transform function takes in original data and not
-            # flattened data.
-            print("Getting transformed features...")
-            #   self.features = model.transform(self.X)
-            print("Calculating distances...")
-            self.update_distances(already_selected, only_new=False, reset_dist=True)
-        except:
-            print("Using flat_X as features.")
-            self.update_distances(already_selected, only_new=True, reset_dist=False)
+        logger.info("Using flat_X as features.")
+        self.update_distances(already_selected, only_new=True, reset_dist=False)
 
         new_batch = []
 
@@ -147,7 +140,7 @@ class KCenterGreedy(SamplingMethod):
 
             self.update_distances([ind], only_new=True, reset_dist=False)
             new_batch.append(ind)
-        print(
+        logger.info(
             "Maximum distance from cluster centers is %0.2f" % max(self.min_distances)
         )
 

@@ -55,9 +55,9 @@ class QuerySampler:
         # labeled_loader = datamodule.train_dataloader() # This is deprecated, CoreSet uses Test time transforms for labeled data
         labeled_loader = datamodule.labeled_dataloader(batch_size=64)
 
-        acq_vals, acq_inds = self.ranking_step(pool_loader, labeled_loader)
+        acq_inds, acq_vals = self.ranking_step(pool_loader, labeled_loader)
         acq_inds = datamodule.get_pool_indices(acq_inds)
-        return acq_vals, acq_inds
+        return acq_inds, acq_vals
 
     def active_callback(self, datamodule: pl.LightningDataModule) -> ActiveStore:
         """Queries samples on the pool of the datamodule with selected method, evaluates the current model.
@@ -70,7 +70,7 @@ class QuerySampler:
             ActiveStore: _description_
         """
         # TODO: Make this use pre-defined methods for the model!
-        acq_vals, acq_inds = self.query_samples(datamodule)
+        acq_inds, acq_vals = self.query_samples(datamodule)
 
         acq_data, acq_labels = obtain_data_from_pool(
             datamodule.train_set.pool, acq_inds
@@ -104,18 +104,20 @@ class QuerySampler:
     def setup(self):
         pass
 
-    def ranking_step(self, pool_loader, labeled_loader):
+    def ranking_step(
+        self, pool_loader, labeled_loader
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Computes Ranking of the data and returns indices of
         data to be acquired (with scores if possible).
 
-        Acquisition Strategy: Values with highes ranking are acquired.
+        Acquisition Strategy: Values with highest scores are acquired.
 
         Args:
             pool_loader (_type_): _description_
             labeled_loader (_type_): _description_
 
         Returns:
-            _type_: _description_
+            indices, scores: indices of the pool and scores for acquisition
         """
         self.model = self.model.to(self.device)
         self.model.eval()
