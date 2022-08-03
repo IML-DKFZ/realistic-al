@@ -76,8 +76,12 @@ class QuerySampler:
             datamodule.train_set.pool, acq_inds
         )
         n_labelled = datamodule.train_set.n_labelled
-        accuracy_val = evaluate_accuracy(self.model, datamodule.val_dataloader())
-        accuracy_test = evaluate_accuracy(self.model, datamodule.test_dataloader())
+        accuracy_val = evaluate_accuracy(
+            self.model, datamodule.val_dataloader(), device=self.device
+        )
+        accuracy_test = evaluate_accuracy(
+            self.model, datamodule.test_dataloader(), device=self.device
+        )
 
         try:
             vis_callback(
@@ -158,14 +162,14 @@ def obtain_data_from_pool(pool, indices):
     return data, labels
 
 
-def evaluate_accuracy(model, dataloader):
+def evaluate_accuracy(model, dataloader, device="cuda:0"):
     if dataloader is None:
         return 0
     counts = 0
     correct = 0
     for batch in dataloader:
         x, y = batch
-        x = x.to("cuda:0")
+        x = x.to(device)
         out = model(x)
         pred = torch.argmax(out, dim=1)
         correct += (pred.cpu() == y).sum().item()
