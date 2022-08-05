@@ -28,13 +28,16 @@ hparam_dict = {
     "model.load_pretrained": True,
     "trainer.max_epochs": 80,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_basic", "cifar_randaugment"],
+    "data.transform_train": ["cifar_randaugment"],
 }
 
-joint_iteration = ["model.load_pretrained", "trainer.seed"]
+joint_iteration = [
+    ["model.load_pretrained", "trainer.seed"],
+    ["active.num_labelled", "data.val_size"],
+]
 
 # naming_conv = "sweep_basic-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
-naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead{model.small_head}_transform-{data.transform_train}"
+naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}_transform-{data.transform_train}"
 
 path_to_ex_file = "src/run_training.py"
 

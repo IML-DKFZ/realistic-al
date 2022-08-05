@@ -23,15 +23,15 @@ hparam_dict = {
     # "model.finetune": [True, False],
     # "model.freeze_encoder": [True, False],
     "model.small_head": [True, False],
-    "trainer.max_epochs": 80,
+    "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["cifar_randaugment"],
 }
 
-joint_iteration = ["model.load_pretrained", "trainer.seed"]
+joint_iteration = [["active.num_labelled", "data.val_size"]]
 
 # naming_conv = "sweep_basic-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
-naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead{model.small_head}"
+naming_conv = "sweep/{data}/basic_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}"
 
 
 # hparam_dict = {
@@ -56,7 +56,7 @@ naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_e
 # )
 path_to_ex_file = "src/run_training.py"
 
-joint_iteration = None
+# joint_iteration = None
 
 
 if __name__ == "__main__":
