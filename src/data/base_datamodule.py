@@ -29,6 +29,7 @@ class BaseDataModule(pl.LightningDataModule):
         seed: int = 12345,
         persistent_workers: bool = True,
         timeout: int = 0,
+        val_size: Optional[int] = None,
     ):
         super().__init__()
         self.batch_size = batch_size
@@ -42,6 +43,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.active = active
         self.random_split = random_split
         self.persistent_workers = persistent_workers
+        self.val_size = val_size
 
         # Used for the traning validation split
         self.seed = seed
@@ -62,6 +64,24 @@ class BaseDataModule(pl.LightningDataModule):
             )
             dataset_train = activesubset_from_subset(dataset_train)
             dataset_val = activesubset_from_subset(dataset_val)
+            if self.val_size:
+                indices = []
+                labels = []
+                for (x, y) in dataset_val:
+                    labels.append(y)
+                labels = np.array(labels)
+                assert (
+                    len(labels.shape) == 1
+                )  # This does currently only work for single labels
+
+                n_per_class = self.val_size / len(np.unique(labels))
+                assert n_per_class % 1 == 0
+                n_per_class = int(n_per_class)
+                for c in np.unique(labels):
+                    class_indices = np.where(labels == c)[0]
+                    indices.append(class_indices[:n_per_class])
+                indices = np.concatenate(indices, axis=0)
+                dataset_val = ActiveSubset(dataset_val, indices)
         else:
             dataset_train = ActiveSubset(dataset, range(splits[0]))
             dataset_val = ActiveSubset(dataset, range(splits[0], splits[1]))

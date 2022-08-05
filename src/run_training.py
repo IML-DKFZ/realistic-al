@@ -31,6 +31,11 @@ def get_torchvision_dm(
     except:
         imbalance = False
 
+    try:
+        val_size = config.data.val_size
+    except:
+        val_size = None
+
     datamodule = TorchVisionDM(
         data_root=config.trainer.data_root,
         batch_size=config.trainer.batch_size,
@@ -50,6 +55,7 @@ def get_torchvision_dm(
         persistent_workers=config.trainer.persistent_workers,
         imbalance=imbalance,
         timeout=config.trainer.timeout,
+        val_size=val_size,
     )
 
     return datamodule
