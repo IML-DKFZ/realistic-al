@@ -3,7 +3,7 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": ["random", "entropy", "kcentergreedy", "bald", "variationratios"],
+    "query": ["random", "entropy", "kcentergreedy", "bald"],  # , "variationratios"],
     "data": ["cifar100"],  # , "cifar100"],
     "active": [
         # "standard",
@@ -13,22 +13,24 @@ config_dict = {
 }
 
 hparam_dict = {
+    "data.val_size": None,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
-    "model.dropout_p": [0, 0.5],
-    "model.learning_rate": [0.01],
-    "model.load_pretrained": True,
+    "model.dropout_p": [0, 0, 0, 0.5],
+    "model.learning_rate": [0.1],
+    "model.load_pretrained": False,
     "model.use_ema": False,
-    "data.transform_train": [
-        "cifar_basic",
-        "cifar_randaugment",
-    ],
+    "data.transform_train": ["cifar_randaugment",],
     "trainer.precision": 32,
 }
+
 naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
 
-joint_iteration = ["model.load_pretrained", "trainer.seed"]
+joint_iteration = [
+    ["query", "model.dropout_p"],
+    ["active", "data.val_size"],
+]
 
 path_to_ex_file = "src/main.py"
 
