@@ -14,14 +14,17 @@ config_dict = {
     ],
     "data": ["cifar100"],
     "active": [
+        "cifar100_low",
+        "cifar100_med",
+        "cifar100_high",
         # "standard",
-        "cifar100",
+        # "cifar100",
     ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
 
 hparam_dict = {
-    "data.val_size": None,
+    "data.val_size": [2500, None, None],  # None,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
     "model.dropout_p": [0, 0, 0, 0.5],
