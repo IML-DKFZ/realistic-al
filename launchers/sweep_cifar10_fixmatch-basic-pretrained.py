@@ -14,10 +14,10 @@ config_dict = {
 hparam_dict = {
     "active.num_labelled": [40, 250, 4000],  # , 1000, 5000],
     "model.dropout_p": [0],
-    "model.learning_rate": 0.03,  # is more stable than 0.1!
+    "model.learning_rate": [0.03],  # is more stable than 0.1!
     "model.small_head": [True],
     "model.use_ema": [False],
-    "trainer.max_epochs": 50,
+    "trainer.max_epochs": 100,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
@@ -39,7 +39,8 @@ joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
-    ExperimentLauncher.add_argparse_args(parser)
+    parser = ExperimentLauncher.add_argparse_args(parser)
+    # parser.add_argument()
     launcher_args = parser.parse_args()
 
     config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(

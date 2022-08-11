@@ -15,8 +15,8 @@ config_dict = {
 }
 
 hparam_dict = {
-    "active.num_labelled": [50, 500, 1000, 5000],
-    "data.val_size": [250, 2500, None, None],
+    "active.num_labelled": 10000,  # [50, 500, 1000, 5000],
+    "data.val_size": None,  # [250, 2500, None, None],
     "model.dropout_p": [0, 0.5],
     "model.learning_rate": [0.1, 0.01],  # is more stable than 0.1!
     "model.use_ema": False,
