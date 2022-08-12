@@ -1,7 +1,7 @@
 import torch
 from torchvision import transforms
 
-from .randaugment import RandAugmentMC
+from .randaugment import RandAugmentMC, RandAugmentMCCutout
 
 
 def get_transform(name="basic", mean=[0], std=[1], shape=None):
@@ -12,6 +12,8 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
         transform.append(get_weak_cifar_transform())
     elif name == "cifar_randaugment":
         transform.append(get_randaug_cifar_transform())
+    elif name == "cifar_randaugment_cutout":
+        transform.append(get_randaug_cifar_cutout_transform())
     # TODO: Make this nice down the line -- see how other people do stuff like this!
     elif name == "toy_gauss_0.05":
         return ToyNoiseTransform(sig=0.05)
@@ -60,6 +62,19 @@ def get_randaug_cifar_transform():
                 size=32, padding=int(32 * 0.125), padding_mode="reflect"
             ),
             RandAugmentMC(n=1, m=2),
+        ]
+    )
+    return randaug_transform
+
+
+def get_randaug_cifar_cutout_transform():
+    randaug_transform = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(
+                size=32, padding=int(32 * 0.125), padding_mode="reflect"
+            ),
+            RandAugmentMCCutout(n=1, m=2),
         ]
     )
     return randaug_transform
