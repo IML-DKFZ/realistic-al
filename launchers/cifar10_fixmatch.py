@@ -5,26 +5,23 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     # "model": "wideresnet-cifar10",
-    "model": "wideresnet-cifar10",
+    "model": "resnet_fixmatch",
     "data": "cifar10",
-    "active": ["cifar10_low_data"],  # standard
-    "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "active": ["cifar10_low", "cifar10_med"],  # standard
+    "query": ["random", "entropy", "kcentergreedy"],  # , "bald"],
     "optim": "sgd_fixmatch",
 }
 
 hparam_dict = {
-    "model.dropout_p": [0, 0, 0, 0.5],
+    "model.dropout_p": [0, 0, 0],  # , 0.5],
     "model.learning_rate": 0.03,  # is more stable than 0.1!
     "model.small_head": [True],
-    "model.use_ema": [True],
+    "model.use_ema": [False],
     "model.finetune": [False],
     "model.load_pretrained": None,  # if this is set to None, weird errors appear!
-    "trainer.max_epochs": 2000,
+    "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": [
-        "cifar_basic",
-        # "cifar_randaugment",
-    ],
+    "data.transform_train": ["cifar_basic",],
     "sem_sl.eman": [False],
 }
 
@@ -32,7 +29,7 @@ hparam_dict = {
 #     "active_fixmatch_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 # )
 
-naming_conv = "{data}/active-{active}/single-fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_ep-{trainer.max_epochs}"
+naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_ep-{trainer.max_epochs}"
 
 # path_to_ex_file = "src/main_fixmatch.py"
 path_to_ex_file = "src/run_training_fixmatch.py"
