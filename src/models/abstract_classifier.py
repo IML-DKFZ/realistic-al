@@ -86,22 +86,24 @@ class AbstractClassifier(pl.LightningModule):
 
     def step(self, batch: Tuple[torch.tensor, torch.tensor], k: int = None):
         x, y = batch
-        logits = self.forward(x, k=k)
-        loss = F.nll_loss(logits, y)
-        preds = torch.argmax(logits, dim=1)
-        return loss, preds, y
+        logprob = self.forward(x, k=k)
+        loss = F.nll_loss(logprob, y)
+        preds = torch.argmax(logprob, dim=1)
+        return loss, logprob, preds, y
 
     def validation_step(self, batch, batch_idx, *args, **kwargs):
         mode = "val"
-        loss, preds, y = self.step(batch)
+        loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_val.update(preds, y)
+        return logprob, y
 
     def test_step(self, batch, batch_idx, *args, **kwargs):
         mode = "test"
-        loss, preds, y = self.step(batch)
+        loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_test.update(preds, y)
+        return logprob, y
 
     def on_train_batch_end(self, outputs, batch, batch_idx: int) -> None:
         if self.ema_model is not None:

@@ -14,8 +14,7 @@ from data.sem_sl import wrap_fixmatch_train_dataloader
 
 class FixMatch(AbstractClassifier):
     def __init__(
-        self,
-        config: DictConfig,
+        self, config: DictConfig,
     ):
         """FixMatch Classifier, which can be extended to a bayesian Neural network by setting config.dropout_p to values greater 0."""
         super().__init__(eman=config.sem_sl.eman)
@@ -77,7 +76,11 @@ class FixMatch(AbstractClassifier):
         if batch_idx == 0 and self.current_epoch == 0:
             if len(x.shape) == 4:
                 self.visualize_inputs(x, x_w, x_s)
-        return loss
+        return {
+            "loss": loss,
+            "logprob": F.softmax(logits, dim=-1),
+            "label": y,
+        }
 
     def step_logits(self, logits, y):
         preds = torch.argmax(logits, dim=1)
@@ -118,8 +121,7 @@ class FixMatch(AbstractClassifier):
         num_imgs = 64
         num_rows = 8
         for imgs, title in zip(
-            [x, x_w, x_s],
-            ["samples_lab", "samples_weak", "samples_strong"],
+            [x, x_w, x_s], ["samples_lab", "samples_weak", "samples_strong"],
         ):
             if len(imgs) == 0:
                 continue
@@ -132,9 +134,7 @@ class FixMatch(AbstractClassifier):
             )
             # Works only for Tensorboard!
             self.loggers[0].experiment.add_image(
-                title,
-                grid,
-                self.current_epoch,
+                title, grid, self.current_epoch,
             )
 
     def setup(self, *args, **kwargs) -> None:

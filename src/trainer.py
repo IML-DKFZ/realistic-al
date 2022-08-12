@@ -18,6 +18,7 @@ import gc
 from datetime import datetime
 from utils.log_utils import log_git
 from utils.io import save_json
+from models.callbacks.metrics_callback import ISICMetricCallback
 
 
 class ActiveTrainingLoop(object):
@@ -64,6 +65,8 @@ class ActiveTrainingLoop(object):
         callbacks.append(ckpt_callback)
         if self.cfg.trainer.early_stop and self.datamodule.val_dataloader is not None:
             callbacks.append(pl.callbacks.EarlyStopping("val/acc", mode="max"))
+        if self.cfg.data.name == "isic2016":
+            callbacks.append(ISICMetricCallback())
         self.ckpt_callback = ckpt_callback
         # add progress bar
         callbacks.append(

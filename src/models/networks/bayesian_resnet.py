@@ -17,6 +17,7 @@ class ResNet(BayesianModule):
         num_classes=0,
         dropout_p=0.5,
         small_head=True,
+        weights=None,
     ):
         """obtains the ResNet for use as an Encoder, with the last fc layer
         exchanged for an identity
@@ -29,8 +30,8 @@ class ResNet(BayesianModule):
         """
         super().__init__()
         self.resnet_dict = {
-            "resnet18": models.resnet18(pretrained=False),
-            "resnet50": models.resnet50(pretrained=False),
+            "resnet18": models.resnet18(weights=weights),
+            "resnet50": models.resnet50(weights=weights),
         }
 
         self.resnet = self._get_basemodel(base_model)
@@ -104,6 +105,11 @@ def get_cls_model(
     channels_in = data_shape[2]
     dropout_p = config.model.dropout_p
     small_head = config.model.small_head
+    try:
+        weights = config.model.weights
+    except:
+        weights = None
+
     return ResNet(
         base_model=base_model,
         cifar_stem=cifar_stem,
@@ -111,4 +117,5 @@ def get_cls_model(
         num_classes=num_classes,
         dropout_p=dropout_p,
         small_head=small_head,
+        weights=weights,
     )

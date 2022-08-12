@@ -23,7 +23,11 @@ class BayesianModule(AbstractClassifier):
 
     def training_step(self, batch, batch_idx):
         mode = "train"
-        loss, preds, y = self.step(batch, k=1)
+        loss, logprob, preds, y = self.step(batch, k=1)
         self.log(f"{mode}/loss", loss)
         self.acc_train.update(preds, y)
-        return loss
+        return {
+            "loss": loss,
+            "logprob": logprob,
+            "label": y,
+        }
