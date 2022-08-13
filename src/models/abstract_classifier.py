@@ -10,6 +10,7 @@ from torchmetrics import Accuracy
 from copy import deepcopy
 from typing import Tuple
 from torch.nn import functional as F
+import torchvision
 
 from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
 from .callbacks.ema_callback import EMAWeightUpdate
@@ -96,6 +97,9 @@ class AbstractClassifier(pl.LightningModule):
         loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_val.update(preds, y)
+        if batch_idx == 0 and self.current_epoch == 0:
+            if len(batch[0].shape) == 4:
+                self.visualize_inputs(batch[0], name=f"{mode}/data")
         return logprob, y
 
     def test_step(self, batch, batch_idx, *args, **kwargs):
@@ -103,6 +107,9 @@ class AbstractClassifier(pl.LightningModule):
         loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_test.update(preds, y)
+        if batch_idx == 0:
+            if len(batch[0].shape) == 4:
+                self.visualize_inputs(batch[0], name=f"{mode}/data")
         return logprob, y
 
     def on_train_batch_end(self, outputs, batch, batch_idx: int) -> None:
@@ -244,6 +251,20 @@ class AbstractClassifier(pl.LightningModule):
             return [optimizer], [scheduler]
         else:
             raise NotImplementedError
+
+    def visualize_inputs(self, inputs, name):
+        num_imgs = 64
+        num_rows = 8
+        grid = (
+            torchvision.utils.make_grid(
+                inputs[:num_imgs], nrow=num_rows, normalize=True
+            )
+            .cpu()
+            .detach()
+        )
+        self.loggers[0].experiment.add_image(
+            name, grid, self.current_epoch,
+        )
 
     # TODO: Change this so that it works for many different models!
     def load_from_ssl_checkpoint(self):

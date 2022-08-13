@@ -26,6 +26,9 @@ class BayesianModule(AbstractClassifier):
         loss, logprob, preds, y = self.step(batch, k=1)
         self.log(f"{mode}/loss", loss)
         self.acc_train.update(preds, y)
+        if batch_idx == 0 and self.current_epoch == 0:
+            if len(batch[0].shape) == 4:
+                self.visualize_inputs(batch[0], name=f"{mode}/data")
         return {
             "loss": loss,
             "logprob": logprob,

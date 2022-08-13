@@ -17,7 +17,7 @@ from .utils import (
 from .longtail import create_imbalanced_dataset
 from .base_datamodule import BaseDataModule
 from .transformations import get_transform
-from .skin_dataset import ISIC2016
+from .skin_dataset import ISIC2016, ISIC2019
 
 
 class TorchVisionDM(BaseDataModule):
@@ -92,6 +92,8 @@ class TorchVisionDM(BaseDataModule):
             self.dataset_cls = FashionMNIST
         elif self.dataset == "isic2016":
             self.dataset_cls = ISIC2016
+        elif self.dataset == "isic2019":
+            self.dataset_cls = ISIC2019
         else:
             raise NotImplementedError
         self._setup_datasets()

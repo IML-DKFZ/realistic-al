@@ -18,7 +18,10 @@ import gc
 from datetime import datetime
 from utils.log_utils import log_git
 from utils.io import save_json
-from models.callbacks.metrics_callback import ISICMetricCallback
+from models.callbacks.metrics_callback import (
+    ISIC2016MetricCallback,
+    ImbClassMetricCallback,
+)
 
 
 class ActiveTrainingLoop(object):
@@ -52,10 +55,16 @@ class ActiveTrainingLoop(object):
         callbacks = [lr_monitor]
         ckpt_path = os.path.join(self.log_dir, "checkpoints")
         if self.datamodule.val_dataloader() is not None:
+            if "isic" in self.cfg.data.name:
+                monitor = "val/auroc"
+                mode = "max"
+            else:
+                monitor = "val/acc"
+                mode = "max"
             ckpt_callback = pl.callbacks.ModelCheckpoint(
                 dirpath=ckpt_path,
-                monitor="val/acc",
-                mode="max",
+                monitor=monitor,
+                mode=mode,
                 save_last=self.cfg.trainer.save_last,
             )
         else:
@@ -66,7 +75,11 @@ class ActiveTrainingLoop(object):
         if self.cfg.trainer.early_stop and self.datamodule.val_dataloader is not None:
             callbacks.append(pl.callbacks.EarlyStopping("val/acc", mode="max"))
         if self.cfg.data.name == "isic2016":
-            callbacks.append(ISICMetricCallback())
+            callbacks.append(ISIC2016MetricCallback())
+        if self.cfg.data.name == "isic2019":
+            callbacks.append(
+                ImbClassMetricCallback(num_classes=self.cfg.data.num_classes)
+            )
         self.ckpt_callback = ckpt_callback
         # add progress bar
         callbacks.append(
