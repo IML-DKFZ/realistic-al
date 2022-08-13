@@ -35,7 +35,7 @@ naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout
 
 path_to_ex_file = "src/main_fixmatch.py"
 
-joint_iteration = ["data.val_size", "query"]
+joint_iteration = ["data.val_size", "active"]
 
 
 if __name__ == "__main__":

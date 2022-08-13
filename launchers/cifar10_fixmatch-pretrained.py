@@ -40,7 +40,10 @@ naming_conv = "{data}/test-{active}/fixmatch-pretrained_model-{model}_drop-{mode
 
 path_to_ex_file = "src/main_fixmatch.py"
 
-joint_iteration = [["trainer.seed", "model.load_pretrained"], ["data.val_size",]]
+joint_iteration = [
+    ["trainer.seed", "model.load_pretrained"],
+    ["data.val_size", "active"],
+]
 
 
 if __name__ == "__main__":
