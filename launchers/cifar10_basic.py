@@ -31,9 +31,11 @@ hparam_dict = {
     "model.learning_rate": [0.1],
     "model.use_ema": False,
     "data.transform_train": ["cifar_randaugment",],
+    "trainer.precision": 32,
+    "trainer.deterministic": True,
 }
 naming_conv = (
-    "{data}/active-{active}/model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
+    "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
     # "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 )
 

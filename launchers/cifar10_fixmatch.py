@@ -4,7 +4,6 @@ from launcher import ExperimentLauncher
 # Add Transformations from Randaugment and Changing of Learning Rates
 
 config_dict = {
-    # "model": "wideresnet-cifar10",
     "model": "resnet_fixmatch",
     "data": "cifar10",
     "active": ["cifar10_low", "cifar10_med"],  # standard
@@ -13,7 +12,8 @@ config_dict = {
 }
 
 hparam_dict = {
-    "model.dropout_p": [0, 0, 0],  # , 0.5],
+    "data.val_size": [250, 2500],
+    "model.dropout_p": [0],  # , 0.5],
     "model.learning_rate": 0.03,  # is more stable than 0.1!
     "model.small_head": [True],
     "model.use_ema": [False],
@@ -23,18 +23,19 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["cifar_basic",],
     "sem_sl.eman": [False],
+    "trainer.precision": 32,
+    "trainer.deterministic": True,
 }
 
 # naming_conv = (
 #     "active_fixmatch_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 # )
 
-naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_ep-{trainer.max_epochs}"
+naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
-# path_to_ex_file = "src/main_fixmatch.py"
-path_to_ex_file = "src/run_training_fixmatch.py"
+path_to_ex_file = "src/main_fixmatch.py"
 
-joint_iteration = ["query", "model.dropout_p"]
+joint_iteration = ["data.val_size", "query"]
 
 
 if __name__ == "__main__":
