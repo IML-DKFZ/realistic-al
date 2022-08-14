@@ -2,7 +2,7 @@ import torch
 
 import pytorch_lightning as pl
 from pytorch_lightning import Callback
-from torchmetrics import AUROC, AveragePrecision, Accuracy, F1Score, Precision
+from torchmetrics import AUROC, AveragePrecision, Accuracy, F1Score, Recall
 
 
 class MetricCallback(Callback):
@@ -85,10 +85,16 @@ class ImbClassMetricCallback(MetricCallback):
         )
         self.pred_dict.update(
             {
-                f"{mode}/prec_bal": Precision(num_classes=num_classes, mode="macro")
+                f"{mode}/w_acc": Recall(num_classes=num_classes, mode="macro")
                 for mode in modes
             }
         )
+        # self.pred_dict.update(
+        #     {
+        #         f"{mode}/prec_bal": Precision(num_classes=num_classes, mode="macro")
+        #         for mode in modes
+        #     }
+        # )
         self.auc_dict = {}
         self.auc_dict.update(
             {

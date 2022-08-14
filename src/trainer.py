@@ -55,8 +55,11 @@ class ActiveTrainingLoop(object):
         callbacks = [lr_monitor]
         ckpt_path = os.path.join(self.log_dir, "checkpoints")
         if self.datamodule.val_dataloader() is not None:
-            if "isic" in self.cfg.data.name:
+            if self.cfg.data.name == "isic2016":
                 monitor = "val/auroc"
+                mode = "max"
+            elif "isic" in self.cfg.data.name:
+                monitor = "val/w_acc"
                 mode = "max"
             else:
                 monitor = "val/acc"

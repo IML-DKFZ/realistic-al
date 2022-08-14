@@ -59,8 +59,7 @@ class AbstractISIC(Dataset):
     def download(self):
         from utils.download_url import download_url
 
-        mode = "train" if self.train else "test"
-        if mode in self.data_url:
+        for mode in self.data_url:
             if not os.path.exists(os.path.join(self.root, self.data_name[mode])):
                 print(
                     "Downloading and extracting {} skin lesion data...".format(
@@ -112,16 +111,16 @@ class ISIC2019(AbstractISIC):
         self.folder_name = "ISIC-2019"
 
         self.csv = {}
-        self.csv["train"] = "ISIC_2019_Training_GroundTruth.csv"
+        self.csv["full"] = "ISIC_2019_Training_GroundTruth.csv"
         self.data_name = {}
-        self.data_name["train"] = "ISIC_2019_Training_Input"
+        self.data_name["full"] = "ISIC_2019_Training_Input"
 
         self.data_url = {
-            "train": "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_Input.zip",
+            "full": "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_Input.zip",
         }
 
         self.csv_url = {
-            "train": "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_GroundTruth.csv",
+            "full": "https://isic-challenge-data.s3.amazonaws.com/2019/ISIC_2019_Training_GroundTruth.csv",
         }
 
         self.prep_size = 300  # potentially this could be changed for the test set!
@@ -132,12 +131,17 @@ class ISIC2019(AbstractISIC):
             self.download()
         self.transform = transform
 
+        self.train_test_split()
+
         self.data, self.targets = self.get_data()
         if preprocess:
             self.preprocess()
 
     def get_data(self):
-        csv_name = self.csv["train"]
+        if self.train:
+            csv_name = self.csv["train"]
+        else:
+            csv_name = self.csv["test"]
         csv = os.path.join(self.root, csv_name)
         csv = pd.read_csv(csv)
         self.names = list(csv.iloc[:, 1:].columns)
@@ -145,7 +149,10 @@ class ISIC2019(AbstractISIC):
         data = []
         targets = []
         for filename in csv.loc[:, "image"]:
-            img_folder = self.data_name["train"]
+            if self.train:
+                img_folder = self.data_name["train"]
+            else:
+                img_folder = self.data_name["test"]
             data.append(os.path.join(self.root, img_folder, filename + ".jpg"))
 
         for label in csv.iloc[:, 1:].values:
@@ -153,6 +160,31 @@ class ISIC2019(AbstractISIC):
         targets = np.array(targets)
 
         return data, targets
+
+    def train_test_split(self):
+        from pathlib import Path
+
+        split_path = Path(self.root)
+        csv_train_path = split_path / "custom_ISIC_2019_Training_GroundTruth.csv"
+        csv_test_path = split_path / "custom_ISIC_2019_Test_GroundTruth.csv"
+
+        if not csv_train_path.exists() or not csv_test_path.exists():
+            csv_name = self.csv["full"]
+            csv = os.path.join(self.root, csv_name)
+            csv = pd.read_csv(csv)
+            full_size = len(csv)
+            test_size = int(0.25 * full_size)
+            rng = np.random.default_rng(12345)
+            test_indices = rng.choice(full_size, size=test_size, replace=False)
+            csv_test = csv.iloc[test_indices]
+            csv_train = csv.iloc[~test_indices]
+            csv_train.to_csv(csv_train_path, index=False)
+            csv_test.to_csv(csv_test_path, index=False)
+
+        self.csv["train"] = csv_train_path
+        self.csv["test"] = csv_test_path
+        self.data_name["train"] = self.data_name["full"]
+        self.data_name["test"] = self.data_name["full"]
 
 
 class ISIC2016(AbstractISIC):
