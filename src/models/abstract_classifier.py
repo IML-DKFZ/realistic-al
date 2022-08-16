@@ -1,6 +1,6 @@
 from abc import abstractclassmethod
 import math
-from urllib.parse import non_hierarchical
+import numpy as np
 from omegaconf import DictConfig
 
 import torch
@@ -10,6 +10,7 @@ from torchmetrics import Accuracy
 from copy import deepcopy
 from typing import Tuple
 from torch.nn import functional as F
+import torch.nn as nn
 import torchvision
 
 from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
@@ -31,6 +32,8 @@ class AbstractClassifier(pl.LightningModule):
         self.acc_train = Accuracy()
         self.acc_val = Accuracy()
         self.acc_test = Accuracy()
+
+        self.loss_fct = nn.NLLLoss()
 
     def forward(
         self, x: torch.Tensor, k: int = None, agg: bool = True, ema: bool = False
@@ -88,7 +91,8 @@ class AbstractClassifier(pl.LightningModule):
     def step(self, batch: Tuple[torch.tensor, torch.tensor], k: int = None):
         x, y = batch
         logprob = self.forward(x, k=k)
-        loss = F.nll_loss(logprob, y)
+        loss = self.loss_fct(logprob, y)
+        # loss = F.nll_loss(logprob, y)
         preds = torch.argmax(logprob, dim=1)
         return loss, logprob, preds, y
 
@@ -167,6 +171,21 @@ class AbstractClassifier(pl.LightningModule):
             self.train_iters_per_epoch = max([len(loader) for loader in train_loader])
         else:
             self.train_iters_per_epoch = len(train_loader)
+
+        weighted_loss = False
+        try:
+            weighted_loss = self.hparams.model.weighted_loss
+        except:
+            pass
+        if weighted_loss:
+            classes = []
+            for (x, y) in train_loader:
+                classes.append(y.numpy())
+            classes, class_weights = np.unique(
+                np.concatenate(classes), return_counts=True
+            )
+            class_weights = torch.tensor(1 / class_weights, dtype=torch.float)
+            self.loss_fct = nn.NLLLoss(weight=class_weights)
         # print(
         #     "Optimizer uses train iters per epoch {}".format(self.train_iters_per_epoch)
         # )

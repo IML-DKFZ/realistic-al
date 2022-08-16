@@ -138,6 +138,7 @@ def cli_cluster(cfg: DictConfig):
         logger=tb_logger,
         max_epochs=cfg.trainer.max_epochs,
         fast_dev_run=cfg.trainer.fast_dev_run,
+        accelerator="ddp" if cfg.trainer.gpus > 1 else None,
         detect_anomaly=True,
         callbacks=callbacks,
         check_val_every_n_epoch=cfg.trainer.check_val_every_n_epoch,

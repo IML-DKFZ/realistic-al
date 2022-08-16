@@ -161,12 +161,18 @@ class ISIC2019(AbstractISIC):
 
         return data, targets
 
-    def train_test_split(self):
+    def train_test_split(self, force_override=False):
         from pathlib import Path
 
         split_path = Path(self.root)
         csv_train_path = split_path / "custom_ISIC_2019_Training_GroundTruth.csv"
         csv_test_path = split_path / "custom_ISIC_2019_Test_GroundTruth.csv"
+
+        if force_override:
+            if csv_train_path.exists():
+                os.remove(csv_train_path)
+            if csv_test_path.exists():
+                os.remove(csv_test_path)
 
         if not csv_train_path.exists() or not csv_test_path.exists():
             csv_name = self.csv["full"]
@@ -176,8 +182,10 @@ class ISIC2019(AbstractISIC):
             test_size = int(0.25 * full_size)
             rng = np.random.default_rng(12345)
             test_indices = rng.choice(full_size, size=test_size, replace=False)
-            csv_test = csv.iloc[test_indices]
-            csv_train = csv.iloc[~test_indices]
+            test_mask = np.zeros(full_size, dtype=bool)
+            test_mask[test_indices] = 1
+            csv_test = csv.iloc[test_mask]
+            csv_train = csv.iloc[~test_mask]
             csv_train.to_csv(csv_train_path, index=False)
             csv_test.to_csv(csv_test_path, index=False)
 
@@ -185,6 +193,11 @@ class ISIC2019(AbstractISIC):
         self.csv["test"] = csv_test_path
         self.data_name["train"] = self.data_name["full"]
         self.data_name["test"] = self.data_name["full"]
+
+        if force_override:
+            self.data, self.targets = self.get_data()
+            # if preprocess:
+            self.preprocess()
 
 
 class ISIC2016(AbstractISIC):

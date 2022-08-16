@@ -2,6 +2,7 @@ from typing import Any, List, Optional
 import math
 from omegaconf import DictConfig
 
+import torch.nn as nn
 import torch
 from models.networks import build_model
 from .abstract_classifier import AbstractClassifier
@@ -20,6 +21,14 @@ class BayesianModule(AbstractClassifier):
         if self.hparams.model.load_pretrained:
             self.load_from_ssl_checkpoint()
         self.init_ema_model(use_ema=config.model.use_ema)
+
+        weighted_loss = False
+        try:
+            weighted_loss = self.hparams.model.weighted_loss
+        except:
+            pass
+        if weighted_loss:
+            self.loss_fct = nn.NLLLoss(weight=torch.ones(self.hparams.data.num_classes))
 
     def training_step(self, batch, batch_idx):
         mode = "train"

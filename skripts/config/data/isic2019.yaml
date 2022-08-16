@@ -1,4 +1,4 @@
-name: isic2019
+dataset: isic2019
 shape: [224, 224, 3]
 num_classes: 8
 val_split: 0.2
