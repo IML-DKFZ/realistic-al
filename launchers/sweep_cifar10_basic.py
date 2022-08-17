@@ -11,8 +11,8 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "cifar10",
-    # "optim": ["sgd"],
-    "optim": "sgd_cosine",
+    "optim": ["sgd"],
+    # "optim": "sgd_cosine",
 }
 
 hparam_dict = {
@@ -21,7 +21,7 @@ hparam_dict = {
     "model.dropout_p": [0],
     "model.learning_rate": [0.1],
     # "model.weight_decay": [5e-4, 5e-2],
-    "model.weight_decay": [5e-3, 5e-4],
+    "model.weight_decay": [5e-4],
     # "model.learning_rate": [0.1, 0.01],  # is more stable than 0.1!
     "model.use_ema": False,
     # "model.finetune": [True, False],

@@ -17,10 +17,11 @@ load_pretrained = [
 ]
 
 hparam_dict = {
-    "active.num_labelled": 10000,  # [50, 500, 1000, 5000],
-    "data.val_size": None,  # [250, 2500, None, None],
-    "model.dropout_p": [0, 0.5],
-    "model.learning_rate": [0.01, 0.001],  # is more stable than 0.1!
+    "active.num_labelled": [50, 500, 1000, 5000, 10000],
+    "data.val_size": [250, 2500, None, None, None],
+    "model.dropout_p": [0],
+    "model.learning_rate": 0.001,  # [0.01, 0.001],  # is more stable than 0.1!
+    "model.weight_decay": [5e-4],
     "model.use_ema": False,
     # "model.finetune": [True, False],
     # "model.freeze_encoder": [True, False],
@@ -37,7 +38,7 @@ joint_iteration = [
 ]
 
 # naming_conv = "sweep_basic-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
-naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}_transform-{data.transform_train}"
+naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}_transform-{data.transform_train}_wd-{model.weight_decay}_opt-{optim}"
 
 path_to_ex_file = "src/run_training.py"
 
