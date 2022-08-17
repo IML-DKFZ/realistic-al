@@ -184,7 +184,11 @@ class AbstractClassifier(pl.LightningModule):
             classes, class_weights = np.unique(
                 np.concatenate(classes), return_counts=True
             )
-            class_weights = torch.tensor(1 / class_weights, dtype=torch.float)
+            # computation identical to sklearn balanced class weights
+            class_weights = torch.tensor(
+                np.sum(class_weights) / (len(classes) * class_weights),
+                dtype=torch.float,
+            )
             self.loss_fct = nn.NLLLoss(weight=class_weights)
         # print(
         #     "Optimizer uses train iters per epoch {}".format(self.train_iters_per_epoch)
