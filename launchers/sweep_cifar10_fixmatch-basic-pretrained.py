@@ -14,10 +14,11 @@ config_dict = {
 hparam_dict = {
     "active.num_labelled": [40, 250, 4000],  # , 1000, 5000],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.03],  # is more stable than 0.1!
-    "model.small_head": [True],
+    "model.learning_rate": [0.003],  # is more stable than 0.1!
+    "model.small_head": [False],
     "model.use_ema": [False],
-    "trainer.max_epochs": 100,
+    "model.weight_decay": [1e-4, 5e-5],
+    "trainer.max_epochs": 50,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": [
         "cifar_basic",
@@ -28,7 +29,7 @@ hparam_dict = {
 }
 
 naming_conv = (
-    "sweep/{data}/fixmatch_basic_pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
+    "sweep/{data}/fixmatch_basic_pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_smallhead-{model.small_head}_lr-{model.learning_rate}_wd-{model.weight_decay}"
     # "sweep_fixmatch_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
 )
 # naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
