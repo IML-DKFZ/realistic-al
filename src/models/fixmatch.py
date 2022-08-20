@@ -3,6 +3,7 @@ import math
 from omegaconf import DictConfig
 
 import torch
+import torch.nn as nn
 import torchvision
 import torch.nn.functional as F
 from data.data import TorchVisionDM
@@ -34,6 +35,26 @@ class FixMatch(AbstractClassifier):
         if self.hparams.model.load_pretrained:
             self.load_from_ssl_checkpoint()
         self.init_ema_model(use_ema=config.model.use_ema)
+
+        self.balanced_loss = False
+        weighted_loss = False
+        try:
+            weighted_loss = self.hparams.model.weighted_loss
+        except:
+            pass
+        if weighted_loss:
+            self.balanced_loss = True
+            buffer_size = 128
+            num_classes = self.hparams.data.num_classes
+            self.loss_fct = nn.NLLLoss(weight=torch.ones(num_classes))
+            self.register_buffer(
+                "p_model", torch.ones(buffer_size, num_classes) / num_classes
+            )
+            # p_models is PMovingAVG according to: https://github.com/google-research/remixmatch/blob/f7061ebf055227cbeb5c6fced1ce054e0ceecfcd/mixmatch.py#L80
+            # PMovingAverage: https://github.com/google-research/remixmatch/blob/f7061ebf055227cbeb5c6fced1ce054e0ceecfcd/libml/layers.py#L125
+
+            # goal is to obtain a balanced classifer, therefore p_data is uniform
+            self.register_buffer("p_data", torch.ones(num_classes) / num_classes)
 
     def training_step(self, batch, batch_idx, *args, **kwargs):
         mode = "train"
@@ -75,7 +96,7 @@ class FixMatch(AbstractClassifier):
         # only save very first batch of first epoch to minimize loading times and memory footprint
         if batch_idx == 0 and self.current_epoch == 0:
             if len(x.shape) == 4:
-                self.visualize_inputs(x, x_w, x_s)
+                self.visualize_train(x, x_w, x_s)
         return {
             "loss": loss,
             "logprob": F.softmax(logits, dim=-1),
@@ -84,7 +105,7 @@ class FixMatch(AbstractClassifier):
 
     def step_logits(self, logits, y):
         preds = torch.argmax(logits, dim=1)
-        loss = F.cross_entropy(logits, y, reduction="mean")
+        loss = self.loss_fct(F.log_softmax(logits, dim=-1), y)
         return loss, preds, y
 
     def obtain_logits(self, x, x_w, x_s):
@@ -109,6 +130,11 @@ class FixMatch(AbstractClassifier):
     def semi_step(self, logits_w, logits_s):
         # create mask for temp scaled output probabilities greater equal threshold
         probs = torch.exp(self.mc_nll(logits_w.detach() / self.T_semsl))
+        if self.balanced_loss:
+            # Distribution Alignment according to:
+            # https://github.com/google-research/remixmatch/blob/master/remixmatch_no_cta.py#L36
+            probs *= (1e-6 + self.p_data) / (1e-6 + self.p_model)
+            probs /= probs.sum(dim=-1, keepdim=True)
         max_probs, pseudo_labels = torch.max(probs, dim=1)
         mask = max_probs.ge(self.cf_thresh).float()
         # weigh according to amount of samples used
@@ -117,7 +143,25 @@ class FixMatch(AbstractClassifier):
         ).mean()
         return loss, mask.mean()
 
-    def visualize_inputs(self, x, x_w, x_s):
+    def update_p_model(self, prob: torch.Tensor):
+        """Updates the self.p_model moving average with the given probabilites.
+
+        Args:
+            prob (torch.Tensor): Shape=NxC
+        """
+        self.p_model = torch.concat([self.p_model[1:], prob.mean(dim=0, keepdim=True)])
+
+    def get_p_model(self):
+        """Returns Moving Average of p_model on the guessed labels.
+
+        Returns:
+            (torch.Tensor): Shape=C
+        """
+        p_model = self.p_model.mean(dim=0)
+        p_model /= p_model.sum()
+        return p_model
+
+    def visualize_train(self, x, x_w, x_s):
         num_imgs = 64
         num_rows = 8
         for imgs, title in zip(
@@ -125,17 +169,18 @@ class FixMatch(AbstractClassifier):
         ):
             if len(imgs) == 0:
                 continue
-            grid = (
-                torchvision.utils.make_grid(
-                    imgs[:num_imgs], nrow=num_rows, normalize=True
-                )
-                .cpu()
-                .detach()
-            )
-            # Works only for Tensorboard!
-            self.loggers[0].experiment.add_image(
-                title, grid, self.current_epoch,
-            )
+            self.visualize_inputs(imgs, name=f"train/{title}")
+            # grid = (
+            #     torchvision.utils.make_grid(
+            #         imgs[:num_imgs], nrow=num_rows, normalize=True
+            #     )
+            #     .cpu()
+            #     .detach()
+            # )
+            # # Works only for Tensorboard!
+            # self.loggers[0].experiment.add_image(
+            #     title, grid, self.current_epoch,
+            # )
 
     def setup(self, *args, **kwargs) -> None:
         # get_train_dataloader = wrap_fixmatch_train_dataloader(
