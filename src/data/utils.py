@@ -111,7 +111,7 @@ class MultiHeadedTransform(object):
 
 
 class TransformFixMatch(object):
-    def __init__(self, mean, std):
+    def __init__(self, mean, std, img_size=32, n=1, m=2):
         """Transformation for FixMatch.
         Callable returning (x_weak, x_strong)
         """
@@ -119,7 +119,7 @@ class TransformFixMatch(object):
             [
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(
-                    size=32, padding=int(32 * 0.125), padding_mode="reflect"
+                    size=img_size, padding=int(img_size * 0.125), padding_mode="reflect"
                 ),
             ]
         )
@@ -127,9 +127,9 @@ class TransformFixMatch(object):
             [
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(
-                    size=32, padding=int(32 * 0.125), padding_mode="reflect"
+                    size=img_size, padding=int(img_size * 0.125), padding_mode="reflect"
                 ),
-                RandAugmentMCCutout(n=2, m=10),
+                RandAugmentMCCutout(n=n, m=m),
             ]
         )
         self.normalize = transforms.Compose(
@@ -140,6 +140,42 @@ class TransformFixMatch(object):
         weak = self.weak(x)
         strong = self.strong(x)
         return self.normalize(weak), self.normalize(strong)
+
+
+class TransformFixMatchISIC(TransformFixMatch):
+    def __init__(self, mean, std, img_size=224, n=1, m=2, cut_rel=0.25):
+        re_size = 300
+        input_size = img_size
+        self.weak = transforms.Compose(
+            [
+                transforms.Resize(re_size),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                # transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
+                transforms.RandomRotation([-180, 180]),
+                transforms.RandomAffine(
+                    [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
+                ),
+                transforms.RandomCrop(input_size),
+            ]
+        )
+        self.strong = transforms.Compose(
+            [
+                transforms.Resize(re_size),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                # transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
+                transforms.RandomRotation([-180, 180]),
+                transforms.RandomAffine(
+                    [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
+                ),
+                RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel),
+                transforms.RandomCrop(input_size),
+            ]
+        )
+        self.normalize = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)]
+        )
 
 
 def seed_worker(worker_id):

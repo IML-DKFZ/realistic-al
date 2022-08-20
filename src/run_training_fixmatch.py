@@ -2,6 +2,8 @@ import os
 from data.data import TorchVisionDM
 import hydra
 from omegaconf import DictConfig
+from loguru import logger
+from utils.log_utils import setup_logger
 from utils import config_utils
 
 import utils
@@ -13,11 +15,15 @@ active_dataset = True
 
 @hydra.main(config_path="./config", config_name="config_fixmatch", version_base="1.1")
 def main(cfg: DictConfig):
+    setup_logger()
+    logger.info("Start logging")
     config_utils.print_config(cfg)
     train(cfg)
 
 
+@logger.catch
 def train(cfg: DictConfig):
+    logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
     balanced = cfg.active.balanced
     num_classes = cfg.data.num_classes
@@ -42,7 +48,15 @@ def train(cfg: DictConfig):
     )
     num_classes = cfg.data.num_classes
     if active_dataset:
-        if balanced:
+        if cfg.data.name == "isic2019" and balanced:
+            label_balance = 40
+            datamodule.train_set.label_balanced(
+                n_per_class=label_balance // num_classes, num_classes=num_classes
+            )
+            label_random = num_labelled - label_balance
+            if label_random > 0:
+                datamodule.train_set.label_randomly(label_random)
+        elif balanced:
             datamodule.train_set.label_balanced(
                 n_per_class=num_labelled // num_classes, num_classes=num_classes
             )

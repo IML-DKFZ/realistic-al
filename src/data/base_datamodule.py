@@ -65,6 +65,11 @@ class BaseDataModule(pl.LightningDataModule):
             dataset_train = activesubset_from_subset(dataset_train)
             dataset_val = activesubset_from_subset(dataset_val)
             if self.val_size:
+                if self.dataset == "isic2019":
+                    # Draw the first 200 validation samples in a balanced fashion
+                    val_size = 200
+                else:
+                    val_size = self.val_size
                 indices = []
                 labels = []
                 for (x, y) in dataset_val:
@@ -74,13 +79,24 @@ class BaseDataModule(pl.LightningDataModule):
                     len(labels.shape) == 1
                 )  # This does currently only work for single labels
 
-                n_per_class = self.val_size / len(np.unique(labels))
+                n_per_class = val_size / len(np.unique(labels))
                 assert n_per_class % 1 == 0
                 n_per_class = int(n_per_class)
                 for c in np.unique(labels):
                     class_indices = np.where(labels == c)[0]
                     indices.append(class_indices[:n_per_class])
                 indices = np.concatenate(indices, axis=0)
+                if self.dataset == "isic2019":
+                    # Draw all subsequent validation samples in a random fashion
+                    val_size = self.val_size - val_size
+                    if val_size > 0:
+                        indices_new = np.arange(len(labels))
+                        # no overlap between the balanced and random samples.
+                        indices_new = indices_new[~np.isin(indices_new, indices)]
+                        indices_new = np.random.choice(
+                            indices_new, size=val_size, replace=False
+                        )
+                        indices = np.concatenate([indices, indices_new])
                 dataset_val = ActiveSubset(dataset_val, indices)
         else:
             dataset_train = ActiveSubset(dataset, range(splits[0]))

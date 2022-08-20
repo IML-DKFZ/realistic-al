@@ -87,10 +87,7 @@ def get_isic_train_transform():
             transforms.RandomAffine(
                 [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
             ),
-            RandAugmentMC(n=1, m=2),
             transforms.RandomCrop(input_size),
-            # transforms.ToTensor(),
-            # transforms.Normalize(mean=mean, std=std),
         ]
     )
     return train_transform
@@ -109,9 +106,8 @@ def get_isic_randaug_transform():
             transforms.RandomAffine(
                 [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
             ),
+            RandAugmentMC(n=1, m=2),
             transforms.RandomCrop(input_size),
-            # transforms.ToTensor(),
-            # transforms.Normalize(mean=mean, std=std),
         ]
     )
     return train_transform

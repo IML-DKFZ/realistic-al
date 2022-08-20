@@ -6,6 +6,7 @@ from .utils import (
     activesubset_from_subset,
     seed_worker,
     MultiHeadedTransform,
+    TransformFixMatchISIC,
 )
 
 from .data import TorchVisionDM
@@ -19,7 +20,12 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
     """Returns the Concatenated Daloader used for FixMatch Training given the datamodule"""
     train_pool = activesubset_from_subset(dm.train_set.pool._dataset)
     if isinstance(dm, TorchVisionDM):
-        train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
+        if "isic" in dm.dataset:
+            train_pool.transform = TransformFixMatchISIC(
+                mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.2
+            )
+        else:
+            train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
         # train_pool.transform = dm.train_transforms
     elif isinstance(dm, ToyDM):
         train_pool.transform = MultiHeadedTransform(

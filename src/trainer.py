@@ -262,7 +262,8 @@ class ActiveTrainingLoop(object):
         self.init_callbacks()
         self.init_trainer()
         self.fit()
-        self.test()
+        if self.cfg.trainer.run_test:
+            self.test()
         self.final_callback()
         # add a wrap up!
 
