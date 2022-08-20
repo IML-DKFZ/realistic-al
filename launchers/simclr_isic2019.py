@@ -3,7 +3,7 @@ from launcher import BaseLauncher
 
 config_dict = {
     "data": ["isic2019"],
-    "model": ["cifar_resnet18"],
+    "model": ["isic_resnet18"],
 }
 
 hparam_dict = {
@@ -21,6 +21,7 @@ joint_iteration = None
 if __name__ == "__main__":
     parser = ArgumentParser()
     BaseLauncher.add_argparse_args(parser)
+    # parser.add_argument("--gpus", type=int, default=hparam_dict["trainer.gpus"])
     launcher_args = parser.parse_args()
 
     config_dict, hparam_dict = BaseLauncher.modify_params_for_args(
