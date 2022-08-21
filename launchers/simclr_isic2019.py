@@ -7,7 +7,7 @@ config_dict = {
 }
 
 hparam_dict = {
-    "trainer.gpus": 2,
+    "trainer.gpus": 1,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 1000,
 }
