@@ -10,6 +10,9 @@ hparam_dict = {
     "trainer.gpus": 1,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 1000,
+    "trainer.precision": 32,  # NaN errors for fp16 with seeds 12346 & 12347
+    "trainer.deterministic": True,
+    "trainer.num_workers": 12,
 }
 
 naming_conv = "{data}/{model}"
