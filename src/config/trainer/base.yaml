@@ -20,3 +20,4 @@ profiler: Null
 load_best_ckpt: True
 save_last: False
 timeout: 3
+run_test: True

@@ -1,0 +1,8 @@
+dataset: isic2019
+shape: [224, 224, 3]
+num_classes: 8
+val_split: 0.2
+mean: [0.485, 0.456, 0.406]
+std: [0.229, 0.224, 0.225]
+transform_train: isic_train
+transform_test: resize_224

@@ -1,0 +1,7 @@
+num_labelled: 200
+min_train: 5500
+balanced: True
+acq_size: 200
+num_iter: 10
+random_split: True
+m: Null

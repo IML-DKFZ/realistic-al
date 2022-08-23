@@ -1,6 +1,6 @@
 from abc import abstractclassmethod
 import math
-from urllib.parse import non_hierarchical
+import numpy as np
 from omegaconf import DictConfig
 
 import torch
@@ -10,6 +10,8 @@ from torchmetrics import Accuracy
 from copy import deepcopy
 from typing import Tuple
 from torch.nn import functional as F
+import torch.nn as nn
+import torchvision
 
 from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
 from .callbacks.ema_callback import EMAWeightUpdate
@@ -30,6 +32,8 @@ class AbstractClassifier(pl.LightningModule):
         self.acc_train = Accuracy()
         self.acc_val = Accuracy()
         self.acc_test = Accuracy()
+
+        self.loss_fct = nn.NLLLoss()
 
     def forward(
         self, x: torch.Tensor, k: int = None, agg: bool = True, ema: bool = False
@@ -86,22 +90,31 @@ class AbstractClassifier(pl.LightningModule):
 
     def step(self, batch: Tuple[torch.tensor, torch.tensor], k: int = None):
         x, y = batch
-        logits = self.forward(x, k=k)
-        loss = F.nll_loss(logits, y)
-        preds = torch.argmax(logits, dim=1)
-        return loss, preds, y
+        logprob = self.forward(x, k=k)
+        loss = self.loss_fct(logprob, y)
+        # loss = F.nll_loss(logprob, y)
+        preds = torch.argmax(logprob, dim=1)
+        return loss, logprob, preds, y
 
     def validation_step(self, batch, batch_idx, *args, **kwargs):
         mode = "val"
-        loss, preds, y = self.step(batch)
+        loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_val.update(preds, y)
+        if batch_idx == 0 and self.current_epoch == 0:
+            if len(batch[0].shape) == 4:
+                self.visualize_inputs(batch[0], name=f"{mode}/data")
+        return logprob, y
 
     def test_step(self, batch, batch_idx, *args, **kwargs):
         mode = "test"
-        loss, preds, y = self.step(batch)
+        loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
         self.acc_test.update(preds, y)
+        if batch_idx == 0:
+            if len(batch[0].shape) == 4:
+                self.visualize_inputs(batch[0], name=f"{mode}/data")
+        return logprob, y
 
     def on_train_batch_end(self, outputs, batch, batch_idx: int) -> None:
         if self.ema_model is not None:
@@ -158,6 +171,25 @@ class AbstractClassifier(pl.LightningModule):
             self.train_iters_per_epoch = max([len(loader) for loader in train_loader])
         else:
             self.train_iters_per_epoch = len(train_loader)
+
+        weighted_loss = False
+        try:
+            weighted_loss = self.hparams.model.weighted_loss
+        except:
+            pass
+        if weighted_loss:
+            classes = []
+            for (x, y) in train_loader:
+                classes.append(y.numpy())
+            classes, class_weights = np.unique(
+                np.concatenate(classes), return_counts=True
+            )
+            # computation identical to sklearn balanced class weights
+            class_weights = torch.tensor(
+                np.sum(class_weights) / (len(classes) * class_weights),
+                dtype=torch.float,
+            )
+            self.loss_fct = nn.NLLLoss(weight=class_weights)
         # print(
         #     "Optimizer uses train iters per epoch {}".format(self.train_iters_per_epoch)
         # )
@@ -242,6 +274,20 @@ class AbstractClassifier(pl.LightningModule):
             return [optimizer], [scheduler]
         else:
             raise NotImplementedError
+
+    def visualize_inputs(self, inputs, name):
+        num_imgs = 64
+        num_rows = 8
+        grid = (
+            torchvision.utils.make_grid(
+                inputs[:num_imgs], nrow=num_rows, normalize=True
+            )
+            .cpu()
+            .detach()
+        )
+        self.loggers[0].experiment.add_image(
+            name, grid, self.current_epoch,
+        )
 
     # TODO: Change this so that it works for many different models!
     def load_from_ssl_checkpoint(self):

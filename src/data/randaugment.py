@@ -168,21 +168,23 @@ def fixmatch_augment_pool():
 
 def my_augment_pool():
     # Test
+    # Augmentations are identical to:
+    # https://github.com/ildoonet/pytorch-randaugment/blob/48b8f509c4bbda93bbe733d98b3fd052b6e4c8ae/RandAugment/augmentations.py#L92
     augs = [
         (AutoContrast, None, None),
-        (Brightness, 1.8, 0.1),
-        (Color, 1.8, 0.1),
-        (Contrast, 1.8, 0.1),
-        (Cutout, 0.2, 0),
         (Equalize, None, None),
         (Invert, None, None),
-        (Posterize, 4, 4),
         (Rotate, 30, 0),
+        (Posterize, 4, 4),
+        (Solarize, 256, 0),
+        (SolarizeAdd, 110, 0),
+        (Color, 1.8, 0.1),
+        (Contrast, 1.8, 0.1),
+        (Brightness, 1.8, 0.1),
         (Sharpness, 1.8, 0.1),
         (ShearX, 0.3, 0),
         (ShearY, 0.3, 0),
-        (Solarize, 256, 0),
-        (SolarizeAdd, 110, 0),
+        (Cutout, 0.2, 0),
         (TranslateX, 0.45, 0),
         (TranslateY, 0.45, 0),
     ]
@@ -208,12 +210,13 @@ class RandAugmentPC(object):
 
 
 class RandAugmentMC(object):
-    def __init__(self, n, m):
+    def __init__(self, n, m, cut_rel=0.5):
         assert n >= 1
         assert 1 <= m <= 10
         self.n = n
         self.m = m
         self.augment_pool = fixmatch_augment_pool()
+        self.cut_rel = cut_rel
 
     def __call__(self, img):
         ops = random.choices(self.augment_pool, k=self.n)
@@ -231,5 +234,5 @@ class RandAugmentMCCutout(RandAugmentMC):
             v = np.random.randint(1, self.m)
             if random.random() < 0.5:
                 img = op(img, v=v, max_v=max_v, bias=bias)
-        img = CutoutAbs(img, int(32 * 0.5))
+        img = CutoutAbs(img, int(img.size[0] * self.cut_rel))
         return img

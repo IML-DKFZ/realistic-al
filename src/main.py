@@ -15,6 +15,8 @@ import time
 from loguru import logger
 from utils.log_utils import setup_logger
 
+import pandas as pd
+
 
 @hydra.main(config_path="./config", config_name="config", version_base="1.1")
 def main(cfg: DictConfig):
@@ -48,7 +50,15 @@ def active_loop(
     logger.info("Instantiating Datamodule")
     datamodule = get_active_dm_from_config(cfg)
     num_classes = cfg.data.num_classes
-    if balanced:
+    if cfg.data.name == "isic2019" and balanced:
+        label_balance = 40
+        datamodule.train_set.label_balanced(
+            n_per_class=label_balance//num_classes, num_classes=num_classes
+        )
+        label_random = num_labelled- label_balance 
+        if label_random > 0 :
+            datamodule.train_set.label_randomly(label_random)
+    elif balanced:
         datamodule.train_set.label_balanced(
             n_per_class=num_labelled // num_classes, num_classes=num_classes
         )
@@ -59,6 +69,7 @@ def active_loop(
         num_iter = math.ceil(len(datamodule.train_set) / acq_size)
 
     active_stores = []
+    metric_paths = []
     for i in range(num_iter):
         logger.info("Start Active Loop {}".format(i))
         # Perform active learning iteration with training and labeling
@@ -74,9 +85,22 @@ def active_loop(
         training_loop.log_save_dict()
         cfg.active.num_labelled += cfg.active.acq_size
         logger.info("Finalized Loop {}".format(i))
-
+        metric_paths.append(training_loop.log_dir)
         del training_loop
         time.sleep(1)
+
+    store_path = "."
+    metrics_df = []
+    for metric_path in metric_paths:
+        # laod metrics from csv
+        metric_df = pd.read_csv(os.path.join(metric_path, "metrics.csv"))
+        # select metrics for test  data
+        cols = [col for col in metric_df.columns if "test" in col]
+        metric_df = metric_df.loc[:, cols]
+        metric_dict = dict(metric_df.iloc[-1])
+        metrics_df.append(metric_dict)
+    metrics_df = pd.DataFrame(metrics_df)
+    metrics_df.to_csv(os.path.join(store_path, "test_metrics.csv"))
 
     val_accs = np.array([active_store.accuracy_val for active_store in active_stores])
     test_accs = np.array([active_store.accuracy_test for active_store in active_stores])
@@ -84,7 +108,6 @@ def active_loop(
     add_labels = np.stack(
         [active_store.labels for active_store in active_stores], axis=0
     )
-    store_path = "."
 
     # This can be deleted!
     if True:
