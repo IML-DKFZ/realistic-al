@@ -14,29 +14,28 @@ config_dict = {
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
 load_pretrained = [
     "SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
-    # "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
-    # "SSL/SimCLR/cifar10/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
+    "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
+    "SSL/SimCLR/cifar10/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
 ]
 
 hparam_dict = {
-    "active.num_labelled": [40],  # , 1000, 5000],
-    "model.dropout_p": [0, 0.5],
-    "model.learning_rate": 0.003,  # according to EMAN paper
+    # "active.num_labelled": [50, 500, 1000, 5000],  # , 1000, 5000],
+    "active.num_labelled": [40, 250, 4000],
+    "model.dropout_p": [0],  # , 0.5],
+    "model.learning_rate": [0.003],  # according to EMAN paper
     "model.small_head": [True, False],  # Based on SelfMatch
-    "model.use_ema": [True, False],  # FixMAtch
-    "model.finetune": [True, False],
-    "model.freeze_encoder": [True, False],
+    # "model.use_ema": [True, False],  # FixMAtch
+    # "model.finetune": [True, False],
+    # "model.freeze_encoder": [True, False],
     "model.load_pretrained": True,
-    "trainer.max_epochs": 2000,
-    "trainer.seed": [12345],  # , 12346, 12347],
-    "data.transform_train": [
-        "cifar_basic",
-        # "cifar_randaugment",
-    ],
-    "sem_sl.eman": [True, False],  # EMAN Paper
+    "trainer.max_epochs": [200, 100],  # try 50!
+    "trainer.seed": [12345, 12346, 12347],
+    "data.transform_train": ["cifar_basic",],
+    "sem_sl.eman": [False],  # EMAN Paper
 }
-
-naming_conv = "sweep_fixmatch-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
+# TODO: Change naming convention!
+naming_conv = "sweep/{data}/fixmatch_pretrained_lab-{active.num_labelled}_{model}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}_ep-{trainer.max_epochs}"
+# naming_conv = "sweep_fixmatch-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
 path_to_ex_file = "src/run_training_fixmatch.py"
 
 joint_iteration = ["model.load_pretrained", "trainer.seed"]

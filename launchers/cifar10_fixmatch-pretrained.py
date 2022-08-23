@@ -6,12 +6,8 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet_fixmatch",  # wideresnet-cifar10
     "data": "cifar10",
-    "active": [
-        "cifar10_low_data",
-        "standard_250",
-        "standard",
-    ],  # standard
-    "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "active": ["cifar10_low", "cifar10_med",],  # standard
+    "query": ["random", "entropy", "kcentergreedy"],
     "optim": "sgd_fixmatch",
 }
 
@@ -23,34 +19,31 @@ load_pretrained = [
 ]
 
 hparam_dict = {
-    "model.dropout_p": [0.5],
-    # "model.learning_rate": 0.003,  # is more stable than 0.1!
-    "model.learning_rate": 0.01,
+    "data.val_size": [250, 2500, None],
+    "model.dropout_p": [0],
+    "model.learning_rate": 0.003,  # is more stable than 0.1!
     "model.small_head": [False],
-    # "model.use_ema": [True],
     "model.use_ema": False,
-    "model.finetune": [True],
-    # "model.finetune": False,
+    "model.finetune": False,
     "model.load_pretrained": True,
     "trainer.max_epochs": 400,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": [
-        "cifar_basic",
-        # "cifar_randaugment",
-    ],
-    # "sem_sl.eman": [True],
+    "data.transform_train": ["cifar_basic",],
     "sem_sl.eman": [False],
-    # "model.freeze_encoder": True,
     "model.freeze_encoder": False,
     "trainer.persistent_workers": True,
+    "trainer.precision": 32,
+    "trainer.deterministic": True,
 }
 
-# naming_conv = "active_fixmatch-pretrained_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 naming_conv = "{data}/test-{active}/fixmatch-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
 
 path_to_ex_file = "src/main_fixmatch.py"
 
-joint_iteration = ["trainer.seed", "model.load_pretrained"]
+joint_iteration = [
+    ["trainer.seed", "model.load_pretrained"],
+    ["data.val_size", "active"],
+]
 
 
 if __name__ == "__main__":
