@@ -133,7 +133,7 @@ class FixMatch(AbstractClassifier):
         if self.balanced_loss:
             # Distribution Alignment according to:
             # https://github.com/google-research/remixmatch/blob/master/remixmatch_no_cta.py#L36
-            probs *= (1e-6 + self.p_data) / (1e-6 + self.p_model)
+            probs *= (1e-6 + self.p_data) / (1e-6 + self.get_p_model())
             probs /= probs.sum(dim=-1, keepdim=True)
         max_probs, pseudo_labels = torch.max(probs, dim=1)
         mask = max_probs.ge(self.cf_thresh).float()
@@ -149,7 +149,9 @@ class FixMatch(AbstractClassifier):
         Args:
             prob (torch.Tensor): Shape=NxC
         """
-        self.p_model = torch.concat([self.p_model[1:], prob.mean(dim=0, keepdim=True)])
+        self.p_model = torch.concat(
+            [self.p_model[1:], prob.mean(dim=0, keepdim=True).detach()]
+        )
 
     def get_p_model(self):
         """Returns Moving Average of p_model on the guessed labels.
