@@ -6,14 +6,15 @@ import pandas as pd
 
 
 def plot_standard_dev(
-    ax: plt.Axes,
-    data: pd.DataFrame,
+    ax,
+    data,
     x: str = "num_samples",
     y: str = "test_acc",
     hue: str = "Sampling",
-    style: Optional[str] = None,
-    units: Optional[str] = None,
-    ci: Optional[str] = "sd",
+    style=None,
+    units=None,
+    ci="sd",
+    legend="auto",
 ) -> plt.Axes:
     """Creates a lineplot from dataframe with sns.lineplot.
     For information see:
@@ -34,5 +35,6 @@ def plot_standard_dev(
         dashes=True,
         units=units,
         style=style,
+        legend=legend,
     )
     return ax
