@@ -20,11 +20,13 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0, 0.5],
-    "model.learning_rate": [0.1],
+    "model.learning_rate": [0.01],
+    "model.weight_decay": 5e-3,
     "model.load_pretrained": None,
     "model.use_ema": False,
     "data.transform_train": ["cifar_randaugment",],
     "trainer.precision": 32,
+    "trainer.deterministic": True,
 }
 
 naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"

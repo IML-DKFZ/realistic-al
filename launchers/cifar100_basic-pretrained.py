@@ -17,8 +17,6 @@ config_dict = {
         "cifar100_low",
         "cifar100_med",
         "cifar100_high",
-        # "standard",
-        # "cifar100",
     ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
@@ -29,13 +27,11 @@ hparam_dict = {
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
     "model.dropout_p": [0, 0, 0, 0.5],
     "model.learning_rate": [0.001],
+    "model.weight_decay": 5e-3,
     "model.freeze_encoder": [False],  # possibly add True
-    # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": True,
     "data.transform_train": "cifar_randaugment",
-    # experiment with big head and frozen encoder
-    # "model.freeze_encoder": True,
     "model.small_head": [False],
     "trainer.precision": 32,
 }
