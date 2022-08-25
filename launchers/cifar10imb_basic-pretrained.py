@@ -14,7 +14,12 @@ config_dict = {
     ],
     # "data": ["cifar10"],  # , "cifar100"],
     "data": ["cifar10_imb"],  # , "cifar100"],
-    "active": ["cifar10_imb"],  # did not run! "standard_250", "cifar10_low_data"
+    # "active": ["cifar10_imb"],  # did not run! "standard_250", "cifar10_low_data"
+    "active": [
+        "cifar10_low",
+        "cifar10_med",
+        "cifar10_high",
+    ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
 
@@ -25,6 +30,7 @@ load_pretrained = [
     "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-631836/checkpoints/last.ckpt",  # seed 12347
 ]
 hparam_dict = {
+    "data.val_size": [50 * 5, 250 * 5, None],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
     "model.dropout_p": [0, 0, 0, 0.5],
@@ -47,7 +53,9 @@ joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 joint_iteration_2 = ["model.dropout_p", "query"]
 
-joint_iteration = [joint_iteration, joint_iteration_2]
+joint_iteration_3 = ["data.val_size", "active"]
+
+joint_iteration = [joint_iteration, joint_iteration_2, joint_iteration_3]
 
 path_to_ex_file = "src/main.py"
 

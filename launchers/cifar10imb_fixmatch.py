@@ -7,7 +7,6 @@ config_dict = {
         "random",
         "entropy",
         "kcentergreedy",
-        "bald",
         # "variationratios",
         # "batchbald",
     ],
@@ -15,29 +14,27 @@ config_dict = {
     "active": [
         "cifar10_low",
         "cifar10_med",
-        "cifar10_high",
     ],  # did not run! "standard_250", "cifar10_low_data"
-    "optim": ["sgd"],
+    "optim": ["sgd_fixmatch"],
 }
 
 hparam_dict = {
     "data.val_size": [50 * 5, 250 * 5, None],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
-    "model.dropout_p": [0, 0, 0, 0.5],
-    "model.learning_rate": [0.01],
+    "model.dropout_p": [0, 0, 0],
+    "model.learning_rate": [0.03],
+    "model.small_head": [True],
     "model.use_ema": False,
-    "data.transform_train": [
-        # "cifar_basic",
-        "cifar_randaugment",
-    ],
-    "trainer.precision": 32,
+    "data.transform_train": ["cifar_basic",],
+    "sem_sl.eman": [False],
+    "model.load_pretrained": None,
 }
-naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
+naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
 joint_iteration = [["model.dropout_p", "query"], ["data.val_size", "active"]]
 
-path_to_ex_file = "src/main.py"
+path_to_ex_file = "src/fixmatch.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
