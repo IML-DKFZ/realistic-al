@@ -16,7 +16,7 @@ hparam_dict = {
     "model.dropout_p": [0],
     "model.learning_rate": 0.03,  # is more stable than 0.1!
     "model.small_head": [True],
-    "model.weight_decay": [3e-4, 1e-4],
+    "model.weight_decay": [5e-3, 1e-3, 5e-4],
     "model.use_ema": [False],
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],

@@ -7,7 +7,7 @@ import numpy as np
 from pprint import pprint
 
 
-def compute_value(path, value_name):
+def compute_value(path, value_name, select="max"):
     values = []
     for sub_path in path.iterdir():
         if sub_path.is_dir():
@@ -19,7 +19,10 @@ def compute_value(path, value_name):
                     values.append(value)
                 else:
                     df_exp = pd.read_csv(file)
-                    value = df_exp[value_name].max()
+                    if select == "max":
+                        value = df_exp[value_name].max()
+                    elif select == "last":
+                        value = df_exp[value_name].dropna().iloc[-1]
                     values.append(value)
 
             except:
@@ -45,15 +48,17 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--path", type=str)
     parser.add_argument("-l", "--level", type=int, default=0)
     parser.add_argument("-v", "--value-name", type=str, default="test/acc")
+    parser.add_argument("-s", "--select", type=str, default="max")
     # path = "/home/c817h/Documents/logs_cluster/activelearning/sweep/cifar10/fixmatch_basic_lab-250_resnet_fixmatch_ep-200"
     args = parser.parse_args()
     level = args.level
     path = args.path
+    select = args.select
     path = Path(path)
     value_name = args.value_name
     if level == 0:
-        compute_value(path, value_name)
+        compute_value(path, value_name, select)
     if level == 1:
         for sub_path in path.iterdir():
             if sub_path.is_dir():
-                compute_value(sub_path, value_name)
+                compute_value(sub_path, value_name, select)
