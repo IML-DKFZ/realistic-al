@@ -27,6 +27,7 @@ hparam_dict = {
     "model.weighted_loss": True,
     "trainer.max_epochs": 80,
     "trainer.seed": [12345, 12346, 12347],
+    "model.load_pretrained": load_pretrained,
     "data.transform_train": ["isic_train", "isic_randaugment"],
 }
 
