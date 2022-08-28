@@ -10,9 +10,9 @@ config_dict = {
 }
 
 load_pretrained = [
-    "SSL/SimCLR/cifar10/2021-11-11_16:20:56.103061/checkpoints/last.ckpt",
-    "SSL/SimCLR/cifar10/2021-11-15_10:29:02.475176/checkpoints/last.ckpt",
-    "SSL/SimCLR/cifar10/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
+    "SSL/SimCLR/cifar10_imb/cifar_resnet18/2022-07-15_11-31-31-278397/checkpoints/last.ckpt",  # seed = 12345
+    "SSL/SimCLR/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-631836/checkpoints/last.ckpt",  # seed = 12346
+    "SSL/SimCLR/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-632366/checkpoints/last.ckpt",  # seed = 12347
 ]
 
 hparam_dict = {
