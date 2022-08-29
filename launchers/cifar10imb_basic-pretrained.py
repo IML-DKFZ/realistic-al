@@ -25,9 +25,9 @@ config_dict = {
 
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
 load_pretrained = [
-    "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-31-278397/checkpoints/last.ckpt",  # seed 12345
-    "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-632366/checkpoints/last.ckpt",  # seed 12346
-    "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-631836/checkpoints/last.ckpt",  # seed 12347
+    "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-31-278397/checkpoints/last.ckpt",  # seed = 12345
+    "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-631836/checkpoints/last.ckpt",  # seed = 12346
+    "SSL/cifar10_imb/cifar_resnet18/2022-07-15_11-31-34-632366/checkpoints/last.ckpt",  # seed = 12347
 ]
 hparam_dict = {
     "data.val_size": [50 * 5, 250 * 5, None],
