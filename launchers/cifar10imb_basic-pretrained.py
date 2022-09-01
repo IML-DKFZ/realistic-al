@@ -36,6 +36,7 @@ hparam_dict = {
     "model.dropout_p": [0, 0, 0, 0.5],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
+    "model.weight_decay": [5e-3, 5e-3, 5e-4],
     # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
@@ -53,7 +54,7 @@ joint_iteration = ["model.load_pretrained", "trainer.seed"]
 
 joint_iteration_2 = ["model.dropout_p", "query"]
 
-joint_iteration_3 = ["data.val_size", "active"]
+joint_iteration_3 = ["data.val_size", "active", "model.weight_decay"]
 
 joint_iteration = [joint_iteration, joint_iteration_2, joint_iteration_3]
 
