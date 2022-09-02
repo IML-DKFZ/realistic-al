@@ -3,13 +3,13 @@ from launcher import BaseLauncher
 
 config_dict = {
     "data": ["miotcd"],
-    "model": ["isic_resnet18"],
+    "model": ["imagenet_resnet18"],
 }
 
 hparam_dict = {
-    "trainer.gpus": 2,
+    "trainer.gpus": 1,
     "trainer.seed": [12345, 12346, 12347],
-    "model.batch_size": 256,
+    "model.batch_size": 128,
     "trainer.max_epochs": 200,
     "trainer.precision": 32,  # NaN errors for fp16 with seeds 12346 & 12347
     "trainer.deterministic": True,

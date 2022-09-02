@@ -3,7 +3,7 @@ from launcher import BaseLauncher
 
 config_dict = {
     "data": ["isic2019"],
-    "model": ["isic_resnet18"],
+    "model": ["imagenet_resnet18"],
 }
 
 hparam_dict = {
