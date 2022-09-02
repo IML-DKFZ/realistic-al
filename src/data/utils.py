@@ -6,6 +6,7 @@ from torchvision import transforms
 from .randaugment import RandAugmentMCCutout
 
 from torch.utils.data import Subset, Sampler, Dataset
+from utils.tensor import to_numpy
 
 
 class RandomFixedLengthSampler(Sampler):
@@ -33,7 +34,7 @@ class RandomFixedLengthSampler(Sampler):
 
 
 class ActiveSubset(Subset):
-    """Subclass of torch Subset with direct access to transforms the underlying Dataset"""
+    """Subclass of torch Subset with direct access to transforms the underlying Dataset and the targets."""
 
     @property
     def transform(self):
@@ -42,6 +43,11 @@ class ActiveSubset(Subset):
     @transform.setter
     def transform(self, new_transform):
         self.dataset.transform = new_transform
+
+    @property
+    def targets(self) -> np.ndarray:
+        targets = to_numpy(self.dataset.targets)
+        return targets[self.indices]
 
 
 def activesubset_from_subset(subset: Subset) -> ActiveSubset:
@@ -142,6 +148,24 @@ class TransformFixMatch(object):
         return self.normalize(weak), self.normalize(strong)
 
 
+class TransformFixMatchImageNet(TransformFixMatch):
+    def __init__(self, mean, std, img_size=224, n=1, m=2, cut_rel=0.25):
+        self.weak = transforms.Compose(
+            [transforms.RandomResizedCrop(img_size), transforms.RandomHorizontalFlip(),]
+        )
+
+        self.strong = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(img_size),
+                transforms.RandomHorizontalFlip(),
+                RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel),
+            ]
+        )
+        self.normalize = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)]
+        )
+
+
 class TransformFixMatchISIC(TransformFixMatch):
     def __init__(self, mean, std, img_size=224, n=1, m=2, cut_rel=0.25):
         re_size = 300
@@ -151,7 +175,6 @@ class TransformFixMatchISIC(TransformFixMatch):
                 transforms.Resize(re_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                # transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
                 transforms.RandomRotation([-180, 180]),
                 transforms.RandomAffine(
                     [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]

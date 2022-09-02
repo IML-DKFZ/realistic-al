@@ -1,7 +1,7 @@
 import torch
 from torchvision import transforms
 
-from .randaugment import RandAugmentMC, RandAugmentMCCutout
+from .randaugment import RandAugmentMC, RandAugmentMCCutout, RandAugmentPC
 
 
 def get_transform(name="basic", mean=[0], std=[1], shape=None):
@@ -25,9 +25,34 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
         return ToyNoiseTransform(sig=0.05)
     elif name == "toy_identity":
         return IdentityTransform()
+    elif name == "imagenet_train":
+        transform.append(get_imagenet_train_transform())
+    elif name == "imagent_randaug":
+        transform.append(get_imagenet_randaug_transform())
+    elif name == "imagenet_test":
+        transform.append(get_imagenet_test_transform())
 
     transform.append(get_norm_transform(mean, std))
     transform = transforms.Compose(transform)
+    return transform
+
+
+def get_imagenet_train_transform():
+    transform_train = transforms.Compose(
+        [transforms.RandomResizedCrop(224), transforms.RandomHorizontalFlip()]
+    )
+    return transform_train
+
+
+def get_imagenet_test_transform():
+    transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224)])
+    return transform
+
+
+def get_imagenet_randaug_transform():
+    transform = transforms.Compose(
+        [*get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
+    )
     return transform
 
 
@@ -120,6 +145,7 @@ def resize_transform(input_size=224):
     transform = transforms.Compose([transforms.Resize((224, 224))])
     return transform
 
+
 def get_randaug_cifar_cutout_transform():
     randaug_transform = transforms.Compose(
         [
@@ -131,7 +157,6 @@ def get_randaug_cifar_cutout_transform():
         ]
     )
     return randaug_transform
-
 
 
 class AbstractTransform:

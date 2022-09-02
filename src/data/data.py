@@ -7,13 +7,9 @@ import torch
 from torch.utils.data import DataLoader, Dataset, Subset, random_split
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 
+from data.mio_dataset import MIOTCDDataset
+
 from .active import ActiveLearningDataset
-from .utils import (
-    activesubset_from_subset,
-    ActiveSubset,
-    seed_worker,
-    RandomFixedLengthSampler,
-)
 from .longtail import create_imbalanced_dataset
 from .base_datamodule import BaseDataModule
 from .transformations import get_transform
@@ -94,6 +90,8 @@ class TorchVisionDM(BaseDataModule):
             self.dataset_cls = ISIC2016
         elif self.dataset == "isic2019":
             self.dataset_cls = ISIC2019
+        elif self.dataset == "miotcd":
+            self.dataset_cls = MIOTCDDataset
         else:
             raise NotImplementedError
         self._setup_datasets()

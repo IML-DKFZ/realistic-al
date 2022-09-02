@@ -133,9 +133,16 @@ class ImbClassMetricCallback(MetricCallback):
         conf_mat = self.pred_conf[mode].compute()
         acc = conf_mat.diag().sum() / conf_mat.sum()
         w_acc = (conf_mat.diag() / conf_mat.sum(dim=1)).mean()
-        f1 = (conf_mat.diag() / conf_mat.sum(dim=0)).mean()
+        av_prec = (conf_mat.diag() / conf_mat.sum(dim=0)).mean()
+        av_f1 = (
+            2 * conf_mat.diag() / (conf_mat.sum(dim=1) + conf_mat.sum(dim=0))
+        ).mean()
 
-        return {f"{mode}/w_acc": w_acc, f"{mode}/f1": f1}
+        return {
+            f"{mode}/w_acc": w_acc,
+            f"{mode}/av_prec": av_prec,
+            f"{mode}/av_f1": av_f1,
+        }
 
     def log_metrics(self, pl_module, mode):
         if mode in self.pred_conf:

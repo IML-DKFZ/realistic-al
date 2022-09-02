@@ -46,6 +46,7 @@ class FixMatch(AbstractClassifier):
             self.balanced_loss = True
             buffer_size = 128
             num_classes = self.hparams.data.num_classes
+            # the weights are overwritten at a later stage.
             self.loss_fct = nn.NLLLoss(weight=torch.ones(num_classes))
             self.register_buffer(
                 "p_model", torch.ones(buffer_size, num_classes) / num_classes

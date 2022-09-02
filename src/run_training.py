@@ -93,6 +93,14 @@ def train(cfg: DictConfig):
             label_random = num_labelled - label_balance
             if label_random > 0:
                 datamodule.train_set.label_randomly(label_random)
+        elif cfg.data.name == "miotcd" and balanced:
+            label_balance = cfg.data.num_classes * 5
+            datamodule.train_set.label_balanced(
+                n_per_class=label_balance // num_classes, num_classes=num_classes
+            )
+            label_random = num_labelled - label_balance
+            if label_random > 0:
+                datamodule.train_set.label_randomly(label_random)
         elif balanced:
             datamodule.train_set.label_balanced(
                 n_per_class=num_labelled // num_classes, num_classes=num_classes

@@ -68,13 +68,17 @@ class BaseDataModule(pl.LightningDataModule):
                 if self.dataset == "isic2019":
                     # Draw the first 200 validation samples in a balanced fashion
                     val_size = 200
+                elif self.dataset == "miotcd":
+                    # Draw the first 25xnum_classes validation samples in a balanced fashion
+                    val_size = 11 * 25
                 else:
                     val_size = self.val_size
                 indices = []
                 labels = []
-                for (x, y) in dataset_val:
-                    labels.append(y)
-                labels = np.array(labels)
+                # for (x, y) in dataset_val:
+                #     labels.append(y)
+                # labels = np.array(labels)
+                labels = dataset_val.targets
                 assert (
                     len(labels.shape) == 1
                 )  # This does currently only work for single labels
@@ -86,7 +90,7 @@ class BaseDataModule(pl.LightningDataModule):
                     class_indices = np.where(labels == c)[0]
                     indices.append(class_indices[:n_per_class])
                 indices = np.concatenate(indices, axis=0)
-                if self.dataset == "isic2019":
+                if self.dataset in ["isic2019", "miotcd"]:
                     # Draw all subsequent validation samples in a random fashion
                     val_size = self.val_size - val_size
                     if val_size > 0:
