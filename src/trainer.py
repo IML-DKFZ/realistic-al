@@ -79,7 +79,7 @@ class ActiveTrainingLoop(object):
             callbacks.append(pl.callbacks.EarlyStopping("val/acc", mode="max"))
         if self.cfg.data.name == "isic2016":
             callbacks.append(ISIC2016MetricCallback())
-        if self.cfg.data.name == "isic2019":
+        if self.cfg.data.name in ["isic2019", "miotcd"]:
             callbacks.append(
                 ImbClassMetricCallback(num_classes=self.cfg.data.num_classes)
             )

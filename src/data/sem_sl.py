@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 
 
 from .utils import (
+    TransformFixMatchImageNet,
     TransformFixMatch,
     activesubset_from_subset,
     seed_worker,
@@ -23,6 +24,10 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
         if "isic" in dm.dataset:
             train_pool.transform = TransformFixMatchISIC(
                 mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.2
+            )
+        elif dm.dataset == "miotcd":
+            train_pool.transfrom = TransformFixMatchImageNet(
+                mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.25
             )
         else:
             train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
