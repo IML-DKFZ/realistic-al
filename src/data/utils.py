@@ -6,6 +6,7 @@ from torchvision import transforms
 from .randaugment import RandAugmentMCCutout
 
 from torch.utils.data import Subset, Sampler, Dataset
+from utils.tensor import to_numpy
 
 
 class RandomFixedLengthSampler(Sampler):
@@ -33,7 +34,7 @@ class RandomFixedLengthSampler(Sampler):
 
 
 class ActiveSubset(Subset):
-    """Subclass of torch Subset with direct access to transforms the underlying Dataset"""
+    """Subclass of torch Subset with direct access to transforms the underlying Dataset and the targets."""
 
     @property
     def transform(self):
@@ -42,6 +43,11 @@ class ActiveSubset(Subset):
     @transform.setter
     def transform(self, new_transform):
         self.dataset.transform = new_transform
+
+    @property
+    def targets(self) -> np.ndarray:
+        targets = to_numpy(self.dataset.targets)
+        return targets[self.indices]
 
 
 def activesubset_from_subset(subset: Subset) -> ActiveSubset:

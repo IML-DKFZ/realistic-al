@@ -36,19 +36,19 @@ class ToyDataset(Dataset):
             y (np.ndarray): Labeles
             transform (Optional[Callable], optional): Transform. Defaults to None.
         """
-        self.predictors = torch.from_numpy(X).to(dtype=torch.float)
-        self.labels = torch.from_numpy(y)
+        self.data = torch.from_numpy(X).to(dtype=torch.float)
+        self.targets = torch.from_numpy(y)
         self.transform = transform
         assert len(X) == len(y)
 
     def __getitem__(self, index):
-        data = self.predictors[index]
+        data = self.data[index]
         if self.transform is not None:
             data = self.transform(data)
-        return (data, self.labels[index])
+        return (data, self.targets[index])
 
     def __len__(self):
-        return len(self.predictors)
+        return len(self.data)
 
 
 # TODO: check why persistent workers=True throws errors!

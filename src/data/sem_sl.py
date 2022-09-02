@@ -19,14 +19,14 @@ from .transformations import get_transform
 
 def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 6400):
     """Returns the Concatenated Daloader used for FixMatch Training given the datamodule"""
-    train_pool = activesubset_from_subset(dm.train_set.pool._dataset)
+    train_pool = activesubset_from_subset(dm.train_set.pool)
     if isinstance(dm, TorchVisionDM):
         if "isic" in dm.dataset:
             train_pool.transform = TransformFixMatchISIC(
                 mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.2
             )
         elif dm.dataset == "miotcd":
-            train_pool.transfrom = TransformFixMatchImageNet(
+            train_pool.transform = TransformFixMatchImageNet(
                 mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.25
             )
         else:
@@ -46,6 +46,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             )
         )
 
+    batch = next(iter(train_pool))
     timeout = dm.timeout
     # Keep amount of workers fixed for training.
     # workers_sup = 0

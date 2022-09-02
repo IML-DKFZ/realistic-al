@@ -11,6 +11,7 @@ import torch
 import torch.utils.data as torchdata
 from sklearn.utils import check_random_state
 from utils import io
+from .utils import ActiveSubset
 
 
 def _identity(x):
@@ -136,11 +137,11 @@ class ActiveLearningDataset(torchdata.Dataset):
             else:
                 raise ValueError(f"{pool_dataset} doesn't have {attr}")
 
-        pool_dataset = torchdata.Subset(
+        pool_dataset = ActiveSubset(
             pool_dataset, (~self.labelled).nonzero()[0].reshape([-1]).tolist()
         )
-        ald = ActiveLearningPool(pool_dataset, make_unlabelled=self.make_unlabelled)
-        return ald
+        # ald = ActiveLearningPool(pool_dataset, make_unlabelled=self.make_unlabelled)
+        return pool_dataset
 
     @property
     def labelled_set(self) -> torchdata.Dataset:
@@ -240,10 +241,11 @@ class ActiveLearningDataset(torchdata.Dataset):
         indices = []
 
         if random:
-            labels = []
-            for (x, y) in self.pool:
-                labels.append(y)
-            labels = np.array(labels)
+            # labels = []
+            # for (x, y) in self.pool:
+            #     labels.append(y)
+            # labels = np.array(labels)
+            labels = self.pool.targets
             for c in range(num_classes):
                 class_indices = np.where(labels == c)[0]
                 indices.append(

@@ -75,9 +75,10 @@ class BaseDataModule(pl.LightningDataModule):
                     val_size = self.val_size
                 indices = []
                 labels = []
-                for (x, y) in dataset_val:
-                    labels.append(y)
-                labels = np.array(labels)
+                # for (x, y) in dataset_val:
+                #     labels.append(y)
+                # labels = np.array(labels)
+                labels = dataset_val.targets
                 assert (
                     len(labels.shape) == 1
                 )  # This does currently only work for single labels

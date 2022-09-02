@@ -28,6 +28,7 @@ class BayesianModule(AbstractClassifier):
         except:
             pass
         if weighted_loss:
+            # the weights are overwritten at a later stage.
             self.loss_fct = nn.NLLLoss(weight=torch.ones(self.hparams.data.num_classes))
 
     def training_step(self, batch, batch_idx):
