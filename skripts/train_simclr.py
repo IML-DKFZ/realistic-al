@@ -11,8 +11,10 @@ import os
 import torch
 import torchvision
 
+from pytorch_lightning.utilities import rank_zero_warn
 from pytorch_lightning.loggers import TensorBoardLogger
 from pl_bolts.callbacks.ssl_online import SSLOnlineEvaluator
+from pl_bolts.models.self_supervised.evaluator import SSLEvaluator
 from pl_bolts.models.self_supervised.simclr.transforms import (
     SimCLREvalDataTransform,
     SimCLRTrainDataTransform,
@@ -54,6 +56,53 @@ class SimCLR_algo(SimCLR):
             return wideresnet
         else:
             raise NotImplementedError
+
+
+class SSLOnlineEvaluatorDDP(SSLOnlineEvaluator):
+    def on_pretrain_routine_start(
+        self, trainer: Trainer, pl_module: LightningModule
+    ) -> None:
+        # must move to device after setup, as during setup, pl_module is still on cpu
+        self.online_evaluator = SSLEvaluator(
+            n_input=self.z_dim,
+            n_classes=self.num_classes,
+            p=self.drop_p,
+            n_hidden=self.hidden_dim,
+        ).to(pl_module.device)
+
+        # switch fo PL compatibility reasons
+        accel = (
+            trainer.accelerator_connector
+            if hasattr(trainer, "accelerator_connector")
+            else trainer._accelerator_connector
+        )
+        if accel.is_distributed:
+            # if accel.use_ddp:
+            from torch.nn.parallel import DistributedDataParallel as DDP
+
+            self.online_evaluator = DDP(
+                self.online_evaluator, device_ids=[pl_module.device]
+            )
+        # elif accel.use_dp:
+        #     from torch.nn.parallel import DataParallel as DP
+
+        #     self.online_evaluator = DP(
+        #         self.online_evaluator, device_ids=[pl_module.device]
+        #     )
+        # else:
+        #     rank_zero_warn(
+        #         "Does not support this type of distributed accelerator. The online evaluator will not sync."
+        #     )
+
+        self.optimizer = torch.optim.Adam(self.online_evaluator.parameters(), lr=1e-4)
+
+        if self._recovered_callback_state is not None:
+            self.online_evaluator.load_state_dict(
+                self._recovered_callback_state["state_dict"]
+            )
+            self.optimizer.load_state_dict(
+                self._recovered_callback_state["optimizer_state"]
+            )
 
 
 @hydra.main(config_path="./config", config_name="simclr_base", version_base="1.1")
@@ -110,7 +159,7 @@ def cli_cluster(cfg: DictConfig):
     online_evaluator = None
     if cfg.model.online_ft:
         # online eval
-        online_evaluator = SSLOnlineEvaluator(
+        online_evaluator = SSLOnlineEvaluatorDDP(
             drop_p=0.0,
             hidden_dim=None,
             z_dim=cfg.model.hidden_mlp,
