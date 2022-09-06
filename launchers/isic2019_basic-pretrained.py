@@ -34,7 +34,7 @@ hparam_dict = {
     # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
-    "data.transform_train": "cifar_randaugment",
+    "data.transform_train": "isic_randaugment",
     # experiment with big head and frozen encoder
     # "model.freeze_encoder": True,
     "model.small_head": [False],
