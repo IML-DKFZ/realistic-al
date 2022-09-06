@@ -17,14 +17,14 @@ hparam_dict = {
     "data.val_size": [2500, None],
     "model.dropout_p": [0],
     "model.learning_rate": 0.03,  # according to EMAN paper
-    "model.weight_decay": [1e-3, 5e-4, 1e-4],
+    "model.weight_decay": [1e-5, 1e-6, 0],
     "model.small_head": [False],  # Based on SelfMatch
     "model.use_ema": [False],  # FixMAtch
     "model.finetune": [False],
     "model.freeze_encoder": [False],
     "model.load_pretrained": True,
     "trainer.max_epochs": 200,
-    "trainer.seed": [12345, 12346, 12347],
+    "trainer.seed": [12345],  # , 12346, 12347],
     "data.transform_train": ["cifar_basic"],
     "sem_sl.eman": [False],  # EMAN Paper
 }
