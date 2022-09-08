@@ -142,7 +142,7 @@ def get_isic_randaug_transform():
 
 def resize_transform(input_size=224):
     # input_size = 224
-    transform = transforms.Compose([transforms.Resize((224, 224))])
+    transform = transforms.Compose([transforms.Resize((input_size, input_size))])
     return transform
 
 

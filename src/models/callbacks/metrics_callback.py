@@ -89,30 +89,6 @@ class ImbClassMetricCallback(MetricCallback):
             for mode in modes
         }
 
-        # self.pred_dict.update(
-        #     {
-        #         f"{mode}/acc_bal": Accuracy(num_classes=num_classes, mode="macro")
-        #         for mode in modes
-        #     }
-        # )
-        # self.pred_dict.update(
-        #     {
-        #         f"{mode}/f1_bal": F1Score(num_classes=num_classes, mode="macro")
-        #         for mode in modes
-        #     }
-        # )
-        # self.pred_dict.update(
-        #     {
-        #         f"{mode}/w_acc": Recall(num_classes=num_classes, mode="macro")
-        #         for mode in modes
-        #     }
-        # )
-        # self.pred_dict.update(
-        #     {
-        #         f"{mode}/prec_bal": Precision(num_classes=num_classes, mode="macro")
-        #         for mode in modes
-        #     }
-        # )
         self.auc_dict = {}
         self.auc_dict.update(
             {

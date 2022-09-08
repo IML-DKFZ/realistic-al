@@ -10,6 +10,15 @@ from utils import io
 
 
 def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
+    """Returns all files in the root folder matching pattern in a sorted order
+
+    Args:
+        root (Path): Root for search of pattern
+        pattern (str): pattern file should match
+
+    Returns:
+        List[Path]: Files in subdir matching pattern
+    """
     files = []
     # for root_dirlist, dirlist, filelist in os.walk(root):
     #     for file in filelist:
@@ -98,10 +107,15 @@ def get_experiment_df(
     for file in files:
         if verbose:
             print("\tLoading File:", file)
-        loaded = np.load(file)
-        data_dict = dict()
-        for key, val in loaded.items():
-            data_dict[key] = val
+        filetype = pattern.split(".")[-1]
+        if filetype == "npz":
+            loaded = np.load(file)
+            data_dict = dict()
+            for key, val in loaded.items():
+                data_dict[key] = val
+        elif filetype == "csv":
+            csv_dict = pd.read_csv(file, index_col=0)
+            data_dict = csv_dict.to_dict(orient="list")
         out_dicts.append(data_dict)
 
     # TODO: possible extension, add config values from hydra (hparams.yaml)
