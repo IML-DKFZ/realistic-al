@@ -3,30 +3,24 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": [
-        "random",
-    ],
+    "query": ["random",],
     "data": ["cifar10", "cifar100"],
-    "active": [
-        "full_data",
-    ],
+    "active": ["full_data",],
     "optim": ["sgd"],
 }
 
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
-    "model.dropout_p": [0, 0.5],
-    "model.learning_rate": [0.01],
+    "model.dropout_p": [0],
+    "model.learning_rate": [0.1],
+    "model.weight_decay": 5e-4,
     "model.use_ema": False,
-    "data.transform_train": [
-        "cifar_basic",
-        "cifar_randaugment",
-    ],
+    "data.transform_train": ["cifar_basic", "cifar_randaugment",],
     "trainer.precision": 32,
 }
 naming_conv = (
-    "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
+    "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}"
     # "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 )
 
