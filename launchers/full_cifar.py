@@ -16,8 +16,12 @@ hparam_dict = {
     "model.learning_rate": [0.1],
     "model.weight_decay": 5e-4,
     "model.use_ema": False,
-    "data.transform_train": ["cifar_basic", "cifar_randaugment",],
+    "trainer.batch_size": 64,  # note: 128 and 256 make training much faster!
+    # only to be continous with old experiments.
+    "data.transform_train": ["cifar_randaugment",],
     "trainer.precision": 32,
+    "trainer.deterministic": True,
+    "trainer.max_epochs": 4,
 }
 naming_conv = (
     "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}"
