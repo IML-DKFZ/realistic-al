@@ -26,7 +26,7 @@ hparam_dict = {
     ],  # 0,01 is omitted due to bad performance on every dataset!
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
-    "model.small_head": [True],
+    "model.small_head": [False],
     "model.weighted_loss": True,
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 80,
