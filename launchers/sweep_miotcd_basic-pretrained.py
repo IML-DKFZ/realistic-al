@@ -31,6 +31,7 @@ hparam_dict = {
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 80,
     "trainer.batch_size": 128,
+    "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["imagenet_train", "imagent_randaug",],
 }
@@ -40,7 +41,7 @@ joint_iteration = [
     ["trainer.seed", "model.load_pretrained"],
 ]
 
-naming_conv = "sweep/{data}/basic_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}"
+naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}"
 
 path_to_ex_file = "src/run_training.py"
 
