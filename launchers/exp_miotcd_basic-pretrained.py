@@ -44,9 +44,9 @@ joint_iteration = [
     ["active", "data.transform_train", "data.val_size"],
 ]
 
-naming_conv = "sweep/{data}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
+naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
 
-path_to_ex_file = "src/run_training.py"
+path_to_ex_file = "src/main.py"
 
 
 if __name__ == "__main__":

@@ -62,7 +62,7 @@ class ActiveTrainingLoop(object):
                 monitor = "val/w_acc"
                 mode = "max"
             elif self.cfg.data.name == "miotcd":
-                monitor = "val/av_prec"
+                monitor = "val/w_acc"
                 mode = "max"
             else:
                 monitor = "val/acc"
