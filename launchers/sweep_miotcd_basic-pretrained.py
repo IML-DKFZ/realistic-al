@@ -7,6 +7,12 @@ config_dict = {
     "optim": ["sgd"],
 }
 
+load_pretrained = [
+    "SSL/miotcd/imagenet_resnet18/2022-09-06_11-33-02-630425/checkpoints/last.ckpt",  # seed = 12345
+    "SSL/miotcd/imagenet_resnet18/2022-09-06_14-12-43-497039/checkpoints/last.ckpt",  # seed = 12346
+    "SSL/miotcd/imagenet_resnet18/2022-09-06_14-12-43-189723/checkpoints/last.ckpt",  # seed = 12347
+]
+
 num_classes = 11
 hparam_dict = {
     "trainer.run_test": False,
@@ -15,18 +21,24 @@ hparam_dict = {
     # "active.num_labelled": [200, 800],
     # "data.val_size": [1000, None],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.1, 0.01],
+    "model.learning_rate": [
+        0.001
+    ],  # 0,01 is omitted due to bad performance on every dataset!
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
-    "trainer.max_epochs": 200,
+    "model.load_pretrained": load_pretrained,
+    "trainer.max_epochs": 80,
     "trainer.batch_size": 128,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["imagenet_train", "imagent_randaug",],
 }
 
-joint_iteration = [["active.num_labelled", "data.val_size"]]
+joint_iteration = [
+    ["active.num_labelled", "data.val_size"],
+    ["trainer.seed", "model.load_pretrained"],
+]
 
 naming_conv = "sweep/{data}/basic_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}"
 

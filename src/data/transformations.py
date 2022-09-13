@@ -51,7 +51,7 @@ def get_imagenet_test_transform():
 
 def get_imagenet_randaug_transform():
     transform = transforms.Compose(
-        [*get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
+        [get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
     )
     return transform
 
