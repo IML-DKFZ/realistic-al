@@ -28,7 +28,7 @@ hparam_dict = {
         5e-4,
     ],  # 5e-3 was test beforehand leading to bad performance!
     "model.learning_rate": 0.03,  # is more stable than 0.1!
-    "model.small_head": [True],
+    "model.small_head": [False],
     "model.use_ema": [False],
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
