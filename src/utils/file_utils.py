@@ -122,6 +122,9 @@ def get_experiment_df(
     dataframe = []
     for i, out_dict in enumerate(out_dicts):
         # throw out all data which cannot be easily converted to a dataframe
+        if len(out_dict) == 0:
+            print("File {} \nIs empty and will be skipped!".format(file))
+            return None
         for key in out_dict:
             pop_keys = []
             out_dict[key] = to_numpy(out_dict[key])

@@ -285,9 +285,10 @@ class AbstractClassifier(pl.LightningModule):
             .cpu()
             .detach()
         )
-        self.loggers[0].experiment.add_image(
-            name, grid, self.current_epoch,
-        )
+        if len(self.loggers) > 0:
+            self.loggers[0].experiment.add_image(
+                name, grid, self.current_epoch,
+            )
 
     # TODO: Change this so that it works for many different models!
     def load_from_ssl_checkpoint(self):
@@ -296,3 +297,9 @@ class AbstractClassifier(pl.LightningModule):
 
     def wrap_dm(self, dm: pl.LightningDataModule) -> pl.LightningDataModule:
         return dm
+
+    def load_only_state_dict(self, path):
+        ckpt = torch.load(path)
+        print("loading checkpoint from epoch {}".format(ckpt["epoch"]))
+        self.load_state_dict(ckpt["state_dict"], strict=True)
+

@@ -17,7 +17,7 @@ load_pretrained = [
 
 num_classes = 11
 hparam_dict = {
-    "trainer.run_test": False,
+    "trainer.run_test": True,
     "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5, num_classes * 100 * 5],
     # "active.num_labelled": [200, 800],
     # "data.val_size": [1000, None],

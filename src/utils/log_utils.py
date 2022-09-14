@@ -1,5 +1,6 @@
 # code is adapted from: https://github.com/MIC-DKFZ/nnDetection/blob/main/nndet/utils/info.py
 
+from optparse import Option
 from loguru import logger
 import os
 from omegaconf import OmegaConf
@@ -10,12 +11,13 @@ from git import Repo, InvalidGitRepositoryError
 import __main__
 
 
-def setup_logger():
+def setup_logger(path: Optional[Union[Path, str]] = None):
     logger.info("Current Working Directory: {}".format(os.getcwd()))
     logger.info("Main: {}".format((__main__.__file__.split(".")[0] + ".log")))
-    logpath = Path(os.getcwd()) / (
-        Path(__main__.__file__).name.split(".")[0].__str__() + ".log"
-    )
+    if path is None:
+        path = os.getcwd()
+    path = Path(path)
+    logpath = path / (Path(__main__.__file__).name.split(".")[0].__str__() + ".log")
     logger.add(logpath)
     logger.info("Logging to file: {}".format(logpath))
 

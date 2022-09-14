@@ -48,6 +48,7 @@ class ActiveTrainingLoop(object):
         self.init_paths()
         self._save_dict = dict()
         self.data_ckpt_path = None
+        self.loggers= False
 
     def init_callbacks(self):
         """Initializing the Callbacks used in Pytorch Lightning."""
