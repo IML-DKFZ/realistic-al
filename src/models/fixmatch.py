@@ -36,18 +36,24 @@ class FixMatch(AbstractClassifier):
             self.load_from_ssl_checkpoint()
         self.init_ema_model(use_ema=config.model.use_ema)
 
-        self.balanced_loss = False
         weighted_loss = False
         try:
-            weighted_loss = self.hparams.model.weighted_loss
+            weighted_loss: bool = self.hparams.model.weighted_loss
+        except:
+            pass
+
+        self.distr_align = weighted_loss
+        try:
+            self.distr_align: bool = self.hparams.model.distr_align
         except:
             pass
         if weighted_loss:
-            self.balanced_loss = True
-            buffer_size = 128
             num_classes = self.hparams.data.num_classes
             # the weights are overwritten at a later stage.
             self.loss_fct = nn.NLLLoss(weight=torch.ones(num_classes))
+        if self.distr_align:
+            buffer_size = 128
+            num_classes = self.hparams.data.num_classes
             self.register_buffer(
                 "p_model", torch.ones(buffer_size, num_classes) / num_classes
             )
@@ -131,7 +137,7 @@ class FixMatch(AbstractClassifier):
     def semi_step(self, logits_w, logits_s):
         # create mask for temp scaled output probabilities greater equal threshold
         probs = torch.exp(self.mc_nll(logits_w.detach() / self.T_semsl))
-        if self.balanced_loss:
+        if self.distr_align:
             # Distribution Alignment according to:
             # https://github.com/google-research/remixmatch/blob/master/remixmatch_no_cta.py#L36
             probs *= (1e-6 + self.p_data) / (1e-6 + self.get_p_model())
