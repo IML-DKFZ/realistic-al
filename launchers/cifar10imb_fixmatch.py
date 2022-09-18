@@ -41,7 +41,7 @@ joint_iteration = [
     ["data.val_size", "active", "active.acq_size", "model.weight_decay"],
 ]
 
-path_to_ex_file = "src/fixmatch.py"
+path_to_ex_file = "src/main_fixmatch.py"
 
 if __name__ == "__main__":
     parser = ArgumentParser(add_help=False)
