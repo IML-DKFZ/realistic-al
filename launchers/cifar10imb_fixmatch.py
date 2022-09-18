@@ -19,10 +19,14 @@ config_dict = {
 }
 
 hparam_dict = {
-    "data.val_size": [50 * 5, 250 * 5, None],
+    "data.val_size": [50 * 5, 250 * 5],
+    "active.acq_size": [150, 750],
+    "active.num_iter": [4],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0],
+    "model.weight_decay": [1e-3, 5e-4],
+    "model.weighted_loss": True,
     "model.learning_rate": [0.03],
     "model.small_head": [True],
     "model.use_ema": False,
@@ -32,7 +36,10 @@ hparam_dict = {
 }
 naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
-joint_iteration = [["model.dropout_p", "query"], ["data.val_size", "active"]]
+joint_iteration = [
+    ["model.dropout_p", "query"],
+    ["data.val_size", "active", "active.acq_size", "model.weight_decay"],
+]
 
 path_to_ex_file = "src/fixmatch.py"
 
