@@ -129,6 +129,7 @@ def test_active_exp(path, force_override):
         if run_on:
             csv_dict = pd.read_csv(path / "test_metrics.csv", index_col=0)
             data_dict = csv_dict.to_dict(orient="list")
+            # print(data_dict)
             run_on = len(data_dict) == 0
         if run_on or force_override:
             logger.info("Evaluating Path {}".format(path))
@@ -166,6 +167,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-p", "--path", type=str)
     parser.add_argument("--glob", action="store_true")
+    parser.add_argument("-l", "--list-only", action="store_true")
     args = parser.parse_args()
 
     if args.glob:
@@ -176,4 +178,7 @@ if __name__ == "__main__":
         paths = [Path(args.path)]
 
     for path in paths:
-        test_active_exp(path, force_override)
+        if args.list_only:
+            print(path)
+        else:
+            test_active_exp(path, force_override)
