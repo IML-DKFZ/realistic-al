@@ -24,6 +24,7 @@ hparam_dict = {
     "data.transform_train": ["isic_randaugment", "isic_train"],
     "trainer.deterministic": True,
     "trainer.num_workers": 12,
+    "trainer.batch_size": 64,  # note: batchsize of 128 makes trainings much faster!
 }
 naming_conv = "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}"
 

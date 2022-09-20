@@ -23,6 +23,7 @@ hparam_dict = {
     "active.acq_size": [150, 750],
     "active.num_iter": [4],
     "trainer.seed": [12345, 12346, 12347],
+    "trainer.deterministic": True,
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0],
     "model.weight_decay": [1e-3, 5e-4],
@@ -33,6 +34,7 @@ hparam_dict = {
     "data.transform_train": ["cifar_basic",],
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
+    "model.distr_align": True,
 }
 naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
