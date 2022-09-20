@@ -10,10 +10,10 @@ config_dict = {
 num_classes = 11
 hparam_dict = {
     "trainer.run_test": False,
-    "active.num_labelled": [num_classes * 5, num_classes * 25, num_classes * 100],
-    "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5, num_classes * 100 * 5],
+    "active.num_labelled": [num_classes * 5, num_classes * 25],
+    "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.1, 0.01],
+    "model.learning_rate": [0.3, 0.03],
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     "model.small_head": [True],
@@ -21,6 +21,7 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.precision": 16,
+    "trainer.num_workers": 12,
     "data.transform_train": ["imagenet_train"],
 }
 

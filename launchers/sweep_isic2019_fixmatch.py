@@ -9,10 +9,10 @@ config_dict = {
 
 hparam_dict = {
     "trainer.run_test": False,
-    "active.num_labelled": [40, 200, 800],
-    "data.val_size": [200, 1000, None],
+    "active.num_labelled": [40, 200],
+    "data.val_size": [200, 1000],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.1, 0.01],
+    "model.learning_rate": [0.3, 0.03],
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     "model.small_head": [True],
@@ -20,6 +20,7 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["isic_train"],
+    "trainer.precision": 16,  # prec 16 is 1.5 times faster than prec 32
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]

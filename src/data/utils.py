@@ -66,9 +66,9 @@ class ConcatDataloader:
         self.data_loaders = data_loaders
         self.iterators = []
 
-    def __len__(self):
-        # other data loaders are repeated to match the longest one
-        return max([len(d) for d in self.data_loaders])
+    # def __len__(self):
+    #     # other data loaders are repeated to match the longest one
+    #     return max([len(d) for d in self.data_loaders])
 
     def __iter__(self):
         self.iterators = [iter(dl) for dl in self.data_loaders]
@@ -86,9 +86,9 @@ class ConcatDataloader:
                     # if the first dataloader in self.dataloaders is not the longest
                     # this could lead to an unnecessary iterator creation.
                     # However, this seems not to be a problem right now.
-                    if len(dl) == len(self):
-                        # the longest data iterator has reached the end
-                        raise StopIteration
+                    # if len(dl) == len(self):
+                    #     # the longest data iterator has reached the end
+                    #     raise StopIteration
                     # re-initialize data loader iterators if necessary
                     dl = iter(self.data_loaders[i])
                     self.iterators[i] = dl
