@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from utils.tensor import to_numpy
 from utils import io
+from scipy.stats import entropy
 
 
 def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
@@ -130,6 +131,28 @@ def get_experiment_df(
             out_dict[key] = to_numpy(out_dict[key])
             if len(out_dict[key].shape) > 1:
                 pop_keys.append(key)
+
+        ################################
+        # Compute Entropies
+
+        if "added_labels" in out_dict:
+            unique = np.unique(out_dict["added_labels"])
+            count_list = []
+            for i, labels in enumerate(out_dict["added_labels"]):
+                counts = np.bincount(labels, minlength=unique.max() + 1)
+                count_list.append(counts)
+            count_list = np.stack(count_list, axis=0)
+
+            prob = count_list / np.sum(count_list, axis=1, keepdims=True)
+            out_dict["Acquisition Entropy"] = entropy(prob, axis=1)
+            count_list = np.cumsum(count_list, axis=0)
+            prob = count_list / np.sum(count_list, axis=1, keepdims=True)
+            out_dict["Dataset Entropy"] = entropy(prob, axis=1)
+            out_dict["Dataset Entropy"][1:] = out_dict["Dataset Entropy"][:-1]
+            out_dict["Dataset Entropy"][0] = np.NaN
+
+        ################################
+
         for key in pop_keys:
             out_dict.pop(key)
 
@@ -137,10 +160,7 @@ def get_experiment_df(
         for key in out_dict:
             if len(out_dict[key].shape) == 2:
                 out_dict[key] = out_dict[key].squeeze(1)
-            pass
-        # import IPython
 
-        # IPython.embed()
         df_temp = pd.DataFrame(out_dict)
         df_temp["version"] = i  # ToDo - change this to version
         dataframe.append(df_temp)
