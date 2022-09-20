@@ -4,18 +4,22 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": ["random",],
-    "data": ["cifar10", "cifar100"],
+    # "data": ["cifar10", "cifar100", "cifar10_imb"],
+    "data": ["cifar10_imb"],
     "active": ["full_data",],
     "optim": ["sgd"],
 }
 
+# fastest training: BS=1024, Prec=16
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0],
     "model.learning_rate": [0.1, 0.01],
-    "model.weight_decay": 5e-4,
+    "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
+    # "model.weighted_loss": [False, False, True],
+    "model.weighted_loss": [True],
     "trainer.batch_size": 64,  # note: 128 and 256 make training much faster!
     # only to be continous with old experiments.
     "data.transform_train": ["cifar_randaugment",],
