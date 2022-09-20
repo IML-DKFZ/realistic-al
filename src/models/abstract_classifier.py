@@ -178,12 +178,15 @@ class AbstractClassifier(pl.LightningModule):
         except:
             pass
         if weighted_loss:
-            classes = []
-            for (x, y) in train_loader:
-                classes.append(y.numpy())
-            classes, class_weights = np.unique(
-                np.concatenate(classes), return_counts=True
-            )
+            if hasattr(dm.train_set, "targets"):
+                classes: np.ndarray = dm.train_set.targets
+            else:
+                classes = []
+                for (x, y) in train_loader:
+                    classes.append(y.numpy())
+                classes = np.concatenate(classes)
+
+            classes, class_weights = np.unique(classes, return_counts=True)
             # computation identical to sklearn balanced class weights
             class_weights = torch.tensor(
                 np.sum(class_weights) / (len(classes) * class_weights),

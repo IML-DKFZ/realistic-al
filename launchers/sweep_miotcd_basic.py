@@ -21,8 +21,9 @@ hparam_dict = {
     "model.small_head": [True],
     "model.weighted_loss": True,
     "trainer.max_epochs": 200,
-    "trainer.batch_size": 128,
+    "trainer.batch_size": 512,
     "trainer.seed": [12345, 12346, 12347],
+    "trainer.precision" : 16,
     "data.transform_train": ["imagenet_train", "imagent_randaug",],
 }
 

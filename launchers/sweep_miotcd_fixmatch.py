@@ -20,7 +20,8 @@ hparam_dict = {
     "model.weighted_loss": True,
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["isic_train"],
+    "trainer.precision": 16,
+    "data.transform_train": ["imagenet_train"],
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]

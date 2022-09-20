@@ -9,9 +9,9 @@ from .utils import ActiveSubset
 def create_imbalanced_dataset(
     dataset, imb_type: str, imb_factor: float
 ) -> ActiveSubset:
-    targets = [y for x, y in dataset]
-    targets_np = np.array(targets, dtype=np.int)
-    num_classes = len(np.unique(targets_np))
+
+    targets = dataset.targets
+    num_classes = len(np.unique(targets))
     num_samples = len(dataset)
     img_num_per_cls = get_samples_per_cls(
         num_samples, num_classes, imb_type, imb_factor

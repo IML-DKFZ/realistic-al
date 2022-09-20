@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": ["random",],
-    "data": ["isic2019"],
+    "data": ["miotcd"],
     "active": ["full_data",],
     "optim": ["sgd"],
 }
@@ -13,7 +13,6 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0],
-    "trainer.precision": 32,
     "model.learning_rate": [0.1, 0.01],
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
@@ -24,7 +23,8 @@ hparam_dict = {
     "data.transform_train": ["imagenet_train", "imagenet_randaugment"],
     "trainer.deterministic": True,
     "trainer.num_workers": 12,
-    "trainer.batch_size": 128,  # note: batchsize of 128 makes trainings much faster!
+    "trainer.precision": 16,
+    "trainer.batch_size": 512,  # note: batchsize of 128 makes trainings much faster!
 }
 naming_conv = "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}"
 
