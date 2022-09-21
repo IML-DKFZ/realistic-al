@@ -1,7 +1,8 @@
 import torch
 from torchvision import transforms
 
-from .randaugment import RandAugmentMC, RandAugmentMCCutout, RandAugmentPC
+from .randaugment import RandAugmentMC, RandAugmentMCCutout, RandAugmentPC, CutoutAbs
+from torchvision.transforms import RandAugment, Lambda
 
 
 def get_transform(name="basic", mean=[0], std=[1], shape=None):
@@ -27,8 +28,10 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
         return IdentityTransform()
     elif name == "imagenet_train":
         transform.append(get_imagenet_train_transform())
-    elif name == "imagent_randaug":
+    elif name == "imagenet_randaug":
         transform.append(get_imagenet_randaug_transform())
+    elif name == "imagenet_randaug_cutout":
+        transform.append(get_imagenet_randaug_cutout_transform())
     elif name == "imagenet_test":
         transform.append(get_imagenet_test_transform())
 
@@ -52,6 +55,18 @@ def get_imagenet_test_transform():
 def get_imagenet_randaug_transform():
     transform = transforms.Compose(
         [get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
+    )
+    return transform
+
+
+def get_imagenet_randaug_cutout_transform():
+    transform = transforms.Compose(
+        [
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            RandAugment(),
+            Lambda(lambda x: CutoutAbs(x, int(x.size[0] * 0.2))),
+        ]
     )
     return transform
 
@@ -153,7 +168,9 @@ def get_randaug_cifar_cutout_transform():
             transforms.RandomCrop(
                 size=32, padding=int(32 * 0.125), padding_mode="reflect"
             ),
-            RandAugmentMCCutout(n=1, m=2),
+            RandAugment(),
+            Lambda(lambda x: CutoutAbs(x, int(x.size[0] * 0.25))),
+            # RandAugmentMCCutout(n=1, m=2),
         ]
     )
     return randaug_transform
