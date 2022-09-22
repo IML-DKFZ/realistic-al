@@ -49,6 +49,6 @@ if __name__ == "__main__":
     )
 
     if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
+        launcher.ex_call = "cluster_run --launcher run_active_25gb.sh"
 
     launcher.launch_runs()
