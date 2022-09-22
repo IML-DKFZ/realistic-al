@@ -64,7 +64,8 @@ def get_imagenet_randaug_cutout_transform():
         [
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
-            RandAugment(),
+            transforms.RandAugment(),
+            # transforms.RandomErasing()
             Lambda(lambda x: CutoutAbs(x, int(x.size[0] * 0.2))),
         ]
     )

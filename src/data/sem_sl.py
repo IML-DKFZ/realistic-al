@@ -23,14 +23,16 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
     if isinstance(dm, TorchVisionDM):
         if "isic" in dm.dataset:
             train_pool.transform = TransformFixMatchISIC(
-                mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.2
+                mean=dm.mean, std=dm.std, n=2, m=10, cut_rel=0, prob=1
             )
         elif dm.dataset == "miotcd":
             train_pool.transform = TransformFixMatchImageNet(
-                mean=dm.mean, std=dm.std, n=1, m=2, cut_rel=0.25
+                mean=dm.mean, std=dm.std, n=2, m=10, cut_rel=0, prob=1
             )
         else:
-            train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std)
+            # TODO: benchmark this Setting!
+            # train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std, n=2, m=10)
+            train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std, n=1, m=2)
         # train_pool.transform = dm.train_transforms
     elif isinstance(dm, ToyDM):
         train_pool.transform = MultiHeadedTransform(

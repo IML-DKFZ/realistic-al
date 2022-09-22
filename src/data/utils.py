@@ -3,7 +3,7 @@ import torch
 import random
 import numpy as np
 from torchvision import transforms
-from .randaugment import RandAugmentMCCutout
+from .randaugment import RandAugmentMC, RandAugmentMCCutout
 
 from torch.utils.data import Subset, Sampler, Dataset
 from utils.tensor import to_numpy
@@ -149,7 +149,11 @@ class TransformFixMatch(object):
 
 
 class TransformFixMatchImageNet(TransformFixMatch):
-    def __init__(self, mean, std, img_size=224, n=1, m=2, cut_rel=0.25):
+    def __init__(self, mean, std, img_size=224, n=2, m=10, cut_rel=0.25, prob=1):
+        if cut_rel == 0:
+            RandAug = RandAugmentMC(n=n, m=m, prob=prob)
+        else:
+            RandAug = RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel, prob=prob)
         self.weak = transforms.Compose(
             [transforms.RandomResizedCrop(img_size), transforms.RandomHorizontalFlip(),]
         )
@@ -158,7 +162,7 @@ class TransformFixMatchImageNet(TransformFixMatch):
             [
                 transforms.RandomResizedCrop(img_size),
                 transforms.RandomHorizontalFlip(),
-                RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel),
+                RandAug,
             ]
         )
         self.normalize = transforms.Compose(
@@ -167,7 +171,11 @@ class TransformFixMatchImageNet(TransformFixMatch):
 
 
 class TransformFixMatchISIC(TransformFixMatch):
-    def __init__(self, mean, std, img_size=224, n=1, m=2, cut_rel=0.25):
+    def __init__(self, mean, std, img_size=224, n=1, m=2, cut_rel=0.25, prob=1):
+        if cut_rel == 0:
+            RandAug = RandAugmentMC(n=n, m=m, prob=prob)
+        else:
+            RandAug = RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel, prob=prob)
         re_size = 300
         input_size = img_size
         self.weak = transforms.Compose(
@@ -192,8 +200,8 @@ class TransformFixMatchISIC(TransformFixMatch):
                 transforms.RandomAffine(
                     [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
                 ),
-                RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel),
                 transforms.RandomCrop(input_size),
+                RandAug,
             ]
         )
         self.normalize = transforms.Compose(

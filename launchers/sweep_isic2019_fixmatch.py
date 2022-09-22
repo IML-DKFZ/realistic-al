@@ -20,7 +20,7 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["isic_train"],
-    "trainer.precision": 16,  # prec 16 is 1.5 times faster than prec 32
+    "trainer.precision": 32,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]
