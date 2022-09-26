@@ -296,7 +296,7 @@ class ActiveLearningDataset(torchdata.Dataset):
         Args:
             save_path (str): Path to file which gets saved.
         """
-        io.save_pickle(self.state_dict, save_path)
+        io.save_pickle(self.state_dict(), save_path)
 
     def load_checkpoint(self, path: str):
         """Load statedict as .npz from path.
