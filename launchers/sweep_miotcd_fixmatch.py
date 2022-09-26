@@ -20,7 +20,7 @@ hparam_dict = {
     "model.weighted_loss": True,
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.precision": 32,
+    "trainer.precision": 16,
     "trainer.num_workers": 12,
     "data.transform_train": ["imagenet_train"],
 }
