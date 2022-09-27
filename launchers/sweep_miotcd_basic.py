@@ -23,8 +23,11 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "trainer.batch_size": 512,
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.precision" : 16,
-    "data.transform_train": ["imagenet_train", "imagent_randaug",],
+    "trainer.precision": 16,
+    # "data.transform_train": ["imagenet_train", "imagenet_randaug",],
+    # "data.transform_train": ["imagenet_randaug", "imagenet_randaug_cutout"],
+    # "data.transform_train": ["imagenet_randaug_cutout"],
+    "data.transform_train": ["imagenet_randaugMC",],
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]
