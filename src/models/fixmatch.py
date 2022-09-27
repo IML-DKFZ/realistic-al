@@ -36,17 +36,12 @@ class FixMatch(AbstractClassifier):
             self.load_from_ssl_checkpoint()
         self.init_ema_model(use_ema=config.model.use_ema)
 
-        weighted_loss = False
-        try:
-            weighted_loss: bool = self.hparams.model.weighted_loss
-        except:
-            pass
+        if "weighted_loss" in self.hparams.model:
+            weighted_loss = self.hparams.model.weighted_loss
 
         self.distr_align = weighted_loss
-        try:
+        if "distr_align" in self.hparams.model:
             self.distr_align: bool = self.hparams.model.distr_align
-        except:
-            pass
         if weighted_loss:
             num_classes = self.hparams.data.num_classes
             # the weights are overwritten at a later stage.

@@ -176,10 +176,8 @@ def cli_cluster(cfg: DictConfig):
     utils.set_seed(cfg.trainer.seed)
 
     imbalance = False
-    try:
+    if "imbalance" in cfg.data:
         imbalance = cfg.data.imbalance
-    except:
-        pass
 
     dm = TorchVisionDM(
         data_root=cfg.base.data_root,

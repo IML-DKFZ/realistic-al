@@ -23,10 +23,8 @@ class BayesianModule(AbstractClassifier):
         self.init_ema_model(use_ema=config.model.use_ema)
 
         weighted_loss = False
-        try:
+        if "weighted_loss" in self.hparams.model:
             weighted_loss = self.hparams.model.weighted_loss
-        except:
-            pass
         if weighted_loss:
             # the weights are overwritten at a later stage.
             self.loss_fct = nn.NLLLoss(weight=torch.ones(self.hparams.data.num_classes))
