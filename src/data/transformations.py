@@ -2,6 +2,7 @@ import torch
 from torchvision import transforms
 
 from .randaugment import RandAugmentMC, RandAugmentMCCutout, RandAugmentPC, CutoutAbs
+from .randaugment_2 import RandAugmentMC_FixMatch
 from torchvision.transforms import RandAugment, Lambda
 
 
@@ -16,10 +17,14 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
     elif name == "cifar_randaugment_cutout":
         transform.append(get_randaug_cifar_cutout_transform())
     # TODO: Make this nice down the line -- see how other people do stuff like this!
+    elif name == "cifar_randaugmentMC":
+        return get_cifar_rand(mean, std)
     elif name == "isic_train":
         transform.append(get_isic_train_transform())
     elif name == "isic_randaugment":
         transform.append(get_isic_randaug_transform())
+    elif name == "isic_randaugtensor":
+        return get_isic_randaug_trafo(mean=mean, std=std)
     elif name == "resize_224":
         transform.append(resize_transform(224))
     elif name == "toy_gauss_0.05":
@@ -32,6 +37,8 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
         transform.append(get_imagenet_randaug_transform())
     elif name == "imagenet_randaug_cutout":
         transform.append(get_imagenet_randaug_cutout_transform())
+    elif name == "imagenet_randaugMC":
+        transform.append(get_imagenet_randaugMC())
     elif name == "imagenet_test":
         transform.append(get_imagenet_test_transform())
 
@@ -47,6 +54,21 @@ def get_imagenet_train_transform():
     return transform_train
 
 
+def get_cifar_rand(mean, std):
+    transform_train = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(
+                size=32, padding=int(32 * 0.125), padding_mode="reflect"
+            ),
+            RandAugmentMCCutout(n=2, m=10, prob=1),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std),
+        ]
+    )
+    return transform_train
+
+
 def get_imagenet_test_transform():
     transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224)])
     return transform
@@ -55,6 +77,13 @@ def get_imagenet_test_transform():
 def get_imagenet_randaug_transform():
     transform = transforms.Compose(
         [get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
+    )
+    return transform
+
+
+def get_imagenet_randaugMC():
+    transform = transforms.Compose(
+        [get_imagenet_train_transform(), RandAugmentMC(n=2, m=10, prob=1)]
     )
     return transform
 
@@ -151,6 +180,29 @@ def get_isic_randaug_transform():
             ),
             RandAugmentMC(n=1, m=2),
             transforms.RandomCrop(input_size),
+        ]
+    )
+    return train_transform
+
+
+def get_isic_randaug_trafo(mean, std):
+    re_size = 300
+    input_size = 224
+    train_transform = transforms.Compose(
+        [
+            transforms.PILToTensor(),
+            transforms.Resize(re_size),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
+            transforms.RandomRotation([-180, 180]),
+            transforms.RandomAffine(
+                [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
+            ),
+            RandAugmentMC_FixMatch(num_ops=1, max_magnitude=2),
+            transforms.RandomCrop(input_size),
+            transforms.Lambda(lambda x: x.to(dtype=torch.float) / 255),
+            transforms.Normalize(mean, std),
         ]
     )
     return train_transform
