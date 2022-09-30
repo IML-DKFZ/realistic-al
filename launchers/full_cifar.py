@@ -4,10 +4,12 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": ["random",],
-    # "data": ["cifar10", "cifar100", "cifar10_imb"],
-    "data": ["cifar10_imb"],
+    "data": ["cifar10", "cifar100", "cifar10_imb"],
+    # "data": ["cifar10"],
+    # "data": "cifar100",
     "active": ["full_data",],
-    "optim": ["sgd"],
+    "optim": ["sgd", "sgd_cosine"],
+    # "optim": ["sgd"],
 }
 
 # fastest training: BS=1024, Prec=16
@@ -15,20 +17,21 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0],
-    "model.learning_rate": [0.1, 0.01],
-    "model.weight_decay": [5e-3, 5e-4],
+    "model.learning_rate": [0.1],  # , 0.01],
+    "model.weight_decay": [5e-3, 5e-4],  # [5e-3, 5e-4],
     "model.use_ema": False,
-    # "model.weighted_loss": [False, False, True],
-    "model.weighted_loss": [True],
-    "trainer.batch_size": 64,  # note: 128 and 256 make training much faster!
+    "model.weighted_loss": [False, False, True],
+    # "model.weighted_loss": [True],
+    "trainer.batch_size": 1024,  # note: 128 and 256 make training much faster!
     # only to be continous with old experiments.
-    "data.transform_train": ["cifar_randaugment",],
-    "trainer.precision": 32,
+    # "data.transform_train": ["cifar_randaugment",],
+    "data.transform_train": ["cifar_rand",],
+    "trainer.precision": 16,
     "trainer.deterministic": True,
     "trainer.max_epochs": 200,
 }
 naming_conv = (
-    "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}"
+    "{data}/{active}/basic_model={model}-drop={model.dropout_p}-aug={data.transform_train}-wd={model.weight_decay}-lr={model.learning_rate}-optim={optim}"
     # "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 )
 
