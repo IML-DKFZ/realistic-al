@@ -172,6 +172,7 @@ class AbstractClassifier(pl.LightningModule):
         else:
             self.train_iters_per_epoch = len(train_loader)
 
+        weighted_loss=False
         if "weighted_loss" in self.hparams.model:
             weighted_loss = self.hparams.model.weighted_loss
         if weighted_loss:
