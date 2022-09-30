@@ -25,7 +25,7 @@ hparam_dict = {
     "trainer.batch_size": 1024,  # note: 128 and 256 make training much faster!
     # only to be continous with old experiments.
     # "data.transform_train": ["cifar_randaugment",],
-    "data.transform_train": ["cifar_rand",],
+    "data.transform_train": ["cifar_randaugmentMC",],
     "trainer.precision": 16,
     "trainer.deterministic": True,
     "trainer.max_epochs": 200,

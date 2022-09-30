@@ -29,7 +29,7 @@ hparam_dict = {
     "model.small_head": [True],
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_rand"],
+    "data.transform_train": ["cifar_randaugmentMC"],
     "trainer.batch_size": 1024,
     "trainer.precision": 16,
 }
