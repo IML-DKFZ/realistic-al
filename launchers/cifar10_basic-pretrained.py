@@ -8,7 +8,7 @@ config_dict = {
         # "random",
         # "entropy",
         # "kcentergreedy",
-        # "bald",
+        "bald",
         # "variationratios",
         "batchbald",
     ],
@@ -37,13 +37,13 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
     # "model.dropout_p": [0, 0, 0, 0.5],
-    "model.dropout_p": [0.5],
+    "model.dropout_p": [0.5, 0.5],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
     # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": True,
-    "data.transform_train": "cifar_randaugment",
+    "data.transform_train": "cifar_rand",
     # experiment with big head and frozen encoder
     # "model.freeze_encoder": True,
     "model.small_head": [False],
