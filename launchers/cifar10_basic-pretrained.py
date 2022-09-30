@@ -5,18 +5,18 @@ from config_launcher import get_pretrained_arch
 config_dict = {
     "model": "resnet",
     "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        "bald",
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        # "bald",
         # "variationratios",
-        # "batchbald",
+        "batchbald",
     ],
     "data": ["cifar10"],  # , "cifar100"],
     "active": [
         "cifar10_low",
-        "cifar10_med",
-        "cifar10_high",
+        # "cifar10_med",
+        # "cifar10_high",
         # "standard",
         # "standard_250",
         # "cifar10_low_data",
@@ -31,10 +31,13 @@ load_pretrained = [
     "SSL/SimCLR/cifar10/2021-11-15_10:29:02.500429/checkpoints/last.ckpt",
 ]
 hparam_dict = {
-    "data.val_size": [250, 2500, None],
+    # "data.val_size": [250, 2500, None],
+    "data.val_size": [250],
+    "trainer.batch_size": 1024,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
-    "model.dropout_p": [0, 0, 0, 0.5],
+    # "model.dropout_p": [0, 0, 0, 0.5],
+    "model.dropout_p": [0.5],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
     # "model.finetune": [True],
@@ -44,7 +47,8 @@ hparam_dict = {
     # experiment with big head and frozen encoder
     # "model.freeze_encoder": True,
     "model.small_head": [False],
-    "trainer.precision": 32,
+    # "trainer.precision": 32,
+    "trainer.precision": 16,
     "trainer.deterministic": True,
 }
 

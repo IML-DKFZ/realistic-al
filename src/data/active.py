@@ -152,7 +152,7 @@ class ActiveLearningDataset(torchdata.Dataset):
                 setattr(labelled_dataset, attr, new_val)
             else:
                 raise ValueError(f"{labelled_dataset} doesn't have {attr}")
-        labelled_dataset = torchdata.Subset(labelled_dataset, self._state.labelled_ind)
+        labelled_dataset = ActiveSubset(labelled_dataset, self._state.labelled_ind)
         return labelled_dataset
 
     """ This returns one or zero, if it is labelled or not, no index is returned.

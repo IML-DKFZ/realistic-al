@@ -37,7 +37,7 @@ class QuerySampler:
         self.acq_method = cfg.query.name
 
     def query_samples(
-        self, datamodule: pl.LightningDataModule
+        self, datamodule: pl.LightningDataModule, vis: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Query samples with the selected Query Sampler for the Active Datamodule
 
@@ -59,7 +59,9 @@ class QuerySampler:
         acq_inds = datamodule.get_pool_indices(acq_inds)
         return acq_inds, acq_vals
 
-    def active_callback(self, datamodule: pl.LightningDataModule) -> ActiveStore:
+    def active_callback(
+        self, datamodule: pl.LightningDataModule, vis: bool = False
+    ) -> ActiveStore:
         """Queries samples on the pool of the datamodule with selected method, evaluates the current model.
         Requests are the indices to be labelled relative to the pool. (This changes if pool changes)
 
@@ -83,19 +85,20 @@ class QuerySampler:
             self.model, datamodule.test_dataloader(), device=self.device
         )
 
-        try:
-            vis_callback(
-                n_labelled,
-                acq_labels,
-                acq_data,
-                acq_vals,
-                datamodule.num_classes,
-                count=self.count,
-            )
-        except:
-            print(
-                "No Visualization with vis_callback function possible! \n Trying to Continue"
-            )
+        if vis:
+            try:
+                vis_callback(
+                    n_labelled,
+                    acq_labels,
+                    acq_data,
+                    acq_vals,
+                    datamodule.num_classes,
+                    count=self.count,
+                )
+            except:
+                print(
+                    "No Visualization with vis_callback function possible! \n Trying to Continue"
+                )
 
         return ActiveStore(
             requests=acq_inds,
