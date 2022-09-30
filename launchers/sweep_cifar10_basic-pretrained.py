@@ -6,7 +6,7 @@ config_dict = {
         "resnet"
     ],  # , "wideresnet-cifar10"], currently there are only pretrained models for resnet18 available!
     "data": "cifar10",
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine, sgd"],
 }
 
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
@@ -28,8 +28,10 @@ hparam_dict = {
     "model.small_head": [True, False],
     "model.load_pretrained": True,
     "trainer.max_epochs": 80,
+    "trainer.batch_size": 1024,
+    "trainer.precision": 16,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_randaugment"],
+    "data.transform_train": ["cifar_rand"],
 }
 
 joint_iteration = [
@@ -38,7 +40,7 @@ joint_iteration = [
 ]
 
 # naming_conv = "sweep_basic-pretrained_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
-naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}_transform-{data.transform_train}_wd-{model.weight_decay}_opt-{optim}"
+naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_smallhead-{model.small_head}_transform-{data.transform_train}_wd-{model.weight_decay}_optim-{optim}"
 
 path_to_ex_file = "src/run_training.py"
 
