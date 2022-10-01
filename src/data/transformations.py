@@ -83,7 +83,7 @@ def get_imagenet_randaug_transform():
 
 def get_imagenet_randaugMC():
     transform = transforms.Compose(
-        [get_imagenet_train_transform(), RandAugmentMC(n=2, m=10, prob=1)]
+        [get_imagenet_train_transform(), RandAugmentMC(n=2, m=10, cut_rel=0, prob=1)]
     )
     return transform
 

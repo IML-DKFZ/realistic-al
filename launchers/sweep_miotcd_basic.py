@@ -4,7 +4,7 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "miotcd",
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 num_classes = 11
@@ -27,7 +27,11 @@ hparam_dict = {
     # "data.transform_train": ["imagenet_train", "imagenet_randaug",],
     # "data.transform_train": ["imagenet_randaug", "imagenet_randaug_cutout"],
     # "data.transform_train": ["imagenet_randaug_cutout"],
-    "data.transform_train": ["imagenet_randaugMC",],
+    "data.transform_train": [
+        "imagenet_randaugMC",
+        "imagenet_train",
+        # "imagenet_randaug",
+    ],
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]

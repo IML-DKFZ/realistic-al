@@ -6,28 +6,28 @@ config_dict = {
     "query": ["random",],
     "data": ["miotcd"],
     "active": ["full_data",],
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 hparam_dict = {
-    "trainer.seed": [12345, 12346, 12347],
+    "trainer.seed": [12345],  # , 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0],
     "model.learning_rate": [0.1, 0.01],
-    "model.weight_decay": [5e-4, 5e-5],
+    "model.weight_decay": [5e-3, 5e-4, 5e-5],
     "model.use_ema": False,
     "model.small_head": [True],
-    "model.weighted_loss": True,
-    "trainer.max_epochs": 80,
+    "model.weighted_loss": [True, False],
+    "trainer.max_epochs": [80, 200],
     # "data.transform_train": ["imagenet_train", "imagenet_randaugment"],
     # "data.transform_train": "imagenet_randaug",
-    "data.transform_train": "imagenet_randaugMC",
+    "data.transform_train": ["imagenet_train", "imagenet_randaugMC"],
     "trainer.deterministic": True,
     "trainer.num_workers": 12,
     "trainer.precision": 16,
     "trainer.batch_size": 512,  # note: batchsize of 128 makes trainings much faster!
 }
-naming_conv = "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}"
+naming_conv = "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}_optim-{optim}_weighted-{model.weighted_loss}_epochs-{trainer.max_epochs}"
 
 joint_iteration = None
 
