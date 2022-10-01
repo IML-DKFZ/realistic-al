@@ -6,7 +6,7 @@ config_dict = {
         "resnet"
     ],  # , "wideresnet-cifar10"], currently there are only pretrained models for resnet18 available!
     "data": "cifar10",
-    "optim": ["sgd_cosine, sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 # Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
@@ -20,8 +20,8 @@ hparam_dict = {
     "active.num_labelled": [50, 500, 1000, 5000, 10000],
     "data.val_size": [250, 2500, None, None, None],
     "model.dropout_p": [0],
-    "model.learning_rate": 0.001,  # [0.01, 0.001],  # is more stable than 0.1!
-    "model.weight_decay": [5e-4],
+    "model.learning_rate": [0.01, 0.001],  # [0.01, 0.001],  # is more stable than 0.1!
+    "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     # "model.finetune": [True, False],
     # "model.freeze_encoder": [True, False],
