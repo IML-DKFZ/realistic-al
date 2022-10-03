@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 from typing import Optional, Tuple
 
 from . import query_diversity, query_uncertainty
+from data.base_datamodule import BaseDataModule
 
 from query.storing import ActiveStore
 from plotlib import active_plots
@@ -37,7 +38,7 @@ class QuerySampler:
         self.acq_method = cfg.query.name
 
     def query_samples(
-        self, datamodule: pl.LightningDataModule, vis: bool = False
+        self, datamodule: BaseDataModule
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Query samples with the selected Query Sampler for the Active Datamodule
 
@@ -48,12 +49,14 @@ class QuerySampler:
             Tuple[np.ndarray, np.ndarray]: Queries -- (rankings + pool_indices)
         """
         # possibility to select random subset of pool with certain Size via parameter m
-        pool_loader = datamodule.pool_dataloader(batch_size=64, m=self.m)
+        pool_loader = datamodule.pool_dataloader(
+            batch_size=datamodule.batch_size, m=self.m
+        )
 
         # Core Set uses test transformations for the labeled set.
         # Own results indicate that there is no difference in performance
         # labeled_loader = datamodule.train_dataloader() # This is deprecated, CoreSet uses Test time transforms for labeled data
-        labeled_loader = datamodule.labeled_dataloader(batch_size=64)
+        labeled_loader = datamodule.labeled_dataloader(batch_size=datamodule.batch_size)
 
         acq_inds, acq_vals = self.ranking_step(pool_loader, labeled_loader)
         acq_inds = datamodule.get_pool_indices(acq_inds)
@@ -171,12 +174,13 @@ def evaluate_accuracy(model, dataloader, device="cuda:0"):
     counts = 0
     correct = 0
     for batch in dataloader:
-        x, y = batch
-        x = x.to(device)
-        out = model(x)
-        pred = torch.argmax(out, dim=1)
-        correct += (pred.cpu() == y).sum().item()
-        counts += y.shape[0]
+        with torch.no_grad():
+            x, y = batch
+            x = x.to(device)
+            out = model(x)
+            pred = torch.argmax(out, dim=1)
+            correct += (pred.cpu() == y).sum().item()
+            counts += y.shape[0]
     return correct / counts
 
 

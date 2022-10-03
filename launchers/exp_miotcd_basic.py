@@ -9,11 +9,6 @@ config_dict = {
     "optim": ["sgd_cosine"],
 }
 
-load_pretrained = [
-    "SSL/miotcd/imagenet_resnet18/2022-09-06_11-33-02-630425/checkpoints/last.ckpt",  # seed = 12345
-    "SSL/miotcd/imagenet_resnet18/2022-09-06_14-12-43-497039/checkpoints/last.ckpt",  # seed = 12346
-    "SSL/miotcd/imagenet_resnet18/2022-09-06_14-12-43-189723/checkpoints/last.ckpt",  # seed = 12347
-]
 
 num_classes = 11
 hparam_dict = {
@@ -26,13 +21,13 @@ hparam_dict = {
     "model.small_head": [True],
     "model.weighted_loss": True,
     "model.freeze_encoder": False,
-    "trainer.max_epochs": 80,
+    "trainer.max_epochs": 200,
     "trainer.batch_size": 512,
     "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["imagenet_randaugMC"],
     "trainer.precision": 16,
-    "trainer.deterministic" : True, 
+    "trainer.deterministic": True,
 }
 
 joint_iteration = [
