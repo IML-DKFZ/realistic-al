@@ -31,6 +31,7 @@ hparam_dict = {
     "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["imagenet_randaugMC"],
+    "trainer.precision": 16,
 }
 
 joint_iteration = [
