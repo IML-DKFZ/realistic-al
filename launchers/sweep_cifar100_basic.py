@@ -6,7 +6,7 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "cifar100",
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 hparam_dict = {
@@ -20,7 +20,9 @@ hparam_dict = {
     "model.use_ema": False,
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_randaugment"],
+    "data.transform_train": ["cifar_randaugmentMC"],
+    "trainer.precision": 16,
+    "trainer.batch_size": 1024,
 }
 
 # naming_conv = (
