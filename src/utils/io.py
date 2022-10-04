@@ -1,4 +1,5 @@
 import json
+import os
 import pickle
 from omegaconf import DictConfig, OmegaConf
 import yaml
@@ -80,12 +81,17 @@ def save_omega_conf(
         OmegaConf.save(cfg, f, resolve=resolve)
 
 
-def load_omega_conf(path: Union[Path, str]) -> DictConfig:
+def load_omega_conf(
+    path: Union[Path, str], overwrite_values: bool = True
+) -> DictConfig:
     path = Path(path)
     if path.suffix not in [".yaml", ".pkl"]:
         raise TypeError("File can only be loaded from .pkl or .yaml")
     with open(path, "r") as f:
         cfg = OmegaConf.load(f)
+    if overwrite_values:
+        cfg.trainer.data_root = os.getenv("DATA_ROOT")
+        cfg.model.load_pretrained = None
     return cfg
 
 

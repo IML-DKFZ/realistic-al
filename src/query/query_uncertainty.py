@@ -2,9 +2,13 @@ import math
 import numpy as np
 import torch
 
+from torch.utils.data import DataLoader
+
 import torch.nn.functional as F
 
 from typing import Callable, Tuple
+
+from utils.tensor import to_numpy
 from .batchbald_redux.batchbald import get_batchbald_batch
 
 # DEVICE = "cuda:0"
@@ -48,13 +52,16 @@ def get_post_acq_function(
             logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(
                 device=device, dtype=torch.double
             )
-            out = get_batchbald_batch(
-                logprob_n_k_c,
-                batch_size=acq_size,
-                num_samples=num_samples,
-                dtype=torch.double,
-                device=device,
-            )
+            # TODO: with torch.no_grad() could speed this up signficantely
+            # TODO: compute estimate how big chunks can be made -- signifcantely speeds up computation!
+            with torch.no_grad():
+                out = get_batchbald_batch(
+                    logprob_n_k_c,
+                    batch_size=acq_size,
+                    num_samples=num_samples,
+                    dtype=torch.double,
+                    device=device,
+                )
             indices = np.array(out.indices)
             scores = np.array(out.scores)
             return indices, scores
@@ -79,15 +86,25 @@ def get_post_acq_function(
 
 
 def query_sampler(
-    dataloader, acq_function, post_acq_function, acq_size=64, device="cuda:0"
+    dataloader: DataLoader,
+    acq_function,
+    post_acq_function,
+    acq_size: int = 64,
+    device="cuda:0",
 ):
     """Returns the queries (acquistion values and indices) given the data pool and the acquisition function.
     The Acquisition Function Returns Numpy arrays!"""
-    acq_list = []
+    acq_list = None
+    counts = 0
     for i, batch in enumerate(dataloader):
         acq_values = acq_from_batch(batch, acq_function, device=device)
-        acq_list.append(acq_values)
-    acq_list = np.concatenate(acq_list)
+        if acq_list is None:
+            shape = acq_values.shape
+            new_shape = (len(dataloader) * dataloader.batch_size, *shape[1:])
+            acq_list = np.zeros(new_shape)
+        acq_list[counts : counts + len(acq_values)] = acq_values
+        counts += len(acq_values)
+    acq_list = acq_list[:counts]
     acq_ind, acq_scores = post_acq_function(acq_list, acq_size)
 
     return acq_ind, acq_scores
@@ -194,5 +211,5 @@ def acq_from_batch(batch, function, device="cuda:0"):
     x, y = batch
     x = x.to(device)
     out = function(x)
-    out = out.to("cpu").numpy()
+    out = to_numpy(out)
     return out

@@ -8,7 +8,7 @@ from loguru import logger
 
 
 def set_seed(seed):
-    logger.info("SETTING GLOBAL SEED")
+    logger.info("SETTING GLOBAL SEED: {}".format(seed))
     pl.seed_everything(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)

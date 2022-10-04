@@ -29,13 +29,15 @@ class QuerySampler:
             count (Optional[int], optional): used for vis -- which iteration. Defaults to None.
             device (str, optional): _description_. Defaults to "cuda:0".
         """
-        self.model = model
         self.cfg = cfg
         self.count = count
         self.device = device
         self.m = cfg.active.m
         self.acq_size = cfg.active.acq_size
         self.acq_method = cfg.query.name
+        self.model = model
+        self.model = self.model.to(self.device)
+        self.model.eval()
 
     def query_samples(
         self, datamodule: BaseDataModule
@@ -48,18 +50,30 @@ class QuerySampler:
         Returns:
             Tuple[np.ndarray, np.ndarray]: Queries -- (rankings + pool_indices)
         """
-        # possibility to select random subset of pool with certain Size via parameter m
-        pool_loader = datamodule.pool_dataloader(
-            batch_size=datamodule.batch_size, m=self.m
-        )
+        # TODO: update to this -- currently this destroys perfect reproducibility with old trainings!
+        # if self.acq_method == "random":
+        #     acq_inds = np.random.choice(
+        #         np.arange(len(datamodule.train_set.pool)),
+        #         size=self.cfg.active.acq_size,
+        #         replace=False,
+        #     )
+        #     acq_vals = np.arange(self.cfg.active.acq_size) * -1
+        # else:
+        if True:
+            # possibility to select random subset of pool with certain Size via parameter m
+            pool_loader = datamodule.pool_dataloader(
+                batch_size=datamodule.batch_size, m=self.m
+            )
 
-        # Core Set uses test transformations for the labeled set.
-        # Own results indicate that there is no difference in performance
-        # labeled_loader = datamodule.train_dataloader() # This is deprecated, CoreSet uses Test time transforms for labeled data
-        labeled_loader = datamodule.labeled_dataloader(batch_size=datamodule.batch_size)
+            # Core Set uses test transformations for the labeled set.
+            # Own results indicate that there is no difference in performance
+            # labeled_loader = datamodule.train_dataloader() # This is deprecated, CoreSet uses Test time transforms for labeled data
+            labeled_loader = datamodule.labeled_dataloader(
+                batch_size=datamodule.batch_size
+            )
 
-        acq_inds, acq_vals = self.ranking_step(pool_loader, labeled_loader)
-        acq_inds = datamodule.get_pool_indices(acq_inds)
+            acq_inds, acq_vals = self.ranking_step(pool_loader, labeled_loader)
+            acq_inds = datamodule.get_pool_indices(acq_inds)
         return acq_inds, acq_vals
 
     def active_callback(
@@ -129,8 +143,6 @@ class QuerySampler:
         Returns:
             indices, scores: indices of the pool and scores for acquisition
         """
-        self.model = self.model.to(self.device)
-        self.model.eval()
         acq_size = self.acq_size
         if self.acq_method.split("_")[0] in query_uncertainty.names:
             acq_function = query_uncertainty.get_acq_function(self.cfg, self.model)

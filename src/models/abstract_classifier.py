@@ -8,10 +8,13 @@ import pytorch_lightning as pl
 from pl_bolts.optimizers.lr_scheduler import linear_warmup_decay
 from torchmetrics import Accuracy
 from copy import deepcopy
-from typing import Tuple
+from typing import Tuple, Union
 from torch.nn import functional as F
 import torch.nn as nn
 import torchvision
+from pathlib import Path
+from loguru import logger
+
 
 from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
 from .callbacks.ema_callback import EMAWeightUpdate
@@ -37,7 +40,7 @@ class AbstractClassifier(pl.LightningModule):
 
     def forward(
         self, x: torch.Tensor, k: int = None, agg: bool = True, ema: bool = False
-    ):
+    ) -> torch.Tensor:
         """Forward Pass which selects the correct model and returns class logprobabilities if agg=True,
         else it returns the logits"""
         model_forward = self.select_forward_model(ema=ema)
@@ -53,7 +56,7 @@ class AbstractClassifier(pl.LightningModule):
             out = self.mc_nll(out)
         return out
 
-    def mc_nll(self, logits: torch.Tensor):
+    def mc_nll(self, logits: torch.Tensor) -> torch.Tensor:
         out = torch.log_softmax(logits, dim=-1)
         if len(logits.shape) > 2:
             k = out.shape[1]
@@ -77,7 +80,7 @@ class AbstractClassifier(pl.LightningModule):
             else:
                 return self.model
 
-    def get_features(self, x: torch.Tensor):
+    def get_features(self, x: torch.Tensor) -> torch.Tensor:
         model_forward = self.select_forward_model()
         return model_forward.get_features(x).flatten(start_dim=1)
 
@@ -172,7 +175,7 @@ class AbstractClassifier(pl.LightningModule):
         else:
             self.train_iters_per_epoch = len(train_loader)
 
-        weighted_loss=False
+        weighted_loss = False
         if "weighted_loss" in self.hparams.model:
             weighted_loss = self.hparams.model.weighted_loss
         if weighted_loss:
@@ -301,6 +304,33 @@ class AbstractClassifier(pl.LightningModule):
 
     def load_only_state_dict(self, path):
         ckpt = torch.load(path)
-        print("loading checkpoint from epoch {}".format(ckpt["epoch"]))
+        logger.debug("Loading Model from Path: {}".format(path))
+        logger.info("Loading checkpoint from Epoch: {}".format(ckpt["epoch"]))
         self.load_state_dict(ckpt["state_dict"], strict=True)
+
+    def get_best_ckpt(
+        self, experiment_path: Union[str, Path], use_last: bool = True
+    ) -> Path:
+        """Return the path to the best checkpoint
+
+        Args:
+            experiment_path (Union[str, Path]): path to base experiment
+
+        Returns:
+            Path: Best checkpoint path
+        """
+        model_ckpt_path = Path(experiment_path) / "checkpoints"
+        ckpts = [ckpt for ckpt in model_ckpt_path.iterdir() if ckpt.suffix == ".ckpt"]
+        # print(ckpts)
+        if "last.ckpt" in [ckpt.name for ckpt in ckpts] and use_last:
+            model_ckpt = model_ckpt_path / "last.ckpt"
+        else:
+            ckpts_f = [ckpt for ckpt in ckpts if "last.ckpt" not in ckpt.name]
+            ckpts_f.sort(key=lambda x: x.name.split("=")[1].split("-")[0])
+            if len(ckpts_f) == 0:
+                raise FileNotFoundError(
+                    "Path {} has no checkpoints ".format(model_ckpt_path)
+                )
+            model_ckpt = ckpts_f[-1]
+        return model_ckpt
 

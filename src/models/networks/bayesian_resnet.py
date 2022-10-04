@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from loguru import logger
 
 from models.bayesian_module import BayesianModule, ConsistentMCDropout
 from .mlp import MLP
@@ -81,7 +82,7 @@ class ResNet(BayesianModule):
     def _get_basemodel(self, model_name):
         try:
             model = self.resnet_dict[model_name]
-            print("Feature extractor:", model_name)
+            logger.info("Feature extractor: {}".format(model_name))
             return model
         except:
             raise (
