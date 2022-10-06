@@ -3,45 +3,39 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        "bald",
-        # "variationratios",
-        # "batchbald",
-    ],
-    "data": ["cifar10"],  # , "cifar100"],
+    "query": ["random", "entropy", "kcentergreedy", "bald"],  # , "variationratios"],
+    "data": ["cifar100"],  # , "cifar100"],
     "active": [
+        "cifar100_low",
+        "cifar100_med",
+        "cifar100_high",
         # "standard",
-        # "standard_250",
-        # "cifar10_low_data",
-        "cifar10_low",
-        "cifar10_med",
-        "cifar10_high",
+        # "cifar100",
     ],  # did not run! "standard_250", "cifar10_low_data"
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 hparam_dict = {
-    "data.val_size": [250, 2500, None],
+    "data.val_size": [2500, None, None],  # None,
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0, 0.5],
     "model.learning_rate": [0.1],
+    "model.weight_decay": 5e-3,
+    "model.load_pretrained": None,
     "model.use_ema": False,
-    "data.transform_train": ["cifar_randaugment",],
-    "trainer.precision": 32,
+    "data.transform_train": ["cifar_randaugmentMC",],
+    "trainer.precision": 16,
+    "trainer.batch_size": 1024,
     "trainer.deterministic": True,
 }
-naming_conv = (
-    "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
-    # "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
-)
+
+naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
+
 
 joint_iteration = [
-    ["active", "data.val_size"],
     ["query", "model.dropout_p"],
+    ["active", "data.val_size"],
 ]
 
 path_to_ex_file = "src/main.py"
