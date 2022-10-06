@@ -5,12 +5,12 @@ from config_launcher import get_pretrained_arch
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random",
-        # "entropy",
-        # "kcentergreedy",
-        # "bald",
+        "random",
+        "entropy",
+        "kcentergreedy",
+        "bald",
         # "variationratios",
-        "batchbald",
+        # "batchbald",
     ],
     "data": ["cifar100"],
     "active": ["cifar100_low",],
