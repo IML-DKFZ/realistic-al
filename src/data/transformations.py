@@ -23,6 +23,8 @@ def get_transform(name="basic", mean=[0], std=[1], shape=None):
         transform.append(get_isic_train_transform())
     elif name == "isic_randaugment":
         transform.append(get_isic_randaug_transform())
+    elif name == "isic_randaugmentMC":
+        transform.append(get_isic_randaugMC())
     elif name == "isic_randaugtensor":
         return get_isic_randaug_trafo(mean=mean, std=std)
     elif name == "resize_224":
@@ -160,6 +162,27 @@ def get_isic_train_transform():
                 [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
             ),
             transforms.RandomCrop(input_size),
+        ]
+    )
+    return train_transform
+
+
+def get_isic_randaugMC():
+    re_size = 300
+    input_size = 224
+    train_transform = transforms.Compose(
+        [
+            transforms.Resize(re_size),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            # transforms.ColorJitter(0.02, 0.02, 0.02, 0.01), put this in a later stage!
+            # transforms.RandomRotation([-180, 180]), # Affine already rotates!
+            transforms.RandomAffine(
+                [-180, 180], translate=[0.1, 0.1], scale=[0.7, 1.3]
+            ),
+            transforms.RandomCrop(input_size),
+            transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
+            RandAugmentMC(n=2, m=10, prob=1, cut_rel=0),
         ]
     )
     return train_transform

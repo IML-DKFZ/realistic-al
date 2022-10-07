@@ -4,7 +4,8 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "miotcd",
-    "optim": ["sgd"],
+    # "optim": ["sgd"],
+    "optim": "sgd_cosine",  # update
 }
 
 load_pretrained = [
@@ -24,16 +25,18 @@ hparam_dict = {
     "model.learning_rate": [
         0.001
     ],  # 0,01 is omitted due to bad performance on every dataset!
-    "model.weight_decay": [5e-3, 5e-4],
+    "model.weight_decay": [5e-3, 5e-4],  # udpate to 5e-3
     "model.use_ema": False,
     "model.small_head": [False],
     "model.weighted_loss": True,
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 80,
-    "trainer.batch_size": 128,
+    # "trainer.batch_size": 128,
+    "trainer.batch_size": 512,  # update
+    "trainer.precision": 16,
     "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["imagenet_train", "imagenet_randaug",],
+    "data.transform_train": ["imagenet_train", "imagenet_randaugMC",],
 }
 
 joint_iteration = [

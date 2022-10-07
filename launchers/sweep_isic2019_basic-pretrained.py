@@ -4,7 +4,8 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "isic2019",
-    "optim": ["sgd"],
+    # "optim": ["sgd"],
+    "optim": "sgd_cosine",
 }
 
 load_pretrained = [
@@ -28,7 +29,11 @@ hparam_dict = {
     "trainer.max_epochs": 80,
     "trainer.seed": [12345, 12346, 12347],
     "model.load_pretrained": load_pretrained,
-    "data.transform_train": ["isic_train", "isic_randaugment"],
+    # "data.transform_train": ["isic_train", "isic_randaugment"],
+    "data.transfrom_train": ["isic_train", "isic_randaugmentMC"],
+    "trainer.deterministic": True,
+    "trainer.batch_size": 512,
+    "trainer.precision": 16,
 }
 
 joint_iteration = [

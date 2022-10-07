@@ -12,12 +12,12 @@ config_dict = {
 
 hparam_dict = {
     "trainer.run_test": False,
-    "model.weighted_loss": True,
+    "model.weighted_loss": True,  # Weighted Loss is working correctly
     "active.num_labelled": [50, 250, 1000],
     "data.val_size": [50 * 5, 250 * 5, None],
     "model.dropout_p": [0],
     "model.learning_rate": [0.1, 0.01],  # is more stable than 0.1!
-    "model.weight_decay": [5e-3, 5e-4],
+    "model.weight_decay": [5e-3, 5e-4],  # wd of 5e-2 does not help!
     # "model.use_ema": [True, False],
     "model.use_ema": False,
     "trainer.max_epochs": 200,
