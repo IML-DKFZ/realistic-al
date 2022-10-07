@@ -6,7 +6,8 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "cifar10_imb",
-    "optim": ["sgd"],
+    # "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 load_pretrained = [
@@ -27,7 +28,7 @@ hparam_dict = {
     "model.small_head": False,
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
-    "trainer.max_epochs": 200,
+    "trainer.max_epochs": 80,
     "trainer.seed": [12345, 12346, 12347],
     # "data.transform_train": ["cifar_randaugment"],
     "data.transform_train": ["cifar_basic", "cifar_randaugmentMC",],
