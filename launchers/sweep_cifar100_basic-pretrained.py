@@ -23,7 +23,9 @@ hparam_dict = {
     "model.load_pretrained": True,
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_randaugment",],
+    "data.transform_train": ["cifar_basic", "cifar_randaugmentMC",],
+    "trainer.precision": 16,
+    "trainer.batch_size": 1024,
 }
 
 joint_iteration = [

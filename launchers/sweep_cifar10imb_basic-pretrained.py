@@ -29,7 +29,10 @@ hparam_dict = {
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_randaugment"],
+    # "data.transform_train": ["cifar_randaugment"],
+    "data.transform_train": ["cifar_basic", "cifar_randaugmentMC",],
+    "trainer.precision": 16,
+    "trainer.batch_size": 1024,
 }
 
 naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}"
