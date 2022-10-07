@@ -23,7 +23,8 @@ hparam_dict = {
     # "data.val_size": [1000, None],
     "model.dropout_p": [0],
     "model.learning_rate": [
-        0.001
+        0.001,
+        0.01,
     ],  # 0,01 is omitted due to bad performance on every dataset!
     "model.weight_decay": [5e-3, 5e-4],  # udpate to 5e-3
     "model.use_ema": False,
