@@ -24,14 +24,17 @@ hparam_dict = {
     "data.val_size": [50 * 5, 250 * 5, None],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
+    "model.weight_decay": 5e-3,
     "model.dropout_p": [0, 0, 0, 0.5],
-    "model.learning_rate": [0.01],
+    "model.learning_rate": [0.1],
     "model.use_ema": False,
     "data.transform_train": [
         # "cifar_basic",
-        "cifar_randaugment",
+        "cifar_randaugmentMC",
     ],
-    "trainer.precision": 32,
+    "trainer.batch_size": 1024,
+    "trainer.precision": 16,
+    "trainer.deterministic": True,
 }
 naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
