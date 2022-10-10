@@ -23,9 +23,11 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0, 0.5],
     "model.learning_rate": [0.1],
+    "model.weight_decay": [5e-3, 5e-3, 5e-4],
     "model.use_ema": False,
-    "data.transform_train": ["isic_randaugment",],
-    "trainer.precision": 32,
+    "data.transform_train": ["isic_randaugmentMC",],
+    "trainer.precision": 16,
+    "trainer.batch_size": 512,
     "trainer.deterministic": True,
 }
 naming_conv = (
@@ -34,7 +36,7 @@ naming_conv = (
 )
 
 joint_iteration = [
-    ["active", "data.val_size"],
+    ["active", "data.val_size", "model.weight_decay"],
     ["query", "model.dropout_p"],
 ]
 
