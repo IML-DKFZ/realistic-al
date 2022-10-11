@@ -17,7 +17,7 @@ config_dict = {
         "cifar10_med",
         "cifar10_high",
     ],  # did not run! "standard_250", "cifar10_low_data"
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 hparam_dict = {

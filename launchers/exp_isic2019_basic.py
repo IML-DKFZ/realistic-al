@@ -13,7 +13,7 @@ config_dict = {
     ],
     "data": ["isic2019"],  # , "cifar100"],
     "active": ["isic19_low", "isic19_med", "isic19_high",],
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
 hparam_dict = {
