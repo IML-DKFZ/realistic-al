@@ -1,0 +1,13 @@
+name: basic_resnet 
+base_model: resnet18 
+weight_decay: 0.005
+learning_rate: 0.1
+dropout_p: 0
+load_pretrained: Null
+# load_pretrained: /home/c817h/Documents/logs_cluster/SSL/SimCLR/cifar10/2021-11-11 16:20:56.103061/checkpoints/last.ckpt
+freeze_encoder: False
+use_ema: False
+exclude_bn_bias: True
+k: 50
+finetune: False
+small_head: True

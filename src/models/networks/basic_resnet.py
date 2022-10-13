@@ -2,21 +2,19 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from loguru import logger
-
-from models.bayesian_module import BayesianModule, ConsistentMCDropout
 from .mlp import MLP
 
 from .registry import register_model
 
 
-class ResNet(BayesianModule):
+class ResNet(nn.Module):
     def __init__(
         self,
         base_model="resnet50",
         cifar_stem=True,
         channels_in=3,
         num_classes=0,
-        dropout_p=0.5,
+        dropout_p=0,
         small_head=True,
         weights=None,
     ):
@@ -53,17 +51,15 @@ class ResNet(BayesianModule):
             nn.init.kaiming_normal_(conv1.weight, mode="fan_out", nonlinearity="relu")
             self.resnet.conv1 = conv1
         self.z_dim = num_ftrs
+        assert dropout_p == 0
 
         self.resnet.fc = nn.Identity()
 
         if num_classes != 0:
             if small_head:
-                self.classifier = nn.Sequential(
-                    ConsistentMCDropout(p=dropout_p), nn.Linear(self.z_dim, num_classes)
-                )
+                self.classifier = nn.Sequential(nn.Linear(self.z_dim, num_classes))
             else:
                 self.classifier = nn.Sequential(
-                    ConsistentMCDropout(p=dropout_p),
                     MLP(self.z_dim, num_classes, hidden_dims=[self.z_dim], bn=True),
                 )
         else:
@@ -75,7 +71,13 @@ class ResNet(BayesianModule):
     def mc_forward_impl(self, mc_input_BK: torch.Tensor) -> torch.Tensor:
         return self.classifier(mc_input_BK)
 
-    def get_features(self, x):
+    def forward(self, x: torch.Tensor, k=None, **kwargs):
+        out = self.det_forward_impl(x)
+        out = self.mc_forward_impl(out)
+        out = out.view([-1, 1, *out.shape[1:]])
+        return out
+
+    def get_features(self, x: torch.Tensor) -> torch.Tensor:
         out = self.resnet(x)
         return out
 
@@ -93,7 +95,7 @@ class ResNet(BayesianModule):
 @register_model
 def get_cls_model(
     config,
-    base_model="resnet18",
+    # base_model="resnet18",
     num_classes: int = 10,
     data_shape=[32, 32, 3],
     **kwargs

@@ -11,7 +11,7 @@ experiment_name: test_new
 experiment_id: ${now:%Y-%m-%d_%H-%M-%S-%f}
 n_gpus: 1
 check_val_every_n_epoch: 1
-progress_bar_refresh_rate: 10
+progress_bar_refresh_rate: 1
 gradient_clip_val: 0
 early_stop: False
 precision: 32 

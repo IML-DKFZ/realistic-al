@@ -14,6 +14,7 @@ import torch.nn as nn
 import torchvision
 from pathlib import Path
 from loguru import logger
+from pytorch_lightning.loggers import TensorBoardLogger
 
 
 from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
@@ -139,11 +140,9 @@ class AbstractClassifier(pl.LightningModule):
         Either self.loggers is a list with tb_logger as first,
         or only tb_logger is present."""
         metric_placeholder = {"val/acc": 0.0, "test/acc": 0.0}
-        self.loggers[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
-        # if isinstance(self.logger, (tuple, list)):
-        #     self.logger[0].log_hyperparams(self.hparams, metrics=metric_placeholder)
-        # else:
-        #     self.logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
+        for logger in self.loggers:
+            if isinstance(logger, TensorBoardLogger):
+                logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
 
     def on_validation_epoch_start(self) -> None:
         self.acc_val.reset()

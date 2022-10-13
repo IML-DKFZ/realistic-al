@@ -48,7 +48,7 @@ class ActiveTrainingLoop(object):
         self.init_paths()
         self._save_dict = dict()
         self.data_ckpt_path = None
-        self.loggers= False
+        self.loggers = False
 
     def init_callbacks(self):
         """Initializing the Callbacks used in Pytorch Lightning."""
@@ -145,7 +145,7 @@ class ActiveTrainingLoop(object):
             max_epochs=self.cfg.trainer.max_epochs,
             min_epochs=self.cfg.trainer.min_epochs,
             fast_dev_run=self.cfg.trainer.fast_dev_run,
-            detect_anomaly=True,
+            # detect_anomaly=True, # set this flag always to False for fast trainings!
             callbacks=self.callbacks,
             check_val_every_n_epoch=self.cfg.trainer.check_val_every_n_epoch,
             # progress_bar_refresh_rate=self.cfg.trainer.progress_bar_refresh_rate,
