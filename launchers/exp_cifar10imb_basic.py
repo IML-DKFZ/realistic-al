@@ -21,6 +21,7 @@ config_dict = {
 }
 
 hparam_dict = {
+    "model.weighted_loss": True,
     "data.val_size": [50 * 5, 250 * 5, None],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
@@ -36,7 +37,7 @@ hparam_dict = {
     "trainer.precision": 16,
     "trainer.deterministic": True,
 }
-naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
+naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}__wloss-{model.weighted_loss}"
 
 joint_iteration = [["model.dropout_p", "query"], ["data.val_size", "active"]]
 
