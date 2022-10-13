@@ -6,11 +6,11 @@ config_dict = {
     "data": "miotcd",
     "active": ["miotcd_low"],
     "query": [
-        "random",
+        # "random",
         # "entropy",
         # "kcentergreedy",
         # "bald",
-        # "batchbald",
+        "batchbald",
     ],
     "optim": ["sgd"],
 }
