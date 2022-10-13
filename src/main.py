@@ -124,6 +124,7 @@ def active_loop(
     add_labels = np.stack(
         [active_store.labels for active_store in active_stores], axis=0
     )
+    request_pool = np.array([active_store.requests for active_store in active_stores])
 
     # This can be deleted!
     if True:
@@ -143,6 +144,7 @@ def active_loop(
         test_acc=test_accs,
         num_samples=num_samples,
         added_labels=add_labels,
+        request_pool=request_pool,
     )
     logger.success("Active Loop was finalized")
 

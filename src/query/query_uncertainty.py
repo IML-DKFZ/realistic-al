@@ -121,10 +121,21 @@ def get_bay_entropy_fct(pt_model):
         """Returns the Entropy of predictions of the bayesian model"""
         with torch.no_grad():
             out = pt_model(x, agg=False)  # BxkxD
-            ent = bay_entropy(out)
+            ent = pred_entropy(out)
         return ent
 
     return acq_bay_entropy
+
+
+def get_exp_entropy_fct(pt_model):
+    def acq_exp_entropy(x: torch.Tensor):
+        """Returns the expected entropoy of some probabilistic model."""
+        with torch.no_grad():
+            out = pt_model(x, agg=False)
+            ex_ent = exp_entropy(out)
+        return ex_ent
+
+    return acq_exp_entropy
 
 
 def get_bald_fct(pt_model):
@@ -177,7 +188,7 @@ def get_model_features(pt_model):
     return get_features
 
 
-def bay_entropy(logits):
+def pred_entropy(logits):
     """Get the mean entropy of multiple logits."""
     k = logits.shape[1]
     out = F.log_softmax(logits, dim=2)  # BxkxD
@@ -196,7 +207,7 @@ def var_ratios(logits):
     return out
 
 
-def mean_entropy(logits):
+def exp_entropy(logits):
     out = F.log_softmax(logits, dim=2)  # BxkxD
     out = torch.sum(-torch.exp(out) * out, dim=2)  # Bxk
     out = torch.mean(out, dim=1)
@@ -204,7 +215,7 @@ def mean_entropy(logits):
 
 
 def mutual_bald(logits):
-    return bay_entropy(logits) - mean_entropy(logits)
+    return pred_entropy(logits) - exp_entropy(logits)
 
 
 def acq_from_batch(batch, function, device="cuda:0"):
