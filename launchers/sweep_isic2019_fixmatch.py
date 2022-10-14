@@ -17,15 +17,16 @@ hparam_dict = {
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
-    "trainer.max_epochs": 200,
+    # "trainer.max_epochs": 200,
+    "trainer.max_epochs": 50,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["isic_train"],
-    "trainer.precision": 32,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
+    "trainer.precision": 16,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]
 
-naming_conv = "sweep/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}"
+naming_conv = "sweep/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_wloss-{model.weighted_loss}"
 
 path_to_ex_file = "src/run_training_fixmatch.py"
 

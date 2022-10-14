@@ -13,7 +13,7 @@ config_dict = {
 
 hparam_dict = {
     "trainer.run_test": False,
-    "model.weighted_loss": True,
+    "model.weighted_loss": [True],
     "active.num_labelled": [50, 250],
     "data.val_size": [50 * 5, 250 * 5],
     "model.dropout_p": [0],
@@ -32,7 +32,7 @@ hparam_dict = {
 }
 
 naming_conv = (
-    "sweep/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_wd-{model.weight_decay}"
+    "sweep/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_wd-{model.weight_decay}_wloss-{model.weighted_loss}"
     # "sweep_fixmatch_{data}_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}"
 )
 # naming_conv = "sweep_fixmatch_{data}_{model}_{trainer.max_epochs}_{active.num_labelled}"  # {model}"
