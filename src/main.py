@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 import utils
 from data.data import TorchVisionDM
 from trainer import ActiveTrainingLoop
-from run_training import get_torchvision_dm
+from run_training import get_torchvision_dm, label_active_dm
 from utils import config_utils
 import time
 from loguru import logger
@@ -49,37 +49,7 @@ def active_loop(
 ):
     logger.info("Instantiating Datamodule")
     datamodule = get_active_dm_from_config(cfg)
-    num_classes = cfg.data.num_classes
-    if cfg.data.name == "isic2019" and balanced:
-        label_balance = 40
-        datamodule.train_set.label_balanced(
-            n_per_class=label_balance // num_classes, num_classes=num_classes
-        )
-        label_random = num_labelled - label_balance
-        if label_random > 0:
-            datamodule.train_set.label_randomly(label_random)
-    elif datamodule.imbalance and balanced:
-        label_balance = cfg.data.num_classes * 5
-        datamodule.train_set.label_balanced(
-            n_per_class=label_balance // num_classes, num_classes=num_classes
-        )
-        label_random = num_labelled - label_balance
-        if label_random > 0:
-            datamodule.train_set.label_randomly(label_random)
-    elif cfg.data.name == "miotcd" and balanced:
-        label_balance = cfg.data.num_classes * 5
-        datamodule.train_set.label_balanced(
-            n_per_class=label_balance // num_classes, num_classes=num_classes
-        )
-        label_random = num_labelled - label_balance
-        if label_random > 0:
-            datamodule.train_set.label_randomly(label_random)
-    elif balanced:
-        datamodule.train_set.label_balanced(
-            n_per_class=num_labelled // num_classes, num_classes=num_classes
-        )
-    else:
-        datamodule.train_set.label_randomly(num_labelled)
+    label_active_dm(cfg, num_labelled, balanced, datamodule)
 
     if num_iter == 0:
         num_iter = math.ceil(len(datamodule.train_set) / acq_size)
@@ -126,17 +96,17 @@ def active_loop(
     )
     request_pool = np.array([active_store.requests for active_store in active_stores])
 
-    # This can be deleted!
-    if True:
-        import matplotlib.pyplot as plt
+    # # This can be deleted!
+    # if True:
+    #     import matplotlib.pyplot as plt
 
-        plt.clf()
-        plt.plot(num_samples, val_accs)
-        plt.savefig(os.path.join(store_path, "val_accs_vs_num_samples.pdf"))
-        plt.clf()
-        plt.plot(num_samples, test_accs)
-        plt.savefig(os.path.join(store_path, "test_accs_vs_num_samples.pdf"))
-        plt.clf()
+    #     plt.clf()
+    #     plt.plot(num_samples, val_accs)
+    #     plt.savefig(os.path.join(store_path, "val_accs_vs_num_samples.pdf"))
+    #     plt.clf()
+    #     plt.plot(num_samples, test_accs)
+    #     plt.savefig(os.path.join(store_path, "test_accs_vs_num_samples.pdf"))
+    #     plt.clf()
 
     np.savez(
         os.path.join(store_path, "stored.npz"),

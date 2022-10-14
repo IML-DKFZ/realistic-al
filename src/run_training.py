@@ -1,10 +1,12 @@
 import os
+from data.base_datamodule import BaseDataModule
 from data.data import TorchVisionDM
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from utils import config_utils
 from loguru import logger
 from utils.log_utils import setup_logger
+
 
 import utils
 from trainer import ActiveTrainingLoop
@@ -60,48 +62,59 @@ def get_torchvision_dm(cfg: DictConfig, active_dataset: bool = True) -> TorchVis
     return datamodule
 
 
+def label_active_dm(
+    cfg: OmegaConf,
+    num_labelled: int,
+    balanced: bool,
+    datamodule: BaseDataModule,
+    balanced_per_cls: int = 5,
+):
+    """Label the Dataset according to rules.
+    Specific for imbalanced datasets (miotcd, isic2019, isic2016 & datamodule.imbalance=True)
+
+    Args:
+        cfg (OmegaConf): _description_
+        num_labelled (int): _description_
+        balanced (bool): _description_
+        datamodule (BaseDataModule): _description_
+        balanced_per_cls (int, optional): _description_. Defaults to 5.
+    """
+    cfg.data.num_classes = cfg.data.num_classes
+    if cfg.data.name in ["isic2019", "miotcd", "isic2016"] and balanced:
+        label_balance = cfg.data.num_classes * balanced_per_cls
+        datamodule.train_set.label_balanced(
+            n_per_class=label_balance // cfg.data.num_classes,
+            num_classes=cfg.data.num_classes,
+        )
+        label_random = num_labelled - label_balance
+        if label_random > 0:
+            datamodule.train_set.label_randomly(label_random)
+    elif datamodule.imbalance and balanced:
+        label_balance = cfg.data.num_classes * balanced_per_cls
+        datamodule.train_set.label_balanced(
+            n_per_class=label_balance // cfg.data.num_classes,
+            num_classes=cfg.data.num_classes,
+        )
+        label_random = num_labelled - label_balance
+        if label_random > 0:
+            datamodule.train_set.label_randomly(label_random)
+    elif balanced:
+        datamodule.train_set.label_balanced(
+            n_per_class=num_labelled // cfg.data.num_classes,
+            num_classes=cfg.data.num_classes,
+        )
+    else:
+        datamodule.train_set.label_randomly(num_labelled)
+
+
 @logger.catch
 def train(cfg: DictConfig):
     active_dataset = cfg.active.num_labelled is not None
     logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
-    balanced = cfg.active.balanced
-    num_classes = cfg.data.num_classes
-    num_labelled = cfg.active.num_labelled
 
     datamodule = get_torchvision_dm(cfg, active_dataset)
-    num_classes = cfg.data.num_classes
-    if active_dataset:
-        if cfg.data.name == "isic2019" and balanced:
-            label_balance = 40
-            datamodule.train_set.label_balanced(
-                n_per_class=label_balance // num_classes, num_classes=num_classes
-            )
-            label_random = num_labelled - label_balance
-            if label_random > 0:
-                datamodule.train_set.label_randomly(label_random)
-        elif datamodule.imbalance and balanced:
-            label_balance = cfg.data.num_classes * 5
-            datamodule.train_set.label_balanced(
-                n_per_class=label_balance // num_classes, num_classes=num_classes
-            )
-            label_random = num_labelled - label_balance
-            if label_random > 0:
-                datamodule.train_set.label_randomly(label_random)
-        elif cfg.data.name == "miotcd" and balanced:
-            label_balance = cfg.data.num_classes * 5
-            datamodule.train_set.label_balanced(
-                n_per_class=label_balance // num_classes, num_classes=num_classes
-            )
-            label_random = num_labelled - label_balance
-            if label_random > 0:
-                datamodule.train_set.label_randomly(label_random)
-        elif balanced:
-            datamodule.train_set.label_balanced(
-                n_per_class=num_labelled // num_classes, num_classes=num_classes
-            )
-        else:
-            datamodule.train_set.label_randomly(num_labelled)
+    label_active_dm(cfg, cfg.active.num_labelled, cfg.active.balanced, datamodule)
 
     training_loop = ActiveTrainingLoop(
         cfg, datamodule, active=False, base_dir=os.getcwd()
