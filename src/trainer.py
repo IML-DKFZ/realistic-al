@@ -33,19 +33,22 @@ class ActiveTrainingLoop(object):
         count: Union[None, int] = None,
         active: bool = True,
         base_dir: str = os.getcwd(),  # TODO: change this to some other value!
+        loggers: str = True,
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
         self.datamodule = deepcopy(datamodule)
         self.count = count
         self.active = active
-        self.model = None
         self.device = "cuda:0"
         self.base_dir = Path(base_dir)  # carries path to run
         self._save_dict = dict()
+        self.init_model()
         self.ckpt_callback = self.init_ckpt_callback()
         self.callbacks = self.init_callbacks()
-        self.loggers = self.init_loggers()
+        self.loggers = False
+        if loggers:
+            self.loggers = self.init_loggers()
 
     def init_ckpt_callback(self) -> pl.callbacks.ModelCheckpoint:
         ckpt_path = os.path.join(self.log_dir, "checkpoints")
@@ -115,7 +118,7 @@ class ActiveTrainingLoop(object):
 
     @property
     def data_ckpt_path(self) -> Path:
-        self.log_dir / "data_ckpt"
+        return self.log_dir / "data_ckpt"
 
     @staticmethod
     def obtain_meta_data(repo_path: str, repo_name: str = "repo-name"):
@@ -265,7 +268,7 @@ class ActiveTrainingLoop(object):
         if self.active:
             self.datamodule.train_set.save_checkpoint(self.data_ckpt_path)
         # self.init_logger()
-        self.init_model()
+        # self.init_model()
         # self.init_callbacks()
         self.init_trainer()
         self.fit()
