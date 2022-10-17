@@ -17,7 +17,7 @@ hparam_dict = {
     "data.val_size": [num_classes * 100 * 5],
     "model.dropout_p": [0],
     "model.learning_rate": [0.1,],
-    "model.weight_decay": [5e-3],
+    "model.weight_decay": [5e-4],
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
@@ -33,10 +33,10 @@ hparam_dict = {
 
 joint_iteration = [
     ["query", "model.dropout_p"],
-    ["active", "model.weight_decay", "model.learning_rate", "data.val_size"],
+    [],
 ]
 
-naming_conv = "{data}/ablation-dip/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_ep-{trainer.max_epochs}_smallhead-{model.small_head}"
+naming_conv = "{data}/ablation-dip/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_ep-{trainer.max_epochs}_smallhead-{model.small_head}_wd-{model.weight_decay}_lr-{model.learning_rate}"
 
 path_to_ex_file = "src/run_training.py"
 
