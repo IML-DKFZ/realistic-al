@@ -6,9 +6,12 @@ config_dict = {
     "query": ["random",],
     "data": ["isic2019"],
     "active": ["full_data",],
-    "optim": ["sgd"],
+    "optim": ["sgd_cosine"],
 }
 
+
+# Precision 16: 9,9 Gb
+#
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,

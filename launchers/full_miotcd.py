@@ -9,6 +9,7 @@ config_dict = {
     "optim": ["sgd_cosine"],
 }
 
+# Precision 16: 9,9 GB
 hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # 200, 200 epochs did not seem overly benefical in initial 1 exp sweep.
