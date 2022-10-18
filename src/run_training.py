@@ -63,7 +63,7 @@ def get_torchvision_dm(cfg: DictConfig, active_dataset: bool = True) -> TorchVis
 
 
 def label_active_dm(
-    cfg: OmegaConf,
+    cfg: DictConfig,
     num_labelled: int,
     balanced: bool,
     datamodule: BaseDataModule,
@@ -73,7 +73,7 @@ def label_active_dm(
     Specific for imbalanced datasets (miotcd, isic2019, isic2016 & datamodule.imbalance=True)
 
     Args:
-        cfg (OmegaConf): _description_
+        cfg (DictConfig): _description_
         num_labelled (int): _description_
         balanced (bool): _description_
         datamodule (BaseDataModule): _description_
@@ -114,7 +114,8 @@ def train(cfg: DictConfig):
     utils.set_seed(cfg.trainer.seed)
 
     datamodule = get_torchvision_dm(cfg, active_dataset)
-    label_active_dm(cfg, cfg.active.num_labelled, cfg.active.balanced, datamodule)
+    if cfg.active.num_labelled:
+        label_active_dm(cfg, cfg.active.num_labelled, cfg.active.balanced, datamodule)
 
     training_loop = ActiveTrainingLoop(
         cfg, datamodule, active=False, base_dir=os.getcwd()
