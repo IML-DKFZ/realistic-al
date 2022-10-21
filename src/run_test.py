@@ -43,11 +43,13 @@ def main(cfg: DictConfig, path: str):
 
     logger.info("{} Test Samples".format(len(datamodule.test_set)))
 
-    training_loop = ActiveTrainingLoop(cfg, datamodule=datamodule, base_dir=os.getcwd())
-    training_loop.init_callbacks()
+    training_loop = ActiveTrainingLoop(
+        cfg, datamodule=datamodule, base_dir=os.getcwd(), loggers=False
+    )
+    # training_loop.init_callbacks()
     if len(training_loop.callbacks) < 3:
         raise NotImplementedError
-    training_loop.init_model()
+    # training_loop.init_model()
     training_loop.model.load_only_state_dict(ckpt_path)
     # training_loop.model = training_loop.model.to("cuda:0")
     training_loop.init_trainer()
@@ -61,7 +63,7 @@ def main(cfg: DictConfig, path: str):
     conf_mat.to_csv(path / "test-conf_mat.csv")
 
     test_dict = dict()
-    test_dict = imb_metric_callback.compute_pred_metrics(mode="test")
+    test_dict = imb_metric_callback.compute_pred_metrics(mode="test", class_wise=True)
     for key, val in imb_metric_callback.auc_dict.items():
         if "test" in key:
             test_dict[key] = val.compute()
@@ -120,7 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--path", type=str)
     parser.add_argument("--glob", action="store_true")
     parser.add_argument("-l", "--list-only", action="store_true")
-    parser.add_argument("-f", '--force-override', action="store_true")
+    parser.add_argument("-f", "--force-override", action="store_true")
     args = parser.parse_args()
 
     if args.glob:

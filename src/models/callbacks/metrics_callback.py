@@ -105,7 +105,7 @@ class ImbClassMetricCallback(MetricCallback):
             }
         )
 
-    def compute_pred_metrics(self, mode):
+    def compute_pred_metrics(self, mode: str, class_wise: bool = False):
         conf_mat = self.pred_conf[mode].compute()
         acc = conf_mat.diag().sum() / conf_mat.sum()
         w_acc = (conf_mat.diag() / conf_mat.sum(dim=1)).mean()
@@ -114,11 +114,24 @@ class ImbClassMetricCallback(MetricCallback):
             2 * conf_mat.diag() / (conf_mat.sum(dim=1) + conf_mat.sum(dim=0))
         ).mean()
 
-        return {
+        out_dict = {
             f"{mode}/w_acc": w_acc,
             f"{mode}/av_prec": av_prec,
             f"{mode}/av_f1": av_f1,
         }
+        if class_wise:
+            class_wise_dict = {
+                "rec": conf_mat.diag() / conf_mat.sum(dim=1),
+                "prec": conf_mat.diag() / conf_mat.sum(dim=0),
+                "f1": 2 * conf_mat.diag() / (conf_mat.sum(dim=1) + conf_mat.sum(dim=0)),
+            }
+            for metric in class_wise_dict:
+                for cls, val in enumerate(class_wise_dict[metric]):
+                    out_dict[f"{mode}/{metric}/cls_{cls}"] = class_wise_dict[metric][
+                        cls
+                    ]
+
+        return out_dict
 
     def log_metrics(self, pl_module, mode):
         if mode in self.pred_conf:

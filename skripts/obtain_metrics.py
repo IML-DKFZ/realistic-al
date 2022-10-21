@@ -41,6 +41,7 @@ def compute_value(path, value_name, select="max"):
     df = pd.DataFrame(out_dict)
     df.to_csv(path / (value_name.replace("/", "_") + ".csv"))
     pprint(df)
+    return df
 
 
 if __name__ == "__main__":
