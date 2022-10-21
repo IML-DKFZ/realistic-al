@@ -1,6 +1,29 @@
 # Active Learning Playground
 Active Learning on Torchvision Classification Datasets
 
+## Running FixMatch Sweeps and Hyper-Parameters
+Runner Scripts are in Folder: `launchers`
+- Runs:
+	- CIFAR-10
+		- sweep_cifar10_fixmatch.py
+		- sweep_cifar10_fixmatch-wideresnet.py (reproducibility) 
+	- CIFAR-100
+		- sweep_cifar100_fixmatch.py
+		- sweep_cifar100_fixmatch-wideresnet.py (reproducibility)
+	- CIFAR-10 LT
+		- sweep_cifar10imb_fixmatch.py
+	- MIO-TCD
+		- sweep_miotcd_fixmatch.py
+	- ISIC-2019
+		- sweep_isic2019_fixmatch.py
+- After runs are finalized:
+	- metric = `val/acc` (and `val/w_acc` for MIO-TCD and ISIC-2019)
+		- for final fixmatch values also add `test/{}`
+	- path = `$EXPERIMENT_ROOT/activelearning/{dataset}/sweeps`
+	- execute script: `skripts/obtain_metrics.py -l 1 -v {metric} -s last -p {path}`
+- After metrics are obtained:
+	- use {path} in `ipynb/results_overview.py` to visualize and interpret results
+
 
 
 ## Working on:
@@ -25,3 +48,8 @@ Active Learning on Torchvision Classification Datasets
 - [x] Add Self-Supervised Pretext Training into this repo for consistency
 - [x] Cleanup FixMatch Dataloader
 - [x] Reorder Config
+
+
+# Next Steps:
+- [ ] Create new Models for low label according to: https://github.com/google-research/fixmatch/blob/master/fully_supervised/fs_mixup.py 
+- [ ] More Datasets are on: https://github.com/linusericsson/ssl-transfer
