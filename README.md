@@ -1,8 +1,20 @@
 # Active Learning Playground
 Active Learning on Torchvision Classification Datasets
 
+## Experiment Laucher
+Does the running of experiments for you.
+
+Flags: 
+- `-d` debug/vis mode 
+	- does not run experiments but prints the launch command
+	- useful to show #of runs and check if runs are selected properly
+- `-c` cluster mode
+	- changes the execution call to some preset value
+- `--num_start {val:int}` launches runs from val
+- `--num_end {val:int}` launches runs until val
+
 ## Running FixMatch Sweeps and Hyper-Parameters
-Runner Scripts are in Folder: `launchers`
+Runner Scripts using the Experiment Launcher are in Folder: `launchers`
 - Runs:
 	- CIFAR-10
 		- sweep_cifar10_fixmatch.py
