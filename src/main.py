@@ -64,6 +64,8 @@ def active_loop(
         )
         logger.info("Start Training of Loop {}".format(i))
         training_loop.main()
+        if training_loop.trainer.interrupted:
+            return
         logger.info("Start Acquisition of Loop {}".format(i))
         active_store = training_loop.active_callback()
         datamodule.train_set.label(active_store.requests)
