@@ -93,45 +93,45 @@ class FixTrainingLoop(ActiveTrainingLoop):
         persistent_workers = self.datamodule.persistent_workers
         timeout = self.datamodule.timeout
 
-        # if self.datamodule.dataset in ["miotcd", "isic2019"]:
-        if True:
+        if self.datamodule.dataset in ["miotcd", "isic2019"]:
+            # if True:
             logger.info("Use Pytorch DataLoader multiprocessing")
             datamodule = self.model.wrap_dm(self.datamodule)
             loader_label, loader_pool = datamodule.train_dataloader()
             train_dataloader = ConcatDataloader(loader_label, loader_pool)
-        # else:
-        #     logger.info("Use BatchGenerators Augmenters multiprocessing")
-        #     self.datamodule.persistent_workers = False
-        #     self.datamodule.num_workers = 0
-        #     self.datamodule.pin_memory = False
-        #     self.datamodule.timeout = 0
+        else:
+            logger.info("Use BatchGenerators Augmenters multiprocessing")
+            self.datamodule.persistent_workers = False
+            self.datamodule.num_workers = 0
+            self.datamodule.pin_memory = False
+            self.datamodule.timeout = 0
 
-        #     datamodule = self.model.wrap_dm(self.datamodule)
-        #     loader_label, loader_pool = datamodule.train_dataloader()
-        #     worker_label = num_workers // 2
-        #     worker_pool = num_workers // 2
+            datamodule = self.model.wrap_dm(self.datamodule)
+            loader_label, loader_pool = datamodule.train_dataloader()
+            worker_label = num_workers // 2
+            worker_pool = num_workers // 2
 
-        #     multi_label = MultiThreadedAugmenter(
-        #         DataLoaderWrapper(loader_label, None, worker_label),
-        #         None,
-        #         worker_label,
-        #         pin_memory=False,
-        #         timeout=timeout,
-        #     )
-        #     multi_pool = MultiThreadedAugmenter(
-        #         DataLoaderWrapper(loader_pool, None, worker_pool),
-        #         None,
-        #         worker_pool,
-        #         pin_memory=False,
-        #         timeout=timeout,
-        #     )
+            multi_label = MultiThreadedAugmenter(
+                DataLoaderWrapper(loader_label, None, worker_label),
+                None,
+                worker_label,
+                pin_memory=False,
+                timeout=timeout,
+            )
+            multi_pool = MultiThreadedAugmenter(
+                DataLoaderWrapper(loader_pool, None, worker_pool),
+                None,
+                worker_pool,
+                pin_memory=False,
+                timeout=timeout,
+            )
 
-        #     self.datamodule.num_workers = num_workers
-        #     self.datamodule.pin_memory = pin_memory
-        #     self.datamodule.persistent_workers = persistent_workers
-        #     self.datamodule.timeout = timeout
+            self.datamodule.num_workers = num_workers
+            self.datamodule.pin_memory = pin_memory
+            self.datamodule.persistent_workers = persistent_workers
+            self.datamodule.timeout = timeout
 
-        #     train_dataloader = ConcatenatedAugmenters([multi_label, multi_pool])
+            train_dataloader = ConcatenatedAugmenters([multi_label, multi_pool])
 
         val_dataloader = datamodule.val_dataloader()
 
