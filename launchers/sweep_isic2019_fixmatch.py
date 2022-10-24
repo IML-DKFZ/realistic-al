@@ -8,19 +8,22 @@ config_dict = {
 }
 
 hparam_dict = {
-    "trainer.run_test": False,
+    "trainer.run_test": True,  # for final comparison
     "active.num_labelled": [40, 200],
     "data.val_size": [200, 1000],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.3, 0.03],
-    "model.weight_decay": [5e-3, 5e-4],
+    "model.learning_rate": [0.3, 0.03], #  check 0.3 since ImageNet LR is 0.4
+    "model.weight_decay": [5e-3, 5e-4], # WD for ImageNet is 1e-4, we do this sweep for consistency 
+    # difference for WD should net be too great (see ablation paper)
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
-    # "trainer.max_epochs": 200,
-    "trainer.max_epochs": 50,
+    "trainer.max_epochs": 200, # has to be set that 200,000 iterations are trained.
+    # "trainer.max_epochs": 50,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["isic_train"],
+    "trainer.num_worker" : 12,
+    "optim.lr_scheduler.warmup_epochs" : 3, # set to 3 for some warmup similar to ImageNet experiments
     "trainer.precision": 16,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
 }
 
