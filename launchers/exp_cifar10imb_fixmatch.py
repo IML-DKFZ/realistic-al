@@ -26,7 +26,7 @@ hparam_dict = {
     "trainer.deterministic": True,
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0],
-    "model.weight_decay": [1e-3, 5e-4],
+    "model.weight_decay": [1e-3, 1e-3],
     "model.weighted_loss": True,
     "model.learning_rate": [0.03],
     "model.small_head": [True],
