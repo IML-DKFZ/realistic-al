@@ -116,14 +116,14 @@ class FixTrainingLoop(ActiveTrainingLoop):
                 None,
                 worker_label,
                 pin_memory=False,
-                timeout=timeout,
+                # timeout=timeout,
             )
             multi_pool = MultiThreadedAugmenter(
                 DataLoaderWrapper(loader_pool, None, worker_pool),
                 None,
                 worker_pool,
                 pin_memory=False,
-                timeout=timeout,
+                # timeout=timeout,
             )
 
             self.datamodule.num_workers = num_workers
