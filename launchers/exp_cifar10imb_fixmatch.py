@@ -35,6 +35,7 @@ hparam_dict = {
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
     "model.distr_align": True,
+    "trainer.timeout": 10,
 }
 naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
