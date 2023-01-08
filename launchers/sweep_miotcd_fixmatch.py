@@ -9,22 +9,25 @@ config_dict = {
 
 num_classes = 11
 hparam_dict = {
-    "trainer.run_test": True, # for final comparison
+    "trainer.run_test": True,  # for final comparison
     "active.num_labelled": [num_classes * 5, num_classes * 25],
     "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.3, 0.03], # check 0.3 since ImageNet LR is 0.4
-    "model.weight_decay": [5e-3, 5e-4], # WD for ImageNet is 1e-4, we do this sweep for consistency 
+    "model.learning_rate": [0.3, 0.03],  # check 0.3 since ImageNet LR is 0.4
+    "model.weight_decay": [
+        5e-3,
+        5e-4,
+    ],  # WD for ImageNet is 1e-4, we do this sweep for consistency
     # difference for WD should net be too great (see ablation paper)
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
-    "trainer.max_epochs": 200, # max_epochs has to be set so that 200,000 iterations are trained.
+    "trainer.max_epochs": 200,  # max_epochs has to be set so that 200,000 iterations are trained.
     # "trainer.max_epochs": 50,
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.precision": 16,
+    "trainer.precision": 32,
     "trainer.num_workers": 12,
-    "optim.lr_scheduler.warmup_epochs" : 3, # set to 3 for some warmup similar to ImageNet experiments
+    "optim.lr_scheduler.warmup_epochs": 3,  # set to 3 for some warmup similar to ImageNet experiments
     "data.transform_train": ["imagenet_train"],
 }
 
@@ -53,6 +56,6 @@ if __name__ == "__main__":
         joint_iteration=joint_iteration,
     )
     if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
+        launcher.ex_call = "cluster_run --launcher run_active_25gb.sh"
 
     launcher.launch_runs()
