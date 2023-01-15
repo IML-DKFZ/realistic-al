@@ -1,3 +1,4 @@
+import argparse
 import re
 from itertools import product
 from pathlib import Path
@@ -11,6 +12,96 @@ from rich.pretty import pprint
 from plotlib.performance_plots import plot_standard_dev
 from utils.file_utils import get_experiment_df
 
+FULL_MODELS = {
+    "CIFAR-10": {
+        "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine",
+        "PT": None,
+    },
+    "CIFAR-100": {
+        "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.005_lr-0.1_optim-sgd_cosine",
+        "PT": None,
+    },
+    "CIFAR-10-LT": {
+        "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine_weighted-true",
+        "PT": None,
+    },
+    "MIO-TCD": {
+        "Basic": "basic_model-resnet_drop-0_aug-imagenet_randaugMC_wd-5e-05_lr-0.1_optim-sgd_cosine_weighted-True_epochs-80",
+        "PT": None,
+    },
+    "ISIC-2019": {
+        "Basic": "basic_model-resnet_drop-0_aug-isic_train_wd-0.005_lr-0.01_optim-sgd_cosine_weighted-True_epochs-200",
+        "PT": None,
+    },
+}
+PALETTE = {
+    "bald": "tab:blue",
+    "kcentergreedy": "tab:green",
+    "entropy": "tab:orange",
+    "random": "tab:red",
+    "batchbald": "tab:cyan",
+}
+
+DASHES = {
+    "PT: False, Sem-SL: False": (4, 4),
+    "PT: True, Sem-SL: False": (1, 0),
+    "PT: False, Sem-SL: True": (1, 2),
+    "PT: True, Sem-SL: True": (2, 1),
+}
+
+MARKERS = {
+    "PT: False, Sem-SL: False": "v",
+    "PT: True, Sem-SL: False": "o",
+    "PT: False, Sem-SL: True": "D",
+    "PT: True, Sem-SL: True": "X",
+}
+
+TRAINING_SETTINGS = {
+    "all": [
+        "PT: False, Sem-SL: False",
+        "PT: True, Sem-SL: False",
+        "PT: False, Sem-SL: True",
+        "PT: True, Sem-SL: True",
+    ],
+    "basic": ["PT: False, Sem-SL: False"],
+    "Self-SL": ["PT: True, Sem-SL: False"],
+    "Sem-SL": ["PT: False, Sem-SL: True"],
+    "Self-Sem-SL": ["PT: True, Sem-SL: True"],
+}
+
+PLOT_VALUES = {
+    "Accuracy": "test_acc",
+    "Balanced Accuracy": "test/w_acc",
+    "Batch Entropy": "Acquisition Entropy",
+    "Acquired Entropy": "Dataset Entropy",
+}
+
+MATCH_PATTERNS = [
+    r"basic_.*",
+    r"basic-pretrained_.*",
+    #     r".*__wloss.*"
+    #     BB experiment
+    #     r".*bald.*"
+    #     r".*random.*"
+    r"fixmatch_.*",
+    #     r"fixmatch-pretrained_.*",
+]
+
+FILTER_DICT = {"standard": [".*batchbald.*"], "bb": []}
+
+UNIT_VALS = None
+DATASETS = {
+    "CIFAR-10": "cifar10",
+    "CIFAR-100": "cifar100",
+    "CIFAR-10-LT": "cifar10_imb",
+    "MIO-TCD": "miotcd",
+    "ISIC-2019": "isic2019",
+}
+
+
+def path_to_style_str(path: Path) -> str:
+    return f"PT: {'pretrained_model' in path.name}, Sem-SL: {'fixmatch' in path.name}"
+
 
 def dataset_name_to_id(dataset_name: str) -> tuple[str, str]:
     """Convert human level dataset name to computer-readable dataset identifier.
@@ -23,17 +114,9 @@ def dataset_name_to_id(dataset_name: str) -> tuple[str, str]:
         normalized dataset and fillset identifiers
     """
 
-    datasets = {
-        "CIFAR-10": "cifar10",
-        "CIFAR-100": "cifar100",
-        "CIFAR-10-LT": "cifar10_imb",
-        "MIO-TCD": "miotcd",
-        "ISIC-2019": "isic2019",
-    }
+    sub_datasets = {"CIFAR-10-LT": DATASETS["CIFAR-10"], "ISIC-2019": "isic19"}
 
-    sub_datasets = {"CIFAR-10-LT": datasets["CIFAR-10"], "ISIC-2019": "isic19"}
-
-    dataset_id = datasets[dataset_name]
+    dataset_id = DATASETS[dataset_name]
     fillset_id = sub_datasets.get(dataset_name, dataset_id)
 
     return dataset_id, fillset_id
@@ -75,11 +158,9 @@ def load_experiment_from_path(
     filter_patterns: list[str],
     hue_name: str,
     hue_split: str,
-    match_patterns: list[str],
     style_fct: Callable[[Path], str],
     style_name: str,
     unit_name: str,
-    unit_vals: list[str] | None,
 ):
     paths = [path for path in base_path.iterdir() if path.is_dir()]
     paths.sort()
@@ -88,7 +169,7 @@ def load_experiment_from_path(
     experiment_paths: list[Path] = []
     for path in paths:
         #         print(path)
-        for pattern in match_patterns:
+        for pattern in MATCH_PATTERNS:
             #             print(path.name)
             out = re.match(pattern, str(path.name))
             if out is not None:
@@ -120,8 +201,8 @@ def load_experiment_from_path(
             style_val = style_vals[i]
         else:
             style_val = None
-        if unit_vals is not None:
-            unit_val = unit_vals[i]
+        if UNIT_VALS is not None:
+            unit_val = UNIT_VALS[i]
         else:
             unit_val = None
 
@@ -153,33 +234,28 @@ def load_experiment_from_path(
     return df
 
 
-def get_key_filter(setting: str, filter_dict: dict[str, list[str]]):
+def get_key_filter(setting: str):
     key_filter = "standard"
-    for key in filter_dict:
+    for key in FILTER_DICT:
         if key in setting:
             key_filter = key
     return key_filter
 
 
 def create_plots_from_settings(
-    dashes,
     dataset: str,
     full_data_dict,
     hue_name,
-    markers,
-    palette,
-    plot_values,
     savepath,
     setting_dfs,
     style_name,
-    training_settings,
     unit_name,
-    unit_vals,
-    upper_bounds,
-    y_shareds,
 ):
+    upper_bounds = [True, False]
+    y_shareds = [True, False]
+
     for y_shared, upper_bound in product(upper_bounds, y_shareds):
-        for plot_val, plot_key in plot_values.items():
+        for plot_val, plot_key in PLOT_VALUES.items():
             if plot_val in ["Batch Entropy", "Acquired Entropy"]:
                 if not (y_shared and upper_bound):
                     continue
@@ -187,13 +263,13 @@ def create_plots_from_settings(
             for setting in setting_dfs:
                 dfs = setting_dfs[setting]
                 if plot_key in dfs[0]:
-                    for training_setting, training_styles in training_settings.items():
+                    for training_setting, training_styles in TRAINING_SETTINGS.items():
                         num_cols = len(dfs)
                         ax_legend = 0
                         fig, axs = plt.subplots(ncols=num_cols, sharey=y_shared)
                         if num_cols == 1:
                             axs = [axs]
-                        if unit_vals is None:
+                        if UNIT_VALS is None:
                             unit_name = None
 
                         for i in range(num_cols):
@@ -214,9 +290,9 @@ def create_plots_from_settings(
                                 units=unit_name,
                                 ci="sd",
                                 legend=legend,
-                                palette=palette,
-                                markers=markers,
-                                dashes=dashes,
+                                palette=PALETTE,
+                                markers=MARKERS,
+                                dashes=DASHES,
                                 err_kws={"alpha": 0.2},
                             )  # , units=unit_name)
                             full_dict = {
@@ -265,111 +341,40 @@ def create_plots_from_settings(
                         # plt.show()
 
 
-def main(dataset: str):
-    sns.set_style("whitegrid")
-
-    savepath = Path("./plots").resolve()
-
-    full_models = {
-        "CIFAR-10": {
-            "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine",
-            "PT": None,
-        },
-        "CIFAR-100": {
-            "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.005_lr-0.1_optim-sgd_cosine",
-            "PT": None,
-        },
-        "CIFAR-10-LT": {
-            "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine_weighted-true",
-            "PT": None,
-        },
-        "MIO-TCD": {
-            "Basic": "basic_model-resnet_drop-0_aug-imagenet_randaugMC_wd-5e-05_lr-0.1_optim-sgd_cosine_weighted-True_epochs-80",
-            "PT": None,
-        },
-        "ISIC-2019": {
-            "Basic": "basic_model-resnet_drop-0_aug-isic_train_wd-0.005_lr-0.01_optim-sgd_cosine_weighted-True_epochs-200",
-            "PT": None,
-        },
-    }
-
-    base_path = Path(
-        "~/NetworkDrives/E130-Personal/Lüth/carsten_al_cvpr_2023-November/logs_cluster/activelearning/"
-    ).expanduser()
-
-    d_set, fill_set = dataset_name_to_id(dataset)
-    setting_paths = build_setting_path_mapping(d_set, fill_set, base_path)
-
+def load_full_data(base_path, d_set, dataset: str):
     full_paths = {}
-    for model in full_models[dataset]:
-        if full_models[dataset][model] is not None:
+    for model in FULL_MODELS[dataset]:
+        if FULL_MODELS[dataset][model] is not None:
             full_paths[model] = (
-                base_path / d_set / "full_data" / full_models[dataset][model]
+                base_path / d_set / "full_data" / FULL_MODELS[dataset][model]
             )
 
-    pprint(setting_paths)
     print(full_paths)
+    full_data_dict = {}
 
-    match_patterns = [
-        r"basic_.*",
-        r"basic-pretrained_.*",
-        #     r".*__wloss.*"
-        #     BB experiment
-        #     r".*bald.*"
-        #     r".*random.*"
-        r"fixmatch_.*",
-        #     r"fixmatch-pretrained_.*",
-    ]
+    for key, path in full_paths.items():
+        test_acc_df = pd.read_csv(path / "test_acc.csv", index_col=0)
+        full_data_dict[key] = {}
+        full_data_dict[key]["test_acc"] = {}
+        full_data_dict[key]["test_acc"]["mean"] = float(test_acc_df["Mean"])
+        full_data_dict[key]["test_acc"]["std"] = float(test_acc_df["STD"])
 
-    filter_dict: dict[str, list[str]] = {"standard": [".*batchbald.*"], "bb": []}
+        if (path / "test_w_acc.csv").is_file():
+            mean_recall_df = pd.read_csv(path / "test_w_acc.csv", index_col=0)
+            full_data_dict[key]["test/w_acc"] = {}
+            full_data_dict[key]["test/w_acc"]["mean"] = float(mean_recall_df["Mean"])
+            full_data_dict[key]["test/w_acc"]["std"] = float(mean_recall_df["STD"])
+    return full_data_dict
 
-    hue_name = "Acquisition"
 
-    hue_split = "acq-"
-
-    style_name = "PreTraining & Semi-Supervised"
-    style_fct = (
-        lambda x: f"PT: {'pretrained_model' in x.name}, Sem-SL: {'fixmatch' in x.name}"
-    )
-
-    unit_vals = None
-    unit_name = "Unit"
-
-    palette = {
-        "bald": "tab:blue",
-        "kcentergreedy": "tab:green",
-        "entropy": "tab:orange",
-        "random": "tab:red",
-        "batchbald": "tab:cyan",
-    }
-
-    dashes = {
-        "PT: False, Sem-SL: False": (4, 4),
-        "PT: True, Sem-SL: False": (1, 0),
-        "PT: False, Sem-SL: True": (1, 2),
-        "PT: True, Sem-SL: True": (2, 1),
-    }
-
-    markers = {
-        "PT: False, Sem-SL: False": "v",
-        "PT: True, Sem-SL: False": "o",
-        "PT: False, Sem-SL: True": "D",
-        "PT: True, Sem-SL: True": "X",
-    }
-
-    training_settings = {
-        "all": [
-            "PT: False, Sem-SL: False",
-            "PT: True, Sem-SL: False",
-            "PT: False, Sem-SL: True",
-            "PT: True, Sem-SL: True",
-        ],
-        "basic": ["PT: False, Sem-SL: False"],
-        "Self-SL": ["PT: True, Sem-SL: False"],
-        "Sem-SL": ["PT: False, Sem-SL: True"],
-        "Self-Sem-SL": ["PT: True, Sem-SL: True"],
-    }
-
+def load_settings_data(
+    hue_name,
+    hue_split,
+    setting_paths,
+    style_fct,
+    style_name,
+    unit_name,
+) -> dict[str, list[pd.DataFrame]]:
     setting_dfs: dict[str, list[pd.DataFrame]] = {}
 
     for setting, base_paths in setting_paths.items():
@@ -378,9 +383,9 @@ def main(dataset: str):
             print(f"Skipping Setting: {setting}\nPath is not existent {base_path}")
             continue
 
-        key_filter = get_key_filter(setting, filter_dict)
+        key_filter = get_key_filter(setting)
         print(f"Selecting Filter Pattern from {key_filter}")
-        filter_patterns = filter_dict[key_filter]
+        filter_patterns = FILTER_DICT[key_filter]
 
         setting_dfs[setting] = []
 
@@ -390,57 +395,84 @@ def main(dataset: str):
                 filter_patterns,
                 hue_name,
                 hue_split,
-                match_patterns,
                 style_fct,
                 style_name,
                 unit_name,
-                unit_vals,
             )
 
             setting_dfs[setting].append(dataframe)
+    return setting_dfs
 
-    full_data_dict = {}
 
-    for key, path in full_paths.items():
-        test_acc_df = pd.read_csv(path / "test_acc.csv", index_col=0)
-        full_data_dict[key] = dict()
-        full_data_dict[key]["test_acc"] = dict()
-        full_data_dict[key]["test_acc"]["mean"] = float(test_acc_df["Mean"])
-        full_data_dict[key]["test_acc"]["std"] = float(test_acc_df["STD"])
+def make_plots_for_dataset(
+    dataset: str,
+    base_path: Path,
+    save_path: Path,
+    hue_name: str,
+    hue_split: str,
+    style_name: str,
+    unit_name: str,
+):
+    sns.set_style("whitegrid")
 
-        if (path / "test_w_acc.csv").is_file():
-            mean_recall_df = pd.read_csv(path / "test_w_acc.csv", index_col=0)
-            full_data_dict[key]["test/w_acc"] = dict()
-            full_data_dict[key]["test/w_acc"]["mean"] = float(mean_recall_df["Mean"])
-            full_data_dict[key]["test/w_acc"]["std"] = float(mean_recall_df["STD"])
+    d_set, fill_set = dataset_name_to_id(dataset)
+    setting_paths = build_setting_path_mapping(d_set, fill_set, base_path)
+    pprint(setting_paths)
 
-    plot_values = {
-        "Accuracy": "test_acc",
-        "Balanced Accuracy": "test/w_acc",
-        "Batch Entropy": "Acquisition Entropy",
-        "Acquired Entropy": "Dataset Entropy",
-    }
-    upper_bounds = [True, False]
-    y_shareds = [True, False]
+    setting_dfs = load_settings_data(
+        hue_name,
+        hue_split,
+        setting_paths,
+        path_to_style_str,
+        style_name,
+        unit_name,
+    )
+
+    full_data_dict = load_full_data(base_path, d_set, dataset)
 
     create_plots_from_settings(
-        dashes,
         dataset,
         full_data_dict,
         hue_name,
-        markers,
-        palette,
-        plot_values,
-        savepath,
+        save_path,
         setting_dfs,
         style_name,
-        training_settings,
         unit_name,
-        unit_vals,
-        upper_bounds,
-        y_shareds,
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--dataset", type=str, choices=list(DATASETS.keys()))
+    parser.add_argument(
+        "-s", "--save-path", type=Path, default=Path("./plots").resolve()
+    )
+    parser.add_argument(
+        "-b",
+        "--base-path",
+        type=Path,
+        default=Path(
+            "~/NetworkDrives/E130-Personal/Lüth/carsten_al_cvpr_2023-November/logs_cluster/activelearning/"
+        ).expanduser(),
+    )
+    parser.add_argument("--hue-name", type=str, default="Acquisition")
+    parser.add_argument("--hue-split", type=str, default="acq-")
+    parser.add_argument(
+        "--style-name", type=str, default="PreTraining & Semi-Supervised"
+    )
+    parser.add_argument("--unit-name", type=str, default="Unit")
+    args = parser.parse_args()
+
+    make_plots_for_dataset(
+        dataset=args.dataset,
+        base_path=args.base_path,
+        save_path=args.save_path,
+        hue_name=args.hue_name,
+        hue_split=args.hue_split,
+        style_name=args.style_name,
+        unit_name=args.unit_name,
     )
 
 
 if __name__ == "__main__":
-    main("CIFAR-100")
+    main()
