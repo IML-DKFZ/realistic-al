@@ -29,7 +29,7 @@ hparam_dict = {
     "sem_sl.eman": [False],  # EMAN Paper
 }
 
-naming_conv = "sweep/{data}/fixmatch-pretrained_lab-{active.num_labelled}_model-{model}_ep-{trainer.max_epochs}_wd-{model.weight_decay}"
+naming_conv = "sweep/{data}/fixmatchv2_lab-pretrained_lab-{active.num_labelled}_model-{model}_ep-{trainer.max_epochs}_wd-{model.weight_decay}"
 path_to_ex_file = "src/run_training_fixmatch.py"
 
 joint_iteration = [
