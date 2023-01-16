@@ -167,47 +167,40 @@ def load_experiment_from_path(
     print(f"Folders in Path: \n {base_path}\n")
 
     experiment_paths: list[Path] = []
-    for path in paths:
-        #         print(path)
-        for pattern in MATCH_PATTERNS:
-            #             print(path.name)
-            out = re.match(pattern, str(path.name))
-            if out is not None:
-                print(path.name)
-                skip = False
-                for filter_pattern in filter_patterns:
-                    if re.match(filter_pattern, str(path)) is not None:
-                        skip = True
-                if skip:
-                    continue
 
-                print(path.name)
-                experiment_paths.append(path)
-                continue
+    experiment_paths = list(
+        filter(
+            lambda path: any(
+                re.match(pattern, str(path.name)) is not None for pattern in MATCH_PATTERNS
+            ),
+            paths,
+        )
+    )
+    experiment_paths = list(
+        filter(
+            lambda path: all(
+                re.match(pattern, str(path.name)) is None for pattern in filter_patterns
+            ),
+            experiment_paths,
+        )
+    )
 
     hue_names = [
         path.name.split(hue_split)[1].split("_")[0] for path in experiment_paths
-    ]  # .split('_')[0] for path in paths]
+    ]
     style_vals = [style_fct(path) for path in experiment_paths]
 
     df = []
     for i, (base_dir) in enumerate(experiment_paths):
         base_dir = Path(base_dir)
-        if hue_names is not None:
-            hue_val = hue_names[i]
-        else:
-            hue_val = None
-        if style_vals is not None:
-            style_val = style_vals[i]
-        else:
-            style_val = None
+        hue_val = hue_names[i]
+        style_val = style_vals[i]
         if UNIT_VALS is not None:
             unit_val = UNIT_VALS[i]
         else:
             unit_val = None
 
         experiment_frame = get_experiment_df(base_dir, name=hue_val)
-        # experiment_frame[hue_name] = hue_val
         if experiment_frame is None:
             continue
 
@@ -215,19 +208,17 @@ def load_experiment_from_path(
         experiment_add = get_experiment_df(
             base_dir, pattern="test_metrics.csv", name=hue_val
         )
-        #         print(experiment_add)
         if experiment_add is not None:
-            #             print(experiment_frame)
-            #             print(experiment_add)
             del experiment_add["Name"]
             del experiment_add["version"]
             experiment_frame = experiment_frame.join(experiment_add)
-        #             print(experiment_frame)
 
         experiment_frame[hue_name] = hue_val
         experiment_frame[style_name] = style_val
         experiment_frame[unit_name] = unit_val
+
         df.append(experiment_frame)
+
     df = pd.concat(df)
     df.reset_index(inplace=True)
 
@@ -312,9 +303,6 @@ def create_plots_from_settings(
                             ax.set_ylabel(plot_val)
                             if i == ax_legend:
                                 ax.get_legend().remove()
-                        # fig.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
-                        #           ncol=3, fancybox=True, shadow=True)
-                        # fig.legend(loc='center left', bbox_to_anchor=(1, 0.5))
                         if num_cols == 3:
                             ncol_legend = 5
                         else:
@@ -338,7 +326,6 @@ def create_plots_from_settings(
                             fn = f"plot-{setting}_train-{training_setting}_yshared-{y_shared}_bound-{upper_bound}.pdf"
                         print(f"Filename:{fn}")
                         plt.savefig(save_dir / fn, bbox_inches="tight")
-                        # plt.show()
 
 
 def load_full_data(base_path, d_set, dataset: str):
