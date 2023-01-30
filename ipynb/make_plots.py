@@ -1,13 +1,15 @@
-import argparse
+from argparse import ArgumentParser
 import re
 from itertools import product
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List, Dict, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from rich.pretty import pprint
+
+import ipynb_setup
 
 from plotlib.performance_plots import plot_standard_dev
 from utils.file_utils import get_experiment_df
@@ -103,7 +105,7 @@ def path_to_style_str(path: Path) -> str:
     return f"PT: {'pretrained_model' in path.name}, Sem-SL: {'fixmatch' in path.name}"
 
 
-def dataset_name_to_id(dataset_name: str) -> tuple[str, str]:
+def dataset_name_to_id(dataset_name: str) -> Tuple[str, str]:
     """Convert human level dataset name to computer-readable dataset identifier.
     Also, select fill set and check if it is a subset.
 
@@ -124,7 +126,7 @@ def dataset_name_to_id(dataset_name: str) -> tuple[str, str]:
 
 def build_setting_path_mapping(
     dataset_id: str, fillset_id: str, base_path: Path
-) -> dict[str, list[Path]]:
+) -> Dict[str, List[Path]]:
     """Create a dict that maps experiment settings to data paths.
 
     Args:
@@ -145,7 +147,7 @@ def build_setting_path_mapping(
     for setting in settings:
         settings[setting] = [f"active-{fillset_id}_{exp}" for exp in settings[setting]]
 
-    setting_paths: dict[str, list[Path]] = {}
+    setting_paths: Dict[str, List[Path]] = {}
 
     for setting, experiments in settings.items():
         setting_paths[setting] = [base_path / dataset_id / exp for exp in experiments]
@@ -155,23 +157,38 @@ def build_setting_path_mapping(
 
 def load_experiment_from_path(
     base_path: Path,
-    filter_patterns: list[str],
+    filter_patterns: List[str],
     hue_name: str,
     hue_split: str,
     style_fct: Callable[[Path], str],
     style_name: str,
     unit_name: str,
 ):
+    """Returns a joint dataset for each experiment row e.g. cifar10_low
+
+    Args:
+        base_path (Path): path to experiment row
+        filter_patterns (List[str]): pattern according to which naming is done
+        hue_name (str): name of hue_name in dataframe
+        hue_split (str): spliting of path name for hue_name creation
+        style_fct (Callable[[Path], str]): function creating styles in dataframe
+        style_name (str): name of style in dataframe
+        unit_name (str): name of unit_val in dataframe for singular plots
+
+    Returns:
+        DataFrame used for plotting of an experiment row
+    """
     paths = [path for path in base_path.iterdir() if path.is_dir()]
     paths.sort()
     print(f"Folders in Path: \n {base_path}\n")
 
-    experiment_paths: list[Path] = []
+    experiment_paths: List[Path] = []
 
     experiment_paths = list(
         filter(
             lambda path: any(
-                re.match(pattern, str(path.name)) is not None for pattern in MATCH_PATTERNS
+                re.match(pattern, str(path.name)) is not None
+                for pattern in MATCH_PATTERNS
             ),
             paths,
         )
@@ -328,7 +345,17 @@ def create_plots_from_settings(
                         plt.savefig(save_dir / fn, bbox_inches="tight")
 
 
-def load_full_data(base_path, d_set, dataset: str):
+def load_full_data(base_path: Path, d_set: str, dataset: str):
+    """Load plots of experiments ran on the whole dataset.
+
+    Args:
+        base_path (Path): path to the experiment folder
+        d_set (str): dataset name machine readable
+        dataset (str): dataset name
+
+    Returns:
+        dictionary of metrics on the whole dataset
+    """
     full_paths = {}
     for model in FULL_MODELS[dataset]:
         if FULL_MODELS[dataset][model] is not None:
@@ -355,14 +382,27 @@ def load_full_data(base_path, d_set, dataset: str):
 
 
 def load_settings_data(
-    hue_name,
-    hue_split,
-    setting_paths,
-    style_fct,
-    style_name,
-    unit_name,
-) -> dict[str, list[pd.DataFrame]]:
-    setting_dfs: dict[str, list[pd.DataFrame]] = {}
+    hue_name: str,
+    hue_split: str,
+    setting_paths: Dict[str, List[Path]],
+    style_fct: Callable[[Path], str],
+    style_name: str,
+    unit_name: str,
+) -> Dict[str, List[pd.DataFrame]]:
+    """Creates a list of 
+
+    Args:
+        hue_name (str): _description_
+        hue_split (str): _description_
+        setting_paths (Dict[str, List[Path]]): _description_
+        style_fct (Callable[[Path], str]): _description_
+        style_name (str): _description_
+        unit_name (str): _description_
+
+    Returns:
+        Dict[str, List[pd.DataFrame]]: _description_
+    """
+    setting_dfs: Dict[str, List[pd.DataFrame]] = {}
 
     for setting, base_paths in setting_paths.items():
 
@@ -407,12 +447,7 @@ def make_plots_for_dataset(
     pprint(setting_paths)
 
     setting_dfs = load_settings_data(
-        hue_name,
-        hue_split,
-        setting_paths,
-        path_to_style_str,
-        style_name,
-        unit_name,
+        hue_name, hue_split, setting_paths, path_to_style_str, style_name, unit_name,
     )
 
     full_data_dict = load_full_data(base_path, d_set, dataset)
@@ -429,7 +464,7 @@ def make_plots_for_dataset(
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("-d", "--dataset", type=str, choices=list(DATASETS.keys()))
     parser.add_argument(
         "-s", "--save-path", type=Path, default=Path("./plots").resolve()
@@ -439,7 +474,7 @@ def main():
         "--base-path",
         type=Path,
         default=Path(
-            "~/NetworkDrives/E130-Personal/Lüth/carsten_al_cvpr_2023-November/logs_cluster/activelearning/"
+            "~/network/Personal/carsten_al_cvpr_2023-November/logs_cluster/activelearning"
         ).expanduser(),
     )
     parser.add_argument("--hue-name", type=str, default="Acquisition")
