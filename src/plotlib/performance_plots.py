@@ -25,8 +25,6 @@ def plot_standard_dev(
     For information see:
     https://seaborn.pydata.org/generated/seaborn.lineplot.html
 
-    Returns:
-        plt.Axes: _description_
     """
     sns.lineplot(
         ax=ax,

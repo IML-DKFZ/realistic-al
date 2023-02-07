@@ -1,6 +1,7 @@
 # Hydra Outputs
 outputs/
 visuals/
+plots/
 
 # Images
 *.png

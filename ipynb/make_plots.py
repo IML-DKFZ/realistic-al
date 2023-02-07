@@ -208,8 +208,8 @@ def load_experiment_from_path(
     style_vals = [style_fct(path) for path in experiment_paths]
 
     df = []
-    for i, (base_dir) in enumerate(experiment_paths):
-        base_dir = Path(base_dir)
+    for i, (exp_path) in enumerate(experiment_paths):
+        exp_path = Path(exp_path)
         hue_val = hue_names[i]
         style_val = style_vals[i]
         if UNIT_VALS is not None:
@@ -217,13 +217,13 @@ def load_experiment_from_path(
         else:
             unit_val = None
 
-        experiment_frame = get_experiment_df(base_dir, name=hue_val)
+        experiment_frame = get_experiment_df(exp_path, name=hue_val)
         if experiment_frame is None:
             continue
 
         # Add new metric values
         experiment_add = get_experiment_df(
-            base_dir, pattern="test_metrics.csv", name=hue_val
+            exp_path, pattern="test_metrics.csv", name=hue_val
         )
         if experiment_add is not None:
             del experiment_add["Name"]
