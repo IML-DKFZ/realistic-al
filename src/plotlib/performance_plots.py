@@ -6,8 +6,8 @@ import pandas as pd
 
 
 def plot_standard_dev(
-    ax,
-    data,
+    ax: plt.Axes,
+    data: pd.DataFrame,
     x: str = "num_samples",
     y: str = "test_acc",
     hue: str = "Sampling",

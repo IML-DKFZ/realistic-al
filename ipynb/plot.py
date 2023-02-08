@@ -6,6 +6,7 @@ from typing import Callable, List, Dict, Tuple, Optional, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
 import ipynb_setup
 
@@ -37,7 +38,7 @@ FULL_MODELS = {
 
 QUERYMETHODS = {
     "bald": "BALD",
-    "kcentergreedy": "Core Set",
+    "kcentergreedy": "Core-Set",
     "entropy": "Entropy",
     "random": "Random",
     "batchbald": "BatchBALD",
@@ -45,17 +46,19 @@ QUERYMETHODS = {
 
 PALETTE = {
     "BALD": "tab:blue",
-    "Core Set": "tab:green",
+    "Core-Set": "tab:green",
     "Entropy": "tab:orange",
     "Random": "tab:red",
     "BatchBALD": "tab:cyan",
 }
 
 
-def style_func_dict(x):
+def style_func_dict(x: Dict[str, bool]) -> str:
+    """Function used on dictionaries and dataframes to generate the style value for a plot.
+    """
     out = []
     if x["Self-SL"]:
-        out.append("Self-SL Pretrained")
+        out.append("Self-SL Pre-Trained")
     if x["Semi-SL"]:
         out.append("Semi-SL")
     if len(out) == 0:
@@ -66,10 +69,12 @@ def style_func_dict(x):
 
 DASHES = {
     style_func_dict({"Self-SL": False, "Semi-SL": False}): (4, 4),
-    style_func_dict({"Self-SL": True, "Semi-SL": False}): (4, 4),
-    style_func_dict({"Self-SL": False, "Semi-SL": True}): (4, 4),
-    style_func_dict({"Self-SL": True, "Semi-SL": True}): (4, 4),
+    style_func_dict({"Self-SL": True, "Semi-SL": False}): (1, 0),
+    style_func_dict({"Self-SL": False, "Semi-SL": True}): (1, 2),
+    style_func_dict({"Self-SL": True, "Semi-SL": True}): (2, 1),
 }
+
+# DASHES = None
 
 MARKERS = {
     style_func_dict({"Self-SL": False, "Semi-SL": False}): "v",
@@ -179,8 +184,30 @@ def plot_experiment(
     ylabel: str = None,
     xlabel: str = None,
     ax_legend: int = 0,
-):
-    num_cols = len(dfs)
+) -> Tuple[plt.Figure, List[plt.Axes]]:
+    """Plotting Script for whole Experiment rows.
+    Resulting in a figure with multiple plots. 
+    If some dfs are missing to fill num_cols then they are filled up
+    and branded.
+
+    Args:
+        dfs (List[pd.DataFrame]): Dataframes for plot
+        hue_name (str): Color key
+        style_name (str): Style key
+        plot_key (str): y-axis key
+        upper_bound (bool, optional): Add performance of full model. Defaults to False.
+        sharey (bool, optional): plots share y range. Defaults to True.
+        num_cols (Optional[int], optional): Number of Columns. Defaults to None.
+        full_models_dict (Dict[str, float], optional): Dictionary containing values for full models. Defaults to None.
+        ylabel (str, optional): Defaults to None.
+        xlabel (str, optional): Defaults to None.
+        ax_legend (int, optional): from which ax the legend is taken. Defaults to 0.
+
+    Returns:
+        Tuple[plt.Figure, List[plt.Axes]]: _description_
+    """
+    if num_cols is None:
+        num_cols = len(dfs)
     # no necessary
     fig, axs = plt.subplots(ncols=num_cols, sharey=sharey)
     if num_cols == 1:
@@ -203,10 +230,12 @@ def plot_experiment(
                 hline_dicts.append(hline_dict)
 
     for i in range(num_cols):
-        df = dfs[i]
-        if len(df) == 0:
+        if i < len(dfs):
+            df = dfs[i]
+        else:
+            axs[i].text(0.2, 0.5, "No Experiments Performed")
+            axs[i].set_xticks([])
             continue
-        axs[i] = axs[i]
 
         legend = False
         if i == ax_legend:
@@ -322,6 +351,7 @@ def product_of_dictionary(dictionary: Dict[str, Union[list, tuple]]) -> List[dic
 
 
 if __name__ == "__main__":
+    sns.set_style("whitegrid")
     base_path = Path("/mnt/drive_nvme2/logs_cluster/activelearning")
     save_path = Path("./plots")
     df = create_experiment_df(base_path, DATASETS, rewrite=False)
@@ -387,20 +417,25 @@ if __name__ == "__main__":
                     )
                     if len(df_plot) > 0:
                         df_plots.append(df_plot)
+                print("Label Setting:")
+                print(label_settings["Label Regime"])
+                print(len(label_settings["Label Regime"]))
+                print("-" * 8)
 
                 if len(df_plots) > 0:
-
                     for plot_metric in plot_metrics_dict[dataset]:
                         for plot_setting in plot_settings_list:
                             print(f"Dataset : {dataset}")
                             print(f"label_setting : {label_settings}")
                             print(f"Num Plots: {len(df_plots)}")
+                            num_cols = len(label_settings["Label Regime"])
                             fig, axs = plot_experiment(
                                 df_plots,
                                 hue_name="Query Method",
                                 style_name=STYLENAME,
                                 full_models_dict=full_dicts_plot,
                                 xlabel="Labeled Samples",
+                                num_cols=num_cols,
                                 **plot_metric,
                                 **plot_setting,
                             )
@@ -412,3 +447,4 @@ if __name__ == "__main__":
                                 / to_path_name(plot_metric["ylabel"])
                             )
                             save_plot(plot_save_path, plot_setting)
+                            fig.clear()
