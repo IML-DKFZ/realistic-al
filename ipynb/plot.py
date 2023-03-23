@@ -12,6 +12,7 @@ import ipynb_setup
 
 from plotlib.performance_plots import plot_standard_dev
 from dataframe import *
+from utils.eval import get_aubc
 
 FULL_MODELS = {
     "CIFAR-10": {
@@ -354,7 +355,7 @@ if __name__ == "__main__":
     sns.set_style("whitegrid")
     base_path = Path("/mnt/drive_nvme2/logs_cluster/activelearning")
     save_path = Path("./plots")
-    df = create_experiment_df(base_path, DATASETS, rewrite=False)
+    df = create_experiment_df(base_path, DATASETS, rewrite=True)
 
     df = preprocess_df(df, MATCH_PATTERNS, VALUE_DICT)
 
@@ -367,7 +368,7 @@ if __name__ == "__main__":
     print(df["Query Method"].unique())
 
     full_models_dict = {
-        DATASETS: load_full_data(base_path, DATASETS) for DATASETS in DATASETS
+        dataset: load_full_data(base_path, dataset) for dataset in DATASETS
     }
 
     settings_dict = {"Dataset": "CIFAR-10", "Label Regime": ["low"]}
@@ -397,6 +398,8 @@ if __name__ == "__main__":
         "ISIC-2019": [{"plot_key": "test/w_acc", "ylabel": "Balanced Accuracy"}],
     }
 
+    aubc_list = []
+
     for dataset in DATASETS:
         # currently only works for
         for label_setting_name, label_settings in plot_label_settings.items():
@@ -423,6 +426,31 @@ if __name__ == "__main__":
                 print("-" * 8)
 
                 if len(df_plots) > 0:
+                    for df_plot in df_plots:
+                        sortname = "Rel. Path"
+
+                        for experiment_name in df_plot[sortname].unique():
+                            use_df = df_plot[df_plot[sortname] == experiment_name]
+
+                            num_iters = use_df["index"].unique().max() + 1
+                            print(num_iters)
+                            for plot_metric in plot_metrics_dict[dataset]:
+                                perf_val = use_df[plot_metric["plot_key"]].to_numpy()
+                                perf_val = perf_val.reshape(-1, num_iters)
+
+                                for iteration in range(len(perf_val)):
+                                    aubc = get_aubc(perf_val[iteration])
+                                    aubc_row = {
+                                        sortname: experiment_name,
+                                        plot_metric["ylabel"]: aubc,
+                                    }
+                                    aubc_list.append(aubc_row)
+                    aubc_df = pd.DataFrame(aubc_list)
+                    aubc_df["Experiment Name"] = aubc_df[sortname].apply(
+                        lambda x: x.split("/")[-1]
+                    )
+                    aubc_df = preprocess_df(aubc_df, MATCH_PATTERNS, VALUE_DICT)
+
                     for plot_metric in plot_metrics_dict[dataset]:
                         for plot_setting in plot_settings_list:
                             print(f"Dataset : {dataset}")
@@ -448,3 +476,9 @@ if __name__ == "__main__":
                             )
                             save_plot(plot_save_path, plot_setting)
                             fig.clear()
+    aubc_df = pd.DataFrame(aubc_list)
+    aubc_df["Experiment Name"] = aubc_df[sortname].apply(lambda x: x.split("/")[-1])
+    aubc_df = aubc_df.drop_duplicates()
+    aubc_df = preprocess_df(aubc_df, MATCH_PATTERNS, VALUE_DICT)
+    aubc_df.to_csv(save_path / "aubc.csv")
+
