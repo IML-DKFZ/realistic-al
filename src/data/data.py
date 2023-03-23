@@ -162,9 +162,6 @@ if __name__ == "__main__":
     #     plt.imshow(vis)
     #     plt.show()
 
-    # import IPython
-
-    # IPython.embed()
     from tqdm.auto import tqdm
 
     # print("Iterating over Labelled Training Set")

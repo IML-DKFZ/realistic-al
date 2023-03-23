@@ -32,10 +32,13 @@ def get_exp_df(exp_path: Path):
 
     # Add new metric values
     experiment_add = get_experiment_df(exp_path, pattern="test_metrics.csv", name=None)
+    # experiment_add = None
     if experiment_add is not None:
         del experiment_add["Name"]
         del experiment_add["version"]
-        experiment_frame = experiment_frame.join(experiment_add)
+        # do not use join here -- can sometimes lead to problems
+        for col in experiment_add.columns:
+            experiment_frame[col] = experiment_add[col]
 
     experiment_frame["Path"] = str(exp_path)
 
@@ -54,7 +57,6 @@ def create_experiment_df(
 
     if not save_file.exists() or rewrite:
         exp_paths = get_exp_paths(base_path, dataset_dict)
-
         df = []
         for exp_path in exp_paths:
             exp_df = get_exp_df(exp_path)
