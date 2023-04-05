@@ -157,9 +157,15 @@ def get_experiment_df(
             out_dict.pop(key)
 
         # TODO: Check if this is needed generally!
+        pop_keys = []
         for key in out_dict:
             if len(out_dict[key].shape) == 2:
-                out_dict[key] = out_dict[key].squeeze(1)
+                if out_dict[key].shape[1] == 1:
+                    out_dict[key] = out_dict[key].squeeze(1)
+                else:
+                    pop_keys.append(key)
+        for key in pop_keys:
+            out_dict.pop(key)
 
         df_temp = pd.DataFrame(out_dict)
         df_temp["version"] = i  # ToDo - change this to version

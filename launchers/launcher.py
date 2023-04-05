@@ -3,6 +3,7 @@ import os
 import subprocess
 from itertools import product
 from copy import deepcopy
+from typing import Optional
 from config_launcher import get_pretrained_arch
 import yaml
 
@@ -24,7 +25,7 @@ class BaseLauncher:
         path_to_ex_file: str,
         default_struct: bool = True,
         add_name: str = "++trainer.experiment_name=",
-        joint_iteration: list = None,
+        joint_iteration: Optional[list] = None,
     ):
         """Launcher allowing fast parsing of parameters and experiments on both Cluster and the local Workstation"""
         if default_struct:
@@ -186,6 +187,8 @@ class BaseLauncher:
         should be launched according to joint_iteration.
         The format of the output is identical to the one obtained by itertools!"""
         accept_dicts = [dict()]
+        # should not be unbounded
+        check_length = 0
         if joint_iteration is not None:
             for i, key in enumerate(joint_iteration):
                 if i == 0:
@@ -227,9 +230,6 @@ class BaseLauncher:
     def prepare_launch(self):
         if self.launcher_args.cluster and self.launcher_args.debug is False:
             self.sync_cluster()
-
-    def skip_config(self, config_settings: dict):
-        return False
 
     @staticmethod
     def dict_to_arg(dict, prefix="", key_to_arg="="):
