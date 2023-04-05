@@ -22,6 +22,7 @@ from models.callbacks.metrics_callback import (
     ISIC2016MetricCallback,
     ImbClassMetricCallback,
 )
+from functools import cached_property
 
 
 class ActiveTrainingLoop(object):
@@ -32,29 +33,26 @@ class ActiveTrainingLoop(object):
         count: Union[None, int] = None,
         active: bool = True,
         base_dir: str = os.getcwd(),  # TODO: change this to some other value!
+        loggers: str = True,
     ):
         """Class capturing the logic for Active Training Loops."""
         self.cfg = cfg
         self.datamodule = deepcopy(datamodule)
         self.count = count
         self.active = active
-        self.model = None
-        self.logger = None
-        self.ckpt_callback = None
-        self.callbacks = None
         self.device = "cuda:0"
-        self.base_dir = base_dir  # carries path to run
-        self.log_dir = None  # carries path to logs of training
-        self.init_paths()
+        self.base_dir = Path(base_dir)  # carries path to run
         self._save_dict = dict()
-        self.data_ckpt_path = None
+        self.init_model()
+        self.ckpt_callback = self.init_ckpt_callback()
+        self.callbacks = self.init_callbacks()
         self.loggers = False
+        if loggers:
+            self.loggers = self.init_loggers()
 
-    def init_callbacks(self):
-        """Initializing the Callbacks used in Pytorch Lightning."""
-        lr_monitor = pl.callbacks.LearningRateMonitor()
-        callbacks = [lr_monitor]
+    def init_ckpt_callback(self) -> pl.callbacks.ModelCheckpoint:
         ckpt_path = os.path.join(self.log_dir, "checkpoints")
+        # TODO: Clean this up via selection via a config file!
         if self.datamodule.val_dataloader() is not None:
             if self.cfg.data.name == "isic2016":
                 monitor = "val/auroc"
@@ -78,7 +76,12 @@ class ActiveTrainingLoop(object):
             ckpt_callback = pl.callbacks.ModelCheckpoint(
                 dirpath=ckpt_path, monitor="train/acc", mode="max"
             )
-        callbacks.append(ckpt_callback)
+        return ckpt_callback
+
+    def init_callbacks(self):
+        lr_monitor = pl.callbacks.LearningRateMonitor()
+        callbacks = [lr_monitor]
+        callbacks.append(self.ckpt_callback)
         if self.cfg.trainer.early_stop and self.datamodule.val_dataloader is not None:
             callbacks.append(pl.callbacks.EarlyStopping("val/acc", mode="max"))
         if self.cfg.data.name == "isic2016":
@@ -87,24 +90,35 @@ class ActiveTrainingLoop(object):
             callbacks.append(
                 ImbClassMetricCallback(num_classes=self.cfg.data.num_classes)
             )
-        self.ckpt_callback = ckpt_callback
         # add progress bar
         callbacks.append(
             TQDMProgressBar(refresh_rate=self.cfg.trainer.progress_bar_refresh_rate)
         )
-        self.callbacks = callbacks
+        return callbacks
 
-    def init_paths(self):
-        self.version = self.cfg.trainer.experiment_id
-        self.name = self.cfg.trainer.experiment_name
-        self.log_dir = self.base_dir
+    @property
+    def log_dir(self) -> Path:
+        log_dir = Path(self.base_dir)
         if self.count is not None:
-            self.version = "loop-{}".format(self.count)
-            self.name = os.path.join(
-                self.cfg.trainer.experiment_name, self.cfg.trainer.experiment_id
-            )
-            # here might appear errors for active learning
-            self.log_dir = os.path.join(self.base_dir, self.version)
+            log_dir = log_dir / self.version
+        return log_dir
+
+    @property
+    def version(self) -> str:
+        if self.count is not None:
+            return "loop-{}".format(self.count)
+        return self.cfg.trainer.experiment_id
+
+    @property
+    def name(self) -> str:
+        name = self.cfg.trainer.experiment_name
+        if self.count is not None:
+            name = os.path.join(name, self.cfg.trainer.experiment_id)
+        return name
+
+    @property
+    def data_ckpt_path(self) -> Path:
+        return self.log_dir / "data_ckpt"
 
     @staticmethod
     def obtain_meta_data(repo_path: str, repo_name: str = "repo-name"):
@@ -114,14 +128,7 @@ class ActiveTrainingLoop(object):
         meta_data["git"] = log_git(repo_path, repo_name=repo_name)
         return meta_data
 
-    def init_logger(self):
-        """Initialize the Loggers used in Pytorch Lightning.
-        Loggers initialized: Tensorobard Loggers
-        Name scheme for logs:
-        - if no count - root/name/id
-        - if count - root/name/id/loop-{count}
-
-        Note: hydra always logs in id folder"""
+    def init_loggers(self):
         tb_logger = pl.loggers.TensorBoardLogger(
             save_dir=self.cfg.trainer.experiments_root,
             name=self.name,
@@ -133,7 +140,7 @@ class ActiveTrainingLoop(object):
             name=self.name,
             version=self.version,
         )
-        self.loggers = [tb_logger, csv_logger]
+        return [tb_logger, csv_logger]
 
     def init_model(self):
         self.model = BayesianModule(self.cfg)
@@ -251,7 +258,7 @@ class ActiveTrainingLoop(object):
         )
         if os.path.exists(self.log_dir) is False:
             os.makedirs(self.log_dir)
-        save_meta = os.path.join(self.log_dir, "meta.json")
+        save_meta = self.log_dir / "meta.json"
         save_json(meta_data, save_meta)
 
     def main(self):
@@ -259,13 +266,14 @@ class ActiveTrainingLoop(object):
         setup_..., init_..., fit, test, final_callback"""
         self.setup_log_struct()
         if self.active:
-            self.data_ckpt_path = os.path.join(self.log_dir, "data_ckpt")
             self.datamodule.train_set.save_checkpoint(self.data_ckpt_path)
-        self.init_logger()
-        self.init_model()
-        self.init_callbacks()
+        # self.init_logger()
+        # self.init_model()
+        # self.init_callbacks()
         self.init_trainer()
         self.fit()
+        if self.trainer.interrupted:
+            return
         if self.cfg.trainer.run_test:
             self.test()
         self.final_callback()

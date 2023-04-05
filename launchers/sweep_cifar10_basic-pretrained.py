@@ -31,7 +31,8 @@ hparam_dict = {
     "trainer.batch_size": 1024,
     "trainer.precision": 16,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_randaugmentMC"],
+    # "data.transform_train": ["cifar_randaugmentMC"],
+    "data.transform_train": ["cifar_basic", "cifar_randaugmentMC"],
 }
 
 joint_iteration = [

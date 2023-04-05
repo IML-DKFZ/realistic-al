@@ -7,9 +7,35 @@ from PIL import Image
 from torch.utils.data import Dataset
 
 from urllib.request import urlretrieve
+import multiprocessing as mp
+import ctypes
+import torch
 
 
 class AbstractISIC(Dataset):
+    def __init__(self):
+        self.shared_array_base = None  # mp.Array(ctypes.c_uint, len(self.df)*c*h*w)
+        self.shared_array = None  # np.ctypeslib.as_array(shared_array_base.get_obj())
+
+        self.use_cache = False
+        self.cached_indices = None
+
+    def init_cache(self, indices):
+        # Caches indices according to:
+        # https://discuss.pytorch.org/t/dataloader-resets-dataset-state/27960/6
+        self.use_cache = True
+        self.cached_indices = indices
+        self.nb_cached_samples = len(indices)
+        shape = Image.open(self.data[0]).convert("RGB").size
+        shared_array_base = mp.Array(
+            ctypes.c_ubyte, len(indices) * shape[0] * shape[1] * shape[2]
+        )
+        shared_array = shared_array.reshape(
+            self.nb_cached_samples, shape[0], shape[1], shape[3]
+        )
+        shared_array = np.ctypeslib.as_array(shared_array_base.get_obj())
+        # self.shared_array = torch.from_numpy(shared_array)
+
     def __getitem__(self, index):
         """
         Args:
@@ -18,10 +44,20 @@ class AbstractISIC(Dataset):
             tuple: (sample, target) where target is class_index of the
                    target class.
         """
-        path = self.data[index]
         target = self.targets[index]
-        img = Image.open(path)
-        img = img.convert("RGB")
+        img = None
+        if self.use_cache:
+            if index in self.cached_indices:
+                img = self.shared_array[index]
+                img = Image.fromarray(img)
+        if img is None:
+            path = self.data[index]
+            img = Image.open(path)
+            img = img.convert("RGB")
+            if self.use_cache:
+                if index in self.cached_indices:
+                    self.shared_array[index] = np.array(img)
+
         if self.transform is not None:
             img = self.transform(img)
 

@@ -1,10 +1,23 @@
-from argparse import ArgumentParser
-
 from pathlib import Path
+import sys
+import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 
-from pprint import pprint
+import os
+
+src_path = Path(__file__).resolve().parent.parent / "src"
+# print(src_path)
+# sys.path.append(src_path)
+
+src_folder = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"
+)
+# print(src_folder)
+sys.path.append(str(src_path))
+
+# from toy_callback import ToyVisCallback
+from utils.file_utils import get_experiment_df, get_experiment_configs_df
+from utils.io import load_omega_conf
 
 
 def compute_value(path, value_name, select="max"):
@@ -12,6 +25,10 @@ def compute_value(path, value_name, select="max"):
     for sub_path in path.iterdir():
         if sub_path.is_dir():
             file = sub_path / "metrics.csv"
+            try:
+                hparams = load_omega_conf(sub_path / "hparams.yaml")
+            except:
+                pass
             try:
                 if "test" in value_name:
                     df_exp = pd.read_csv(file)
@@ -42,24 +59,3 @@ def compute_value(path, value_name, select="max"):
     df.to_csv(path / (value_name.replace("/", "_") + ".csv"))
     pprint(df)
     return df
-
-
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("-p", "--path", type=str)
-    parser.add_argument("-l", "--level", type=int, default=0)
-    parser.add_argument("-v", "--value-name", type=str, default="test/acc")
-    parser.add_argument("-s", "--select", type=str, default="max")
-    # path = "/home/c817h/Documents/logs_cluster/activelearning/sweep/cifar10/fixmatch_basic_lab-250_resnet_fixmatch_ep-200"
-    args = parser.parse_args()
-    level = args.level
-    path = args.path
-    select = args.select
-    path = Path(path)
-    value_name = args.value_name
-    if level == 0:
-        compute_value(path, value_name, select)
-    if level == 1:
-        for sub_path in path.iterdir():
-            if sub_path.is_dir():
-                compute_value(sub_path, value_name, select)

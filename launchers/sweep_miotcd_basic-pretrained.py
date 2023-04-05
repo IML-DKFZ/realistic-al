@@ -32,8 +32,8 @@ hparam_dict = {
     "model.weighted_loss": True,
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 80,
-    # "trainer.batch_size": 128,
-    "trainer.batch_size": 512,  # update
+    "trainer.batch_size": 128,
+    # "trainer.batch_size": 512,  # update
     "trainer.precision": 16,
     "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],

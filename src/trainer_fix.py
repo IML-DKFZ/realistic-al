@@ -94,6 +94,7 @@ class FixTrainingLoop(ActiveTrainingLoop):
         timeout = self.datamodule.timeout
 
         if self.datamodule.dataset in ["miotcd", "isic2019"]:
+            # if True:
             logger.info("Use Pytorch DataLoader multiprocessing")
             datamodule = self.model.wrap_dm(self.datamodule)
             loader_label, loader_pool = datamodule.train_dataloader()
@@ -115,14 +116,14 @@ class FixTrainingLoop(ActiveTrainingLoop):
                 None,
                 worker_label,
                 pin_memory=False,
-                timeout=timeout,
+                # timeout=timeout,
             )
             multi_pool = MultiThreadedAugmenter(
                 DataLoaderWrapper(loader_pool, None, worker_pool),
                 None,
                 worker_pool,
                 pin_memory=False,
-                timeout=timeout,
+                # timeout=timeout,
             )
 
             self.datamodule.num_workers = num_workers
@@ -135,6 +136,7 @@ class FixTrainingLoop(ActiveTrainingLoop):
         val_dataloader = datamodule.val_dataloader()
 
         self.model.train_iters_per_epoch = self.cfg.trainer.train_iters_per_epoch
+        self.model.setup_data_params(self.datamodule)
         self.trainer.fit(
             model=self.model,
             train_dataloaders=train_dataloader,

@@ -26,7 +26,7 @@ hparam_dict = {
     "trainer.deterministic": True,
     "trainer.max_epochs": 200,
     "model.dropout_p": [0, 0, 0],
-    "model.weight_decay": [1e-3, 5e-4],
+    "model.weight_decay": [1e-3, 1e-3],
     "model.weighted_loss": True,
     "model.learning_rate": [0.03],
     "model.small_head": [True],
@@ -35,6 +35,7 @@ hparam_dict = {
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
     "model.distr_align": True,
+    "trainer.timeout": 10,
 }
 naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
