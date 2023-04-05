@@ -101,8 +101,8 @@ def get_experiment_df(
     """
     files = get_all_files_naming(experiment_path, pattern)
     out_dicts = []
-    print("Loading Experiment:", experiment_path)
-    print(f"Found num files: {len(files)}")
+    # print("Loading Experiment:", experiment_path)
+    # print(f"Found num files: {len(files)}")
     if len(files) == 0:
         return None
     for file in files:
@@ -124,7 +124,7 @@ def get_experiment_df(
     for i, out_dict in enumerate(out_dicts):
         # throw out all data which cannot be easily converted to a dataframe
         if len(out_dict) == 0:
-            print("File {} \nIs empty and will be skipped!".format(file))
+            # print("File {} \nIs empty and will be skipped!".format(file))
             return None
         for key in out_dict:
             pop_keys = []
