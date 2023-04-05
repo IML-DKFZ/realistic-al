@@ -1,5 +1,6 @@
 from typing import Any, List, Optional, Tuple
 import math
+from loguru import logger
 from omegaconf import DictConfig
 
 import torch
@@ -49,6 +50,9 @@ class FixMatch(AbstractClassifier):
             self.loss_fct = nn.NLLLoss(weight=torch.ones(num_classes))
         if self.distr_align:
             buffer_size = 128
+            logger.info(
+                "Set up Distribution Alignment with buffer size: {}".format(buffer_size)
+            )
             num_classes = self.hparams.data.num_classes
             self.register_buffer(
                 "p_model", torch.ones(buffer_size, num_classes) / num_classes
@@ -167,32 +171,14 @@ class FixMatch(AbstractClassifier):
         return p_model
 
     def visualize_train(self, x, x_w, x_s):
-        num_imgs = 64
-        num_rows = 8
         for imgs, title in zip(
             [x, x_w, x_s], ["samples_lab", "samples_weak", "samples_strong"],
         ):
             if len(imgs) == 0:
                 continue
             self.visualize_inputs(imgs, name=f"train/{title}")
-            # grid = (
-            #     torchvision.utils.make_grid(
-            #         imgs[:num_imgs], nrow=num_rows, normalize=True
-            #     )
-            #     .cpu()
-            #     .detach()
-            # )
-            # # Works only for Tensorboard!
-            # self.loggers[0].experiment.add_image(
-            #     title, grid, self.current_epoch,
-            # )
 
     def setup(self, *args, **kwargs) -> None:
-        # get_train_dataloader = wrap_fixmatch_train_dataloader(
-        #     self.trainer.datamodule, self.mu
-        # )
-        # self.trainer.datamodule.train_dataloader = get_train_dataloader
-        # self.train_dataloader = get_train_dataloader
         super().setup()
 
     def on_test_epoch_end(self) -> None:

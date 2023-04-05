@@ -1,3 +1,4 @@
+from loguru import logger
 from torch.utils.data import DataLoader
 
 
@@ -31,9 +32,10 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             )
         else:
             # TODO: benchmark this Setting!
-            # train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std, n=2, m=10)
-            train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std, n=1, m=2)
-        # train_pool.transform = dm.train_transforms
+            train_pool.transform = TransformFixMatch(
+                mean=dm.mean, std=dm.std, n=2, m=10
+            )
+            # train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std, n=1, m=2)
     elif isinstance(dm, ToyDM):
         train_pool.transform = MultiHeadedTransform(
             [
@@ -48,15 +50,11 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             )
         )
 
-    batch = next(iter(train_pool))
-    timeout = dm.timeout
     # Keep amount of workers fixed for training.
-    # workers_sup = 0
     if dm.num_workers > 2:
         workers_sup = max(2, (dm.num_workers) // (mu + 1))
     else:
         workers_sup = 0
-    # print("Workers Sup={}".format(workers_sup))
     workers_sem = dm.num_workers - workers_sup
     # print("Workers Semi={}".format(workers_sem))
     if len(train_pool) < dm.batch_size * mu:
@@ -72,7 +70,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=True,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
-            timeout=timeout,
+            timeout=dm.timeout,
         )
     else:
         sem_loader = DataLoader(
@@ -84,7 +82,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=True,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
-            timeout=timeout,
+            timeout=dm.timeout,
         )
 
     # Increase size of small datasets to make use of multiple workers
@@ -107,7 +105,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
-            timeout=timeout,
+            timeout=dm.timeout,
         )
     else:
         sup_loader = DataLoader(
@@ -119,7 +117,7 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             drop_last=dm.drop_last,
             worker_init_fn=seed_worker,
             persistent_workers=dm.persistent_workers,
-            timeout=timeout,
+            timeout=dm.timeout,
         )
     return [sup_loader, sem_loader]
 

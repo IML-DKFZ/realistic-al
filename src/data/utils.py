@@ -117,7 +117,7 @@ class MultiHeadedTransform(object):
 
 
 class TransformFixMatch(object):
-    def __init__(self, mean, std, img_size=32, n=1, m=2):
+    def __init__(self, mean, std, img_size=32, n=2, m=10):
         """Transformation for FixMatch.
         Callable returning (x_weak, x_strong)
         """

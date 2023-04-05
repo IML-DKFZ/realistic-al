@@ -174,13 +174,21 @@ class AbstractClassifier(pl.LightningModule):
         else:
             self.train_iters_per_epoch = len(train_loader)
 
+        # This implementation is correct and uses the amount of labels from the train_loader.
+        # Therefore if Resampling is used, more samples are used.
         weighted_loss = False
         if "weighted_loss" in self.hparams.model:
-            weighted_loss = self.hparams.model.weighted_loss
+            weighted_loss: bool = self.hparams.model.weighted_loss
         if weighted_loss:
+            logger.info("Initializing Weighted Loss")
             if hasattr(dm.train_set, "targets"):
                 classes: np.ndarray = dm.train_set.targets
             else:
+                # workaround for FixMatch trainings with multiple dataloaders
+
+                if isinstance(train_loader, (tuple, list)):
+                    # train_loader 0 is the labeled loader
+                    train_loader = train_loader[0]
                 classes = []
                 for (x, y) in train_loader:
                     classes.append(y.numpy())
@@ -188,14 +196,12 @@ class AbstractClassifier(pl.LightningModule):
 
             classes, class_weights = np.unique(classes, return_counts=True)
             # computation identical to sklearn balanced class weights
+            # https://github.com/scikit-learn/scikit-learn/blob/36958fb24/sklearn/utils/class_weight.py#L10
             class_weights = torch.tensor(
                 np.sum(class_weights) / (len(classes) * class_weights),
                 dtype=torch.float,
             )
             self.loss_fct = nn.NLLLoss(weight=class_weights)
-        # print(
-        #     "Optimizer uses train iters per epoch {}".format(self.train_iters_per_epoch)
-        # )
 
     def configure_optimizers(self):
         optimizer_name = self.hparams.optim.optimizer.name

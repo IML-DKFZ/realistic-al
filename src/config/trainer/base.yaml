@@ -19,5 +19,5 @@ deterministic: False
 profiler: Null
 load_best_ckpt: True
 save_last: False
-timeout: 3
+timeout: 60
 run_test: True

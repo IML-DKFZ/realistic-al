@@ -153,7 +153,7 @@ def get_isic_train_transform():
     input_size = 224
     train_transform = transforms.Compose(
         [
-            transforms.Resize(re_size),
+            # transforms.Resize(re_size), # resize is not necessary if data is preprocessed!
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
@@ -172,7 +172,7 @@ def get_isic_randaugMC():
     input_size = 224
     train_transform = transforms.Compose(
         [
-            transforms.Resize(re_size),
+            # transforms.Resize(re_size), # resize is not necessary if data is preprocessed!
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             # transforms.ColorJitter(0.02, 0.02, 0.02, 0.01), put this in a later stage!
@@ -193,7 +193,7 @@ def get_isic_randaug_transform():
     input_size = 224
     train_transform = transforms.Compose(
         [
-            transforms.Resize(re_size),
+            # transforms.Resize(re_size), # resize is not necessary if data is preprocessed!
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),
@@ -214,7 +214,7 @@ def get_isic_randaug_trafo(mean, std):
     train_transform = transforms.Compose(
         [
             transforms.PILToTensor(),
-            transforms.Resize(re_size),
+            # transforms.Resize(re_size), # resize is not necessary if data is preprocessed!
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.ColorJitter(0.02, 0.02, 0.02, 0.01),

@@ -1,20 +1,14 @@
-from gc import callbacks
-import math
 import os
-from typing import Callable, Union
 
 from utils.io import load_omega_conf
-import hydra
-import numpy as np
 from omegaconf import DictConfig
 from models.callbacks.metrics_callback import ImbClassMetricCallback
 
 import utils
 from data.data import TorchVisionDM
 from trainer import ActiveTrainingLoop
-from run_training import get_torchvision_dm
+from run_training import get_torchvision_dm, label_active_dm
 from utils import config_utils
-import time
 from loguru import logger
 from utils.log_utils import setup_logger
 
@@ -44,52 +38,18 @@ def main(cfg: DictConfig, path: str):
     logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
 
-    num_labelled = cfg.active.num_labelled
-    balanced = cfg.active.balanced
-    acq_size = cfg.active.acq_size
-    num_iter = cfg.active.num_iter
-
     logger.info("Instantiating Datamodule")
-    datamodule = get_torchvision_dm(cfg)
-    num_classes = cfg.data.num_classes
-    if cfg.data.name == "isic2019" and balanced:
-        label_balance = 40
-        datamodule.train_set.label_balanced(
-            n_per_class=label_balance // num_classes, num_classes=num_classes
-        )
-        label_random = num_labelled - label_balance
-        if label_random > 0:
-            datamodule.train_set.label_randomly(label_random)
-    elif datamodule.imbalance and balanced:
-        label_balance = cfg.data.num_classes * 5
-        datamodule.train_set.label_balanced(
-            n_per_class=label_balance // num_classes, num_classes=num_classes
-        )
-        label_random = num_labelled - label_balance
-        if label_random > 0:
-            datamodule.train_set.label_randomly(label_random)
-    elif cfg.data.name == "miotcd" and balanced:
-        label_balance = cfg.data.num_classes * 5
-        datamodule.train_set.label_balanced(
-            n_per_class=label_balance // num_classes, num_classes=num_classes
-        )
-        label_random = num_labelled - label_balance
-        if label_random > 0:
-            datamodule.train_set.label_randomly(label_random)
-    elif balanced:
-        datamodule.train_set.label_balanced(
-            n_per_class=num_labelled // num_classes, num_classes=num_classes
-        )
-    else:
-        datamodule.train_set.label_randomly(num_labelled)
+    datamodule = get_active_torchvision_dm(cfg)
 
     logger.info("{} Test Samples".format(len(datamodule.test_set)))
 
-    training_loop = ActiveTrainingLoop(cfg, datamodule=datamodule, base_dir=os.getcwd())
-    training_loop.init_callbacks()
+    training_loop = ActiveTrainingLoop(
+        cfg, datamodule=datamodule, base_dir=os.getcwd(), loggers=False
+    )
+    # training_loop.init_callbacks()
     if len(training_loop.callbacks) < 3:
         raise NotImplementedError
-    training_loop.init_model()
+    # training_loop.init_model()
     training_loop.model.load_only_state_dict(ckpt_path)
     # training_loop.model = training_loop.model.to("cuda:0")
     training_loop.init_trainer()
@@ -103,7 +63,7 @@ def main(cfg: DictConfig, path: str):
     conf_mat.to_csv(path / "test-conf_mat.csv")
 
     test_dict = dict()
-    test_dict = imb_metric_callback.compute_pred_metrics(mode="test")
+    test_dict = imb_metric_callback.compute_pred_metrics(mode="test", class_wise=True)
     for key, val in imb_metric_callback.auc_dict.items():
         if "test" in key:
             test_dict[key] = val.compute()
@@ -114,10 +74,10 @@ def main(cfg: DictConfig, path: str):
     return test_dict
 
 
-# path = "/home/c817h/Documents/logs/activelearning/sweep/miotcd/basic_lab-55_resnet_ep-200_drop-0_lr-0.1_wd-0.005_opt-sgd_trafo-imagenet_train/2022-09-01_17-15-31-766614"
-# path = Path(path)
-
-# path = "/home/c817h/network/Cluster-Experiments/activelearning/miotcd/active-miotcd_high/basic-pretrained_model-resnet_drop-0.5_aug-imagenet_train_acq-bald_ep-80_freeze-False_smallhead-False/2022-09-14_08-11-34-962453"
+def get_active_torchvision_dm(cfg):
+    datamodule = get_torchvision_dm(cfg)
+    label_active_dm(cfg, cfg.active.num_labelled, cfg.active.balanced, datamodule)
+    return datamodule
 
 
 def test_active_exp(path, force_override):
@@ -155,19 +115,14 @@ def test_active_exp(path, force_override):
 
 
 if __name__ == "__main__":
-    force_override = False
 
-    # path = Path(path)
-    # config_path = path / "hparams.yaml"
-    # print(config_path)
-    # cfg = load_omega_conf(config_path)
-    # main(cfg, path)
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
     parser.add_argument("-p", "--path", type=str)
     parser.add_argument("--glob", action="store_true")
     parser.add_argument("-l", "--list-only", action="store_true")
+    parser.add_argument("-f", "--force-override", action="store_true")
     args = parser.parse_args()
 
     if args.glob:
@@ -181,4 +136,4 @@ if __name__ == "__main__":
         if args.list_only:
             print(path)
         else:
-            test_active_exp(path, force_override)
+            test_active_exp(path, args.force_override)
