@@ -4,8 +4,14 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "miotcd",
-    "active": ["miotcd_low", "miotcd_med", "miotcd_high"],  # standard
-    "query": ["random", "entropy", "kcentergreedy", "bald"],
+    "active": ["miotcd_low", "miotcd_med", "miotcd_high"],
+    "query": [
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        # "bald",
+        "badge",
+    ],
     "optim": ["sgd"],
 }
 
@@ -19,12 +25,9 @@ num_classes = 11
 hparam_dict = {
     "trainer.run_test": True,
     "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5, num_classes * 100 * 5],
-    # "active.num_labelled": [200, 800],
-    # "data.val_size": [1000, None],
-    "model.dropout_p": [0, 0, 0, 0.5],
-    "model.learning_rate": [
-        0.001
-    ],  # 0,01 is omitted due to bad performance on every dataset!
+    # "model.dropout_p": [0, 0, 0, 0.5, 0],
+    "model.dropout_p": [0],
+    "model.learning_rate": [0.001],
     "model.weight_decay": [5e-3],
     "model.use_ema": False,
     "model.small_head": [False],

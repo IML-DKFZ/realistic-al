@@ -4,17 +4,13 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        # "variationratios",
-        # "batchbald",
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        "badge"
     ],
-    "data": ["cifar10_imb"],  # , "cifar100"],
-    "active": [
-        "cifar10_low",
-        "cifar10_med",
-    ],  # did not run! "standard_250", "cifar10_low_data"
+    "data": ["cifar10_imb"],
+    "active": ["cifar10_low", "cifar10_med",],
     "optim": ["sgd_fixmatch"],
 }
 
@@ -25,7 +21,8 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.deterministic": True,
     "trainer.max_epochs": 200,
-    "model.dropout_p": [0, 0, 0],
+    # "model.dropout_p": [0, 0, 0, 0],
+    "model.dropout_p": [0],
     "model.weight_decay": [1e-3, 1e-3],
     "model.weighted_loss": True,
     "model.learning_rate": [0.03],
@@ -40,7 +37,6 @@ hparam_dict = {
 naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
 joint_iteration = [
-    ["model.dropout_p", "query"],
     ["data.val_size", "active", "active.acq_size", "model.weight_decay"],
 ]
 

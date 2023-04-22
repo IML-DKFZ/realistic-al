@@ -4,8 +4,14 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": ["resnet"],
     "data": "miotcd",
-    "active": ["miotcd_high"],  # standard
-    "query": ["random", "kcentergreedy", "bald"],
+    "active": ["miotcd_low", "miotcd_med", "miotcd_high"],  # standard
+    "query": [
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        # "bald",
+        "badge"
+    ],
     "optim": ["sgd_cosine"],
 }
 
@@ -14,7 +20,8 @@ num_classes = 11
 hparam_dict = {
     "trainer.run_test": True,
     "data.val_size": [num_classes * 100 * 5],
-    "model.dropout_p": [0, 0, 0.5],
+    # "model.dropout_p": [0, 0, 0, 0.5, 0],
+    "model.dropout_p": [0],
     "model.learning_rate": [0.1,],
     "model.weight_decay": [5e-3],
     "model.use_ema": False,
@@ -59,5 +66,7 @@ if __name__ == "__main__":
     )
     if launcher_args.cluster:
         launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
+    if launcher_args.bsub:
+        launcher.ex_call = "~/run_active_20gb.sh python"
 
     launcher.launch_runs()

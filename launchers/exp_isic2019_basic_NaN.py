@@ -4,14 +4,13 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        "bald",
-        # "variationratios",
-        # "batchbald",
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        # "bald",
+        "badge",
     ],
-    "data": ["isic2019"],  # , "cifar100"],
+    "data": ["isic2019"],
     "active": ["isic19_low", "isic19_med", "isic19_high",],
     "optim": ["sgd_cosine"],
 }
@@ -21,7 +20,8 @@ hparam_dict = {
     "data.val_size": [200, 1000, None],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 200,
-    "model.dropout_p": [0, 0, 0, 0.5],
+    # "model.dropout_p": [0, 0, 0, 0.5, 0],
+    "model.dropout_p": [0],
     "model.learning_rate": [0.1],
     "model.weight_decay": [5e-3, 5e-3, 5e-4],
     "model.use_ema": False,
@@ -30,10 +30,7 @@ hparam_dict = {
     "trainer.batch_size": 512,
     "trainer.deterministic": True,
 }
-naming_conv = (
-    "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
-    # "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
-)
+naming_conv = "{data}/active-{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
 joint_iteration = [
     ["active", "data.val_size", "model.weight_decay"],
@@ -62,5 +59,7 @@ if __name__ == "__main__":
 
     if launcher_args.cluster:
         launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
+    if launcher_args.bsub:
+        launcher.ex_call = "~/run_active_20gb.sh python"
 
     launcher.launch_runs()

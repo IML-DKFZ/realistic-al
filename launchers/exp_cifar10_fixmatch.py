@@ -6,8 +6,13 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet_fixmatch",
     "data": "cifar10",
-    "active": ["cifar10_low", "cifar10_med"],  # standard
-    "query": ["random", "entropy", "kcentergreedy"],  # , "bald"],
+    "active": ["cifar10_low", "cifar10_med"],
+    "query": [
+        # "random",
+        #   "entropy",
+        # "kcentergreedy",
+        "badge",
+    ],
     "optim": "sgd_fixmatch",
 }
 

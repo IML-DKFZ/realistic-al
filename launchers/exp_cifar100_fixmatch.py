@@ -4,11 +4,10 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        # "variationratios",
-        # "batchbald",
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        "badge",
     ],
     "data": ["cifar100"],
     "active": [
@@ -61,5 +60,9 @@ if __name__ == "__main__":
         path_to_ex_file,
         joint_iteration=joint_iteration,
     )
+
+    # This is only required for BADGE
+    if launcher_args.bsub:
+        launcher.ex_call = "~/run_active_20gb.sh python"
 
     launcher.launch_runs()
