@@ -1,10 +1,16 @@
 from typing import Union, Optional
-from abc import abstractmethod
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader, Subset, random_split
+from torch.utils.data import (
+    Dataset,
+    DataLoader,
+    Subset,
+    random_split,
+    WeightedRandomSampler,
+)
 import pytorch_lightning as pl
+from data.active import ActiveLearningDataset
 
 from data.utils import (
     ActiveSubset,
@@ -30,6 +36,7 @@ class BaseDataModule(pl.LightningDataModule):
         persistent_workers: bool = True,
         timeout: int = 0,
         val_size: Optional[int] = None,
+        balanced_sampling: bool = False,
     ):
         super().__init__()
         self.batch_size = batch_size
@@ -44,6 +51,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.random_split = random_split
         self.persistent_workers = persistent_workers
         self.val_size = val_size
+        self.balanced_sampling = balanced_sampling
 
         # Used for the traning validation split
         self.seed = seed
@@ -126,27 +134,84 @@ class BaseDataModule(pl.LightningDataModule):
     def get_dataloader(self, dataset: Dataset, mode="train"):
         if mode == "train":
             if len(dataset) < self.min_train:
-                return DataLoader(
-                    dataset,
-                    batch_size=self.batch_size,
-                    sampler=RandomFixedLengthSampler(dataset, self.min_train),
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                    worker_init_fn=seed_worker,
-                    persistent_workers=self.persistent_workers,
-                )
+                if self.balanced_sampling:
+                    if isinstance(dataset, ActiveLearningDataset):
+                        targets = dataset.labelled_set.targets
+                    elif hasattr(dataset, "targets"):
+                        targets = dataset.targets
+                    else:
+                        raise ValueError(
+                            "dataset is neither an Active Learning dataset or has attribute targets"
+                        )
+
+                    classes, counts = np.unique(targets, return_counts=True)
+                    weights = np.ones(len(dataset))
+                    for cls, count in zip(classes, counts):
+                        weights[targets == cls] = 1 / (count * len(classes))
+
+                    return DataLoader(
+                        dataset,
+                        batch_size=self.batch_size,
+                        sampler=WeightedRandomSampler(
+                            weights, num_samples=self.min_train
+                        ),
+                        num_workers=self.num_workers,
+                        pin_memory=self.pin_memory,
+                        drop_last=self.drop_last,
+                        worker_init_fn=seed_worker,
+                        persistent_workers=self.persistent_workers,
+                    )
+                else:
+                    return DataLoader(
+                        dataset,
+                        batch_size=self.batch_size,
+                        sampler=RandomFixedLengthSampler(dataset, self.min_train),
+                        num_workers=self.num_workers,
+                        pin_memory=self.pin_memory,
+                        drop_last=self.drop_last,
+                        worker_init_fn=seed_worker,
+                        persistent_workers=self.persistent_workers,
+                    )
             else:
-                return DataLoader(
-                    dataset,
-                    batch_size=self.batch_size,
-                    shuffle=self.shuffle,
-                    num_workers=self.num_workers,
-                    pin_memory=self.pin_memory,
-                    drop_last=self.drop_last,
-                    worker_init_fn=seed_worker,
-                    persistent_workers=self.persistent_workers,
-                )
+                if self.balanced_sampling:
+                    if isinstance(dataset, ActiveLearningDataset):
+                        targets = dataset.labelled_set.targets
+                    elif hasattr(dataset, "targets"):
+                        targets = dataset.targets
+                    else:
+                        raise ValueError(
+                            "dataset is neither an Active Learning dataset or has attribute targets"
+                        )
+
+                    classes, counts = np.unique(targets, return_counts=True)
+                    weights = np.ones(len(dataset))
+                    for cls, count in zip(classes, counts):
+                        #
+                        weights[targets == cls] = 1 / (count * len(classes))
+
+                    return DataLoader(
+                        dataset,
+                        batch_size=self.batch_size,
+                        sampler=WeightedRandomSampler(
+                            weights, num_samples=len(dataset)
+                        ),
+                        num_workers=self.num_workers,
+                        pin_memory=self.pin_memory,
+                        drop_last=self.drop_last,
+                        worker_init_fn=seed_worker,
+                        persistent_workers=self.persistent_workers,
+                    )
+                else:
+                    return DataLoader(
+                        dataset,
+                        batch_size=self.batch_size,
+                        shuffle=self.shuffle,
+                        num_workers=self.num_workers,
+                        pin_memory=self.pin_memory,
+                        drop_last=self.drop_last,
+                        worker_init_fn=seed_worker,
+                        persistent_workers=self.persistent_workers,
+                    )
         elif mode == "test":
             return DataLoader(
                 dataset,

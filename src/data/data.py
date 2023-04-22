@@ -41,6 +41,7 @@ class TorchVisionDM(BaseDataModule):
         imbalance: bool = False,
         timeout: int = 0,
         val_size: Optional[int] = None,
+        balanced_sampling: bool = False,
     ):
         super().__init__(
             val_split=val_split,
@@ -56,6 +57,7 @@ class TorchVisionDM(BaseDataModule):
             persistent_workers=persistent_workers,
             timeout=timeout,
             val_size=val_size,
+            balanced_sampling=balanced_sampling,
         )
 
         self.data_root = data_root
