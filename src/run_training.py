@@ -30,6 +30,10 @@ def get_torchvision_dm(cfg: DictConfig, active_dataset: bool = True) -> TorchVis
     Returns:
         TorchVisionDM: _description_
     """
+    balanced_sampling = False
+    if "balanced_sampling" in cfg.data:
+        balanced_sampling = cfg.data.balanced_sampling
+
     imbalance = None
     if "imbalance" in cfg.data:
         imbalance = cfg.data.imbalance
@@ -57,6 +61,7 @@ def get_torchvision_dm(cfg: DictConfig, active_dataset: bool = True) -> TorchVis
         imbalance=imbalance,
         timeout=cfg.trainer.timeout,
         val_size=val_size,
+        balanced_sampling=balanced_sampling,
     )
 
     return datamodule

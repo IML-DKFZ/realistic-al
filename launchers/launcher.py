@@ -11,6 +11,8 @@ cluster_sync_call = "cluster_sync"
 cluster_log_path = "/dkfz/cluster/gpu/checkpoints/OE0612/c817h"
 cluster_ex_call = "cluster_run"
 
+bsub_ex_call = "~/run_active.sh python"
+
 local_ex_call = "python"
 local_log_path = "/home/c817h/Documents/logs_cluster"
 
@@ -39,12 +41,14 @@ class BaseLauncher:
         self.config_args = self.make_dictionary_iterable(config_args)
         self.overwrite_args = self.make_dictionary_iterable(overwrite_args)
 
-        self.cluster_log_path = cluster_log_path
-        self.cluster_ex_call = cluster_ex_call
+        # self.cluster_log_path = cluster_log_path
+        # self.cluster_ex_call = cluster_ex_call
         self.cluster_sync_call = cluster_sync_call
 
-        self.local_log_path = local_log_path
-        self.local_ex_call = local_ex_call
+        # self.bsub_ex_call = bsub_ex_call
+
+        # self.local_log_path = local_log_path
+        # self.local_ex_call = local_ex_call
 
         self.launcher_args = launcher_args
 
@@ -58,7 +62,12 @@ class BaseLauncher:
         self.add_name = add_name
 
         if launcher_args.cluster:
+            print("This is Deprecated -- DO NOT USE THIS! \nUse --bsub instead")
             self.ex_call = cluster_ex_call
+            self.log_path = cluster_log_path
+
+        elif launcher_args.bsub:
+            self.ex_call = bsub_ex_call
             self.log_path = cluster_log_path
 
         else:
@@ -108,13 +117,16 @@ class BaseLauncher:
         parser.add_argument("-d", "--debug", action="store_true")
         parser.add_argument("--num_start", default=0, type=int)
         parser.add_argument("--num_end", default=-1, type=int)
+        parser.add_argument(
+            "-b", "--bsub", action="store_true", help="Execeutes the script via bsub"
+        )
         return parser
 
     @staticmethod
     def modify_params_for_args(
         launcher_args: Namespace, config_dict: dict, hparam_dict: dict
     ):
-        if launcher_args.cluster:
+        if launcher_args.cluster or launcher_args.bsub:
             hparam_dict["trainer.progress_bar_refresh_rate"] = 0
         return config_dict, hparam_dict
 
@@ -357,7 +369,7 @@ class ExperimentLauncher(BaseLauncher):
                     "model.load_pretrained"
                 ] = ExperimentLauncher.finalize_paths(
                     hparam_dict["model.load_pretrained"],
-                    on_cluster=launcher_args.cluster,
+                    on_cluster=launcher_args.cluster or launcher_args.bsub,
                 )
 
             # if hparam_dict["model.load_pretrained"] is True:
@@ -409,7 +421,7 @@ if __name__ == "__main__":
     )
 
     load_pretrained = ExperimentLauncher.finalize_paths(
-        load_pretrained, on_cluster=launcher_args.cluster
+        load_pretrained, on_cluster=launcher_args.cluster or launcher_args.bsub
     )
 
     hparam_dict = {

@@ -47,10 +47,27 @@ def compute_value(path, value_name, select="max"):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-p", "--path", type=str)
-    parser.add_argument("-l", "--level", type=int, default=0)
-    parser.add_argument("-v", "--value-name", type=str, default="test/acc")
-    parser.add_argument("-s", "--select", type=str, default="max")
-    # path = "/home/c817h/Documents/logs_cluster/activelearning/sweep/cifar10/fixmatch_basic_lab-250_resnet_fixmatch_ep-200"
+    parser.add_argument(
+        "-l",
+        "--level",
+        type=int,
+        default=0,
+        help="Gives the amount of folders which are swept. E.g. for sweeps using the dataset dir it is 1",
+    )
+    parser.add_argument(
+        "-v",
+        "--value-name",
+        type=str,
+        default="test/acc",
+        help="Which value should be aggregated e.g. test/acc, val/acc",
+    )
+    parser.add_argument(
+        "-s",
+        "--select",
+        type=str,
+        default="max",
+        help="Which value to select, either [max, last]",
+    )
     args = parser.parse_args()
     level = args.level
     path = args.path

@@ -29,7 +29,8 @@ hparam_dict = {
     "model.weight_decay": [5e-3, 5e-4],  # udpate to 5e-3
     "model.use_ema": False,
     "model.small_head": [False],
-    "model.weighted_loss": True,
+    # "model.weighted_loss": True,
+    "data.balanced_sampling": True,
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 80,
     "trainer.batch_size": 128,
@@ -45,7 +46,7 @@ joint_iteration = [
     ["trainer.seed", "model.load_pretrained"],
 ]
 
-naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}"
+naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_balancsamp-{data.balanced_sampling}"
 
 path_to_ex_file = "src/run_training.py"
 
