@@ -24,7 +24,7 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.deterministic": True,
     "trainer.max_epochs": 200,
-    "model.dropout_p": [0, 0, 0],
+    "model.dropout_p": [0],
     "model.weight_decay": [5e-4],
     "model.distr_align": True,
     "model.learning_rate": [0.03],
@@ -37,7 +37,6 @@ hparam_dict = {
 naming_conv = "{data}/active-{active}/fixmatch_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}"
 
 joint_iteration = [
-    ["model.dropout_p", "query"],
     ["data.val_size", "active", "active.acq_size"],
 ]
 
