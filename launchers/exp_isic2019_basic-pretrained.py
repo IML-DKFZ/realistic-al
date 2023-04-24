@@ -5,19 +5,17 @@ from config_launcher import get_pretrained_arch
 config_dict = {
     "model": "resnet",
     "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        "bald",
-        # "variationratios",
-        # "batchbald",
+        # "random",
+        # "entropy",
+        # "kcentergreedy",
+        # "bald",
+        "badge",
     ],
-    "data": ["isic2019"],  # , "cifar100"],
+    "data": ["isic2019"],
     "active": ["isic19_low", "isic19_med", "isic19_high",],
     "optim": ["sgd"],
 }
 
-# Pretrained models from Baseline Pytorch Lightning Bolts - for final results, use own version
 load_pretrained = [
     "SSL/isic2019/isic_resnet18/2022-08-23_12-06-55-852190/checkpoints/last.ckpt",  # Seed 12345
     "SSL/isic2019/isic_resnet18/2022-08-25_10-19-38-902165/checkpoints/last.ckpt",  # Seed 12346
@@ -27,16 +25,14 @@ hparam_dict = {
     "model.weighted_loss": True,
     "data.val_size": [200, 1000, None],
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
-    "model.dropout_p": [0, 0, 0, 0.5],
+    "trainer.max_epochs": 80,
+    # "model.dropout_p": [0, 0, 0, 0.5, 0],
+    "model.dropout_p": [0],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
-    # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
     "data.transform_train": "isic_randaugment",
-    # experiment with big head and frozen encoder
-    # "model.freeze_encoder": True,
     "model.small_head": [False],
     "trainer.precision": 32,
     "trainer.deterministic": True,

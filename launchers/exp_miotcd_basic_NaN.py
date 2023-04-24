@@ -19,11 +19,11 @@ config_dict = {
 num_classes = 11
 hparam_dict = {
     "trainer.run_test": True,
-    "data.val_size": [num_classes * 100 * 5],
+    "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5, num_classes * 100 * 5],
     # "model.dropout_p": [0, 0, 0, 0.5, 0],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.1,],
-    "model.weight_decay": [5e-3],
+    "model.learning_rate": [0.01, 0.01, 0.1,],
+    "model.weight_decay": [5e-3, 5e-4, 5e-3],
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
@@ -31,14 +31,14 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "trainer.batch_size": 512,
     "trainer.num_workers": 10,
-    "trainer.seed": [12347, 12345, 12347],
+    "trainer.seed": [12345, 123456, 12347],
     "data.transform_train": ["imagenet_randaugMC"],
     "trainer.precision": 32,
     "trainer.deterministic": True,
 }
 
 joint_iteration = [
-    ["query", "model.dropout_p", "trainer.seed"],
+    ["query", "model.dropout_p"],
     ["active", "model.weight_decay", "model.learning_rate", "data.val_size"],
 ]
 
