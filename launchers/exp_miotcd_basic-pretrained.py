@@ -69,5 +69,7 @@ if __name__ == "__main__":
         path_to_ex_file,
         joint_iteration=joint_iteration,
     )
+    if launcher_args.bsub:
+        launcher.ex_call = "~/run_active_14gb.sh python"
 
     launcher.launch_runs()
