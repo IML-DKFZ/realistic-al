@@ -18,7 +18,7 @@ load_pretrained = [
 
 hparam_dict = {
     "trainer.run_test": False,
-    "model.weighted_loss": True,
+    "model.weighted_loss": False,
     "active.num_labelled": [50, 250, 1000],
     "data.val_size": [50 * 5, 250 * 5, None],
     "model.dropout_p": [0],
