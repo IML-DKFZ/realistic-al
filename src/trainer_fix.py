@@ -17,7 +17,7 @@ from data.utils import ConcatDataloader
 
 class ConcatenatedAugmenters:
     def __init__(self, augmenters):
-        """Allows to use BatchGenerators Augmenters as a drop-in replacement for DataLoaders in 
+        """Allows to use BatchGenerators Augmenters as a drop-in replacement for DataLoaders in
         Pytorch-Lightning.
 
         Args:
@@ -75,7 +75,7 @@ class FixTrainingLoop(ActiveTrainingLoop):
             max_epochs=self.cfg.trainer.max_epochs,
             min_epochs=self.cfg.trainer.min_epochs,
             fast_dev_run=self.cfg.trainer.fast_dev_run,
-            detect_anomaly=True,
+            # detect_anomaly=True,
             callbacks=self.callbacks,
             check_val_every_n_epoch=self.cfg.trainer.check_val_every_n_epoch,
             gradient_clip_val=self.cfg.trainer.gradient_clip_val,
@@ -135,8 +135,8 @@ class FixTrainingLoop(ActiveTrainingLoop):
 
         val_dataloader = datamodule.val_dataloader()
 
-        self.model.train_iters_per_epoch = self.cfg.trainer.train_iters_per_epoch
         self.model.setup_data_params(self.datamodule)
+        self.model.train_iters_per_epoch = self.cfg.trainer.train_iters_per_epoch
         self.trainer.fit(
             model=self.model,
             train_dataloaders=train_dataloader,
