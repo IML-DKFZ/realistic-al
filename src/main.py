@@ -98,18 +98,6 @@ def active_loop(
     )
     request_pool = np.array([active_store.requests for active_store in active_stores])
 
-    # # This can be deleted!
-    # if True:
-    #     import matplotlib.pyplot as plt
-
-    #     plt.clf()
-    #     plt.plot(num_samples, val_accs)
-    #     plt.savefig(os.path.join(store_path, "val_accs_vs_num_samples.pdf"))
-    #     plt.clf()
-    #     plt.plot(num_samples, test_accs)
-    #     plt.savefig(os.path.join(store_path, "test_accs_vs_num_samples.pdf"))
-    #     plt.clf()
-
     np.savez(
         os.path.join(store_path, "stored.npz"),
         val_acc=val_accs,

@@ -42,6 +42,7 @@ QUERYMETHODS = {
     "kcentergreedy": "Core-Set",
     "entropy": "Entropy",
     "random": "Random",
+    "badge": "BADGE",
     "batchbald": "BatchBALD",
 }
 
@@ -49,6 +50,7 @@ PALETTE = {
     "BALD": "tab:blue",
     "Core-Set": "tab:green",
     "Entropy": "tab:orange",
+    "BADGE": "tab:purple",
     "Random": "tab:red",
     "BatchBALD": "tab:cyan",
 }
@@ -354,9 +356,16 @@ def product_of_dictionary(dictionary: Dict[str, Union[list, tuple]]) -> List[dic
 if __name__ == "__main__":
     sns.set_style("whitegrid")
     base_path = Path("/mnt/drive_nvme2/logs_cluster/activelearning")
+    base_path2 = Path("/home/c817h/network/Cluster-Experiments/activelearning")
     save_path = Path("./plots")
-    df = create_experiment_df(base_path, DATASETS, rewrite=True)
+    # df = create_experiment_df(base_path, DATASETS, rewrite=True)
+    # df2 = create_experiment_df(base_path2, DATASETS, rewrite=True)
 
+    # df = pd.concat([df, df2], axis=0)
+
+    df = create_experiment_df(base_path2, DATASETS, rewrite=True)
+
+    # df.reset_index(inplace=True)
     df = preprocess_df(df, MATCH_PATTERNS, VALUE_DICT)
 
     inv_dataset = {v: k for k, v in DATASETS.items()}

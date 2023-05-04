@@ -46,9 +46,10 @@ def get_exp_df(exp_path: Path):
 
 
 def create_experiment_df(
-    base_path: Path, dataset_dict: Dict[str, str], rewrite: bool = True,
+    base_path: Path,
+    dataset_dict: Dict[str, str],
+    rewrite: bool = True,
 ):
-
     save_file = Path("./plots/save.pkl")
     # if save_file.exists() and rewrite is False:
     #     df = pd.read_pickle(save_file)
@@ -209,4 +210,3 @@ def main():
 
 # if __name__ == "__main__":
 #     main()
-
