@@ -18,7 +18,7 @@ sys.path.append(src_folder)
 
 ####################################################
 
-from utils import set_seed
+from utils.setup import set_seed
 import utils.path_utils as path_utils
 import utils.io as io
 from run_toy import ToyActiveLearningLoop, get_toy_dm
@@ -33,6 +33,7 @@ def data_dir():
 
 
 # TODO: Write test that ensures that whatever happens in between -- the random data labelling stays identical!
+
 
 # tmp_path is generally obtainable in pytest which shows a folder structure created by pytest
 @pytest.fixture

@@ -1,5 +1,6 @@
 from typing import List
-import pytest
+
+# import pytest
 import os
 
 import numpy as np
@@ -13,7 +14,7 @@ sys.path.append(src_folder)
 
 ####################################################
 
-from utils import set_seed
+from utils.setup import set_seed
 from data.data import TorchVisionDM
 from data.toy_dm import ToyDM
 

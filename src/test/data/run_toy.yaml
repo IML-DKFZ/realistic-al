@@ -50,19 +50,44 @@ trainer:
   seed: 12345
   batch_size: 64
   num_workers: 16
+  persistent_workers: True
   max_epochs: 1
-  min_epochs: 0
-  fast_dev_run: false
+  min_epochs: 50
+  fast_dev_run: False
   data_root: ${oc.env:DATA_ROOT}
   experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
   experiment_name: 2d_toy_test
   experiment_id: test
   n_gpus: 1
   check_val_every_n_epoch: 1
-  progress_bar_refresh_rate: 10
+  progress_bar_refresh_rate: 1
   gradient_clip_val: 0
-  early_stop: false
-  precision: 16
-  deterministic: true
-  profiler: null
-  vis_callback: false
+  early_stop: False
+  precision: 16 
+  deterministic: True
+  profiler: Null
+  load_best_ckpt: False
+  save_last: True
+  timeout: 60
+  run_test: True
+  vis_callback: False
+  # seed: 12345
+  # batch_size: 64
+  # num_workers: 16
+  # max_epochs: 1
+  # min_epochs: 0
+  # fast_dev_run: false
+  # data_root: ${oc.env:DATA_ROOT}
+  # experiments_root: ${oc.env:EXPERIMENT_ROOT}/activelearning
+  # experiment_name: 2d_toy_test
+  # experiment_id: test
+  # n_gpus: 1
+  # check_val_every_n_epoch: 1
+  # progress_bar_refresh_rate: 10
+  # gradient_clip_val: 0
+  # early_stop: false
+  # precision: 16
+  # deterministic: true
+  # profiler: null
+  # vis_callback: false
+  # persistent_workers: True
