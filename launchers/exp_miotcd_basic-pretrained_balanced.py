@@ -10,7 +10,7 @@ config_dict = {
         "entropy",
         "kcentergreedy",
         "bald",
-        "badge",
+        # "badge",
     ],
     "optim": ["sgd"],
 }
@@ -25,7 +25,7 @@ num_classes = 11
 hparam_dict = {
     "data.balanced_sampling": True,
     "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5, num_classes * 100 * 5],
-    "model.dropout_p": [0, 0, 0, 0.5, 0],
+    "model.dropout_p": [0, 0, 0, 0.5],
     # "model.dropout_p": [0],
     "model.learning_rate": [0.001, 0.01, 0.001],
     "model.weight_decay": [5e-3, 5e-3, 5e-3],
@@ -79,5 +79,26 @@ if __name__ == "__main__":
     )
     if launcher_args.bsub:
         launcher.ex_call = "~/run_active_14gb.sh python"
+
+    launcher.launch_runs()
+
+    print("-" * 8)
+
+    config_dict["query"] = ["badge"]
+    hparam_dict["model.dropout_p"] = [0]
+    config_dict, hparam_dict = ExperimentLauncher.modify_params_for_args(
+        launcher_args, config_dict, hparam_dict
+    )
+    launcher = ExperimentLauncher(
+        config_dict,
+        hparam_dict,
+        launcher_args,
+        naming_conv,
+        path_to_ex_file,
+        joint_iteration=joint_iteration,
+    )
+
+    if launcher_args.bsub:
+        launcher.ex_call = "~/run_active_20gb.sh python"
 
     launcher.launch_runs()
