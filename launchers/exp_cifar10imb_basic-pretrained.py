@@ -45,6 +45,7 @@ hparam_dict = {
     # "model.freeze_encoder": True,
     "model.small_head": [False],
     "trainer.precision": 32,
+    "trainer.deterministic": True,
 }
 
 naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
