@@ -4,13 +4,16 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random",
-        # "entropy",
-        # "kcentergreedy",
-        "badge"
+        "random",
+        "entropy",
+        "kcentergreedy",
+        # "badge"
     ],
     "data": ["cifar10_imb"],
-    "active": ["cifar10_low", "cifar10_med",],
+    "active": [
+        "cifar10_low",
+        "cifar10_med",
+    ],
     "optim": ["sgd_fixmatch"],
 }
 
@@ -28,7 +31,9 @@ hparam_dict = {
     "model.learning_rate": [0.03],
     "model.small_head": [True],
     "model.use_ema": False,
-    "data.transform_train": ["cifar_basic",],
+    "data.transform_train": [
+        "cifar_basic",
+    ],
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
     "model.distr_align": True,

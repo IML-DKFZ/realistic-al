@@ -4,16 +4,16 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random",
-        # "entropy",
-        # "kcentergreedy",
-        "badge",
+        "random",
+        "entropy",
+        "kcentergreedy",
+        # "badge",
     ],
     "data": ["cifar100"],
     "active": [
         "cifar100_low",
         "cifar100_med",
-    ],  # did not run! "standard_250", "cifar10_low_data"
+    ],
     "optim": ["sgd_fixmatch"],
 }
 
@@ -30,7 +30,9 @@ hparam_dict = {
     "model.learning_rate": [0.03],
     "model.small_head": [True],
     "model.use_ema": False,
-    "data.transform_train": ["cifar_basic",],
+    "data.transform_train": [
+        "cifar_basic",
+    ],
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
 }
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     )
 
     # This is only required for BADGE
-    if launcher_args.bsub:
-        launcher.ex_call = "~/run_active_20gb.sh python"
+    # if launcher_args.bsub:
+    #     launcher.ex_call = "~/run_active_20gb.sh python"
 
     launcher.launch_runs()
