@@ -5,10 +5,11 @@ from config_launcher import get_pretrained_arch
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random",
-        # "entropy",
-        # "kcentergreedy",
-        # "bald",
+        "random",
+        "entropy",
+        "kcentergreedy",
+        "badge",
+        "bald",
         # "variationratios",
         "batchbald",
     ],
@@ -30,8 +31,8 @@ hparam_dict = {
     "data.val_size": [50 * 5],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
-    "model.dropout_p": [0.5],
-    "model.learning_rate": [0.01],
+    "model.dropout_p": [0.5, 0.5, 0.5, 0, 0.5, 0.5],
+    "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
     "model.weight_decay": [5e-4],
     # "model.finetune": [True],
@@ -42,14 +43,17 @@ hparam_dict = {
     # "model.freeze_encoder": True,
     "model.small_head": [False],
     "trainer.precision": 32,
+    "trainer.determinstic": True,
 }
 
 naming_conv = "{data}/active-{active}-batchbald/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}_balancsamp-{data.balanced_sampling}"
 
 
-joint_iteration = ["model.load_pretrained", "trainer.seed"]
+joint_iteration = [
+    ["model.load_pretrained", "trainer.seed"],
+    ["query", "model.dropout_p"],
+]
 
-joint_iteration = [joint_iteration]
 
 path_to_ex_file = "src/main.py"
 
