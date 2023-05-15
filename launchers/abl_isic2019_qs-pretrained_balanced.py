@@ -46,7 +46,7 @@ hparam_dict = {
     "trainer.deterministic": True,
 }
 
-naming_conv = "{data}/active-{active}-qs_{active.acq_size}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}_balancsamp-{data.balanced_sampling}"
+naming_conv = "{data}/active-{active}_qs-{active.acq_size}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}_balancsamp-{data.balanced_sampling}"
 
 
 joint_iteration = [
