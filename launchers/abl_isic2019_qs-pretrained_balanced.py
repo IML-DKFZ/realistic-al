@@ -31,7 +31,8 @@ hparam_dict = {
     "data.val_size": [200],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
-    "model.dropout_p": [0, 0, 0, 0, 0.5],
+    # "model.dropout_p": [0, 0, 0, 0, 0.5],
+    "model.dropout_p": [0],
     "model.learning_rate": [0.001],
     "model.weight_decay": [5e-3],
     "model.freeze_encoder": [False],  # possibly add True
