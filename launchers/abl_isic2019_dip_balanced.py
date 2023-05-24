@@ -27,7 +27,10 @@ hparam_dict = {
     "trainer.max_epochs": 200,
     "model.small_head": True,
     "model.dropout_p": [0],
-    "model.learning_rate": [0.01],
+    "model.learning_rate": [
+        0.1,
+        0.01,
+    ],
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     "data.transform_train": [
