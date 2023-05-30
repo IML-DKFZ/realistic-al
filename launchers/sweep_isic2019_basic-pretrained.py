@@ -32,7 +32,7 @@ hparam_dict = {
     # "data.transform_train": ["isic_train", "isic_randaugment"],
     "data.transform_train": ["isic_train", "isic_randaugmentMC"],
     "trainer.deterministic": True,
-    "trainer.batch_size": 512,
+    "trainer.batch_size": 128,
     "trainer.precision": 16,
 }
 
