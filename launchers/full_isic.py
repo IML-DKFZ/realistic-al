@@ -3,9 +3,13 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": ["random",],
+    "query": [
+        "random",
+    ],
     "data": ["isic2019"],
-    "active": ["full_data",],
+    "active": [
+        "full_data",
+    ],
     "optim": ["sgd_cosine"],
 }
 
@@ -18,7 +22,7 @@ hparam_dict = {
     "model.dropout_p": [0],
     "trainer.precision": 16,  # had some stability issues with weighted loss etc... in doubt use 32
     "model.learning_rate": [0.1, 0.01],
-    "model.weight_decay": [5e-3, 5e-4, 5e-5],
+    "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,

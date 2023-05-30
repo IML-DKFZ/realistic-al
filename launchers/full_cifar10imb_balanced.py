@@ -38,7 +38,7 @@ hparam_dict = {
     "trainer.max_epochs": 200,
 }
 naming_conv = (
-    "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}_optim-{optim}_balancsamp-{data.balanced_sampling}
+    "{data}/{active}/basic_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_wd-{model.weight_decay}_lr-{model.learning_rate}_optim-{optim}_balancsamp-{data.balanced_sampling}"
     # "active_basic_{data}_set-{active}_{model}_acq-{query}_ep-{trainer.max_epochs}"
 )
 
