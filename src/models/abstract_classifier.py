@@ -24,7 +24,8 @@ from .callbacks.ema_callback import EMAWeightUpdate
 class AbstractClassifier(pl.LightningModule):
     def __init__(self, eman: bool = True):
         """Abstract Classifier carrying the logic for Bayesian Models with MC Dropout and logging for base values.
-        Dropout is per default used always, also during validation due to nature of Bayesian Model (Yarin Gal)"""
+        Dropout is per default used always, also during validation due to nature of Bayesian Model (Yarin Gal)
+        """
         super().__init__()
 
         # general model
@@ -190,7 +191,7 @@ class AbstractClassifier(pl.LightningModule):
                     # train_loader 0 is the labeled loader
                     train_loader = train_loader[0]
                 classes = []
-                for (x, y) in train_loader:
+                for x, y in train_loader:
                     classes.append(y.numpy())
                 classes = np.concatenate(classes)
 
@@ -239,11 +240,17 @@ class AbstractClassifier(pl.LightningModule):
                 learning_rate=lr,
             )
         if optimizer_name == "adam":
-            optimizer = torch.optim.Adam(params,)
+            optimizer = torch.optim.Adam(
+                params,
+            )
         elif optimizer_name == "sgd":
             momentum = self.hparams.optim.optimizer.momentum
             nesterov = self.hparams.optim.optimizer.nesterov
-            optimizer = torch.optim.SGD(params, momentum=momentum, nesterov=nesterov,)
+            optimizer = torch.optim.SGD(
+                params,
+                momentum=momentum,
+                nesterov=nesterov,
+            )
         else:
             raise NotImplementedError
 
@@ -273,7 +280,8 @@ class AbstractClassifier(pl.LightningModule):
             if step_size == 0:
                 step_size += 1
             scheduler = torch.optim.lr_scheduler.StepLR(
-                optimizer=optimizer, step_size=step_size,
+                optimizer=optimizer,
+                step_size=step_size,
             )
             return [optimizer], [scheduler]
         elif scheduler_name == "steplr_resnet":
@@ -296,7 +304,9 @@ class AbstractClassifier(pl.LightningModule):
         )
         if len(self.loggers) > 0:
             self.loggers[0].experiment.add_image(
-                name, grid, self.current_epoch,
+                name,
+                grid,
+                self.current_epoch,
             )
 
     # TODO: Change this so that it works for many different models!
@@ -338,4 +348,3 @@ class AbstractClassifier(pl.LightningModule):
                 )
             model_ckpt = ckpts_f[-1]
         return model_ckpt
-

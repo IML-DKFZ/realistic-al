@@ -40,8 +40,6 @@ def get_post_acq_function(
     if cfg.query.name == "batchbald":
 
         # This values should only be used to select the entropy computation
-        # TODO: verify this! -- true
-        # num_samples = 100000 # taken from batchbald_redux notebook --> old bb
         num_samples = 40000  # taken from BatchBALD
 
         def post_acq_function(logprob_n_k_c: np.ndarray, acq_size: int):
@@ -52,7 +50,6 @@ def get_post_acq_function(
             logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(
                 device=device, dtype=torch.double
             )
-            # TODO: with torch.no_grad() could speed this up signficantely
             # TODO: compute estimate how big chunks can be made -- signifcantely speeds up computation!
             with torch.no_grad():
                 out = get_batchbald_batch(
