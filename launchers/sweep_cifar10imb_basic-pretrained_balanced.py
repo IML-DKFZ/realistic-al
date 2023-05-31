@@ -7,7 +7,6 @@ config_dict = {
     "model": ["resnet"],
     "data": "cifar10_imb",
     "optim": ["sgd"],
-    # "optim": ["sgd_cosine"],
 }
 
 load_pretrained = [
@@ -31,10 +30,9 @@ hparam_dict = {
     "model.load_pretrained": load_pretrained,
     "trainer.max_epochs": 80,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_randaugment"],
-    # "data.transform_train": ["cifar_basic", "cifar_randaugmentMC",],
+    "data.transform_train": ["cifar_basic", "cifar_randaugment"],
     "trainer.precision": 16,
-    "trainer.batch_size": 1024,
+    # "trainer.batch_size": 1024,
 }
 
 naming_conv = "sweep/{data}/basic-pretrained_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_balancsamp-{data.balanced_sampling}"

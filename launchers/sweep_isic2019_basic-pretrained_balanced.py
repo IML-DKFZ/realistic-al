@@ -30,10 +30,10 @@ hparam_dict = {
     "trainer.max_epochs": 80,
     "trainer.seed": [12345, 12346, 12347],
     "model.load_pretrained": load_pretrained,
-    # "data.transform_train": ["isic_train", "isic_randaugment"],
-    "data.transform_train": ["isic_train", "isic_randaugmentMC"],
+    "data.transform_train": ["isic_train", "isic_randaugment"],
+    # "data.transform_train": ["isic_train", "isic_randaugmentMC"],
     "trainer.deterministic": True,
-    "trainer.batch_size": 512,
+    "trainer.batch_size": 128,
     "trainer.precision": 16,
 }
 
