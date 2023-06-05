@@ -1,13 +1,13 @@
 from argparse import ArgumentParser
-import re
 from itertools import product
 from pathlib import Path
-from typing import Callable, List, Dict, Tuple, Optional, Union
+from typing import List, Dict, Tuple, Optional, Union
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
+# required for accessing functions from src
 import ipynb_setup
 
 from plotlib.performance_plots import plot_standard_dev
@@ -24,15 +24,27 @@ FULL_MODELS = {
         "PT": None,
     },
     "CIFAR-10-LT": {
-        "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine_weighted-true",
+        # WLoss
+        # "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine_weighted-true",
+        # "PT": None,
+        # Balanced
+        "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.005_lr-0.1_optim-sgd_cosine_balancsamp-True",
         "PT": None,
     },
     "MIO-TCD": {
-        "Basic": "basic_model-resnet_drop-0_aug-imagenet_randaugMC_wd-5e-05_lr-0.1_optim-sgd_cosine_weighted-True_epochs-80",
+        # WLoss
+        # "Basic": "basic_model-resnet_drop-0_aug-imagenet_randaugMC_wd-5e-05_lr-0.1_optim-sgd_cosine_weighted-True_epochs-80",
+        # "PT": None,
+        # Balanced
+        "Basic": "basic_model-resnet_drop-0_aug-imagenet_randaugMC_wd-0.0005_lr-0.1_optim-sgd_cosine_weighted-False_epochs-80_balancsamp-True",
         "PT": None,
     },
     "ISIC-2019": {
-        "Basic": "basic_model-resnet_drop-0_aug-isic_train_wd-0.005_lr-0.01_optim-sgd_cosine_weighted-True_epochs-200",
+        # WLoss
+        # "Basic": "basic_model-resnet_drop-0_aug-isic_train_wd-0.005_lr-0.01_optim-sgd_cosine_weighted-True_epochs-200",
+        # "PT": None,
+        # Balanced
+        "Basic": "basic_model-resnet_drop-0_aug-isic_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine_weighted-False_epochs-200_balancsamp-True",
         "PT": None,
     },
 }
@@ -57,8 +69,7 @@ PALETTE = {
 
 
 def style_func_dict(x: Dict[str, bool]) -> str:
-    """Function used on dictionaries and dataframes to generate the style value for a plot.
-    """
+    """Function used on dictionaries and dataframes to generate the style value for a plot."""
     out = []
     if x["Self-SL"]:
         out.append("Self-SL Pre-Trained")
@@ -70,6 +81,7 @@ def style_func_dict(x: Dict[str, bool]) -> str:
     return " ".join(out)
 
 
+# dash styles in final plot
 DASHES = {
     style_func_dict({"Self-SL": False, "Semi-SL": False}): (4, 4),
     style_func_dict({"Self-SL": True, "Semi-SL": False}): (1, 0),
@@ -77,8 +89,7 @@ DASHES = {
     style_func_dict({"Self-SL": True, "Semi-SL": True}): (2, 1),
 }
 
-# DASHES = None
-
+# marker styles in final plot
 MARKERS = {
     style_func_dict({"Self-SL": False, "Semi-SL": False}): "v",
     style_func_dict({"Self-SL": True, "Semi-SL": False}): "o",
@@ -86,6 +97,7 @@ MARKERS = {
     style_func_dict({"Self-SL": True, "Semi-SL": True}): "X",
 }
 
+# which dataset to use
 DATASETS = {
     "CIFAR-10": "cifar10",
     "CIFAR-100": "cifar100",
@@ -94,32 +106,28 @@ DATASETS = {
     "ISIC-2019": "isic2019",
 }
 
+# required parameters
 MATCH_PATTERNS = [
     r"basic_.*",
     r"basic-pretrained_.*",
-    #     r".*__wloss.*"
-    #     BB experiment
-    #     r".*bald.*"
-    #     r".*random.*"
     r"fixmatch_.*",
-    #     r"fixmatch-pretrained_.*",
 ]
 
-SETTINGS = {
-    "full": ["low", "med", "high"],
-    "low-bb": ["low-batchbald"],
-    "low-bb-fulll": ["low-batchbald", "low"],
-    "bblow": ["low"],
+
+# given a setting filter out values with
+FILTERDICT = {
+    "full": {"Rel. Path": [".*batchbald.*"]},
+    "bblow": {},
+    "bb": {},
+    "abl_cifar100": {},
+    "abl_isic": {},
 }
 
-FILTERDICT = {"full": {"Rel. Path": [".*batchbald.*"]}, "bblow": {}, "bb": {}}
-
+# Style based on this key
 STYLENAME = "Training"
 
-VALUE_DICT = {
-    # STYLENAME: lambda x: "PT: {}, Sem-SL: {}".format(x["Self-SL"], x["Semi-SL"])
-    STYLENAME: style_func_dict
-}
+# Overwrite values
+VALUE_DICT = {STYLENAME: style_func_dict}
 
 
 def get_label_regime(x: str) -> str:
@@ -189,7 +197,7 @@ def plot_experiment(
     ax_legend: int = 0,
 ) -> Tuple[plt.Figure, List[plt.Axes]]:
     """Plotting Script for whole Experiment rows.
-    Resulting in a figure with multiple plots. 
+    Resulting in a figure with multiple plots.
     If some dfs are missing to fill num_cols then they are filled up
     and branded.
 
@@ -211,8 +219,7 @@ def plot_experiment(
     """
     if num_cols is None:
         num_cols = len(dfs)
-    # no necessary
-    fig, axs = plt.subplots(ncols=num_cols, sharey=sharey)
+    fig, axs = plt.subplots(ncols=num_cols, sharey=sharey, figsize=(4 * num_cols, 6))
     if num_cols == 1:
         axs = [axs]
 
@@ -258,15 +265,18 @@ def plot_experiment(
             err_kws={"alpha": 0.2},
         )  # , units=unit_name)
 
+        # fat borders
+        [x.set_linewidth(2) for x in axs[i].spines.values()]
+
+    if sharey is True:
+        fig.subplots_adjust(wspace=0.075, hspace=0)
+    else:
+        fig.tight_layout()
     if upper_bound:
         # Plot axhline into all values
         add_upper_bound(axs, hline_dicts)
 
     set_legend(ylabel, xlabel, fig, axs)
-
-    # Define Layout
-    fig.set_size_inches(4 * num_cols, 6)
-    fig.tight_layout()
 
     return fig, axs
 
@@ -274,7 +284,7 @@ def plot_experiment(
 def set_legend(ylabel: str, xlabel: str, fig: plt.Figure, axs: List[plt.Axes]):
     """Sets the labels and removes legends on axes and sets legend below figure
 
-    ___ 
+    ___
     Note: it is best to have only one legend on all axs if identical
     """
     num_cols = len(axs)
@@ -291,7 +301,7 @@ def set_legend(ylabel: str, xlabel: str, fig: plt.Figure, axs: List[plt.Axes]):
         ncol_legend = 3
     fig.legend(
         loc="upper center",
-        bbox_to_anchor=(0.5, -0.05),
+        bbox_to_anchor=(0.5, 0.02),
         fancybox=True,
         shadow=True,
         ncol=ncol_legend,
@@ -320,10 +330,10 @@ def to_path_name(string: str):
 
 
 def save_plot(
-    save_path: Path, save_dict: Dict[str, any],
+    save_path: Path,
+    save_dict: Dict[str, any],
 ):
-    """Turns all values in the save_dict into a string as a name and saves active plot
-    """
+    """Turns all values in the save_dict into a string as a name and saves active plot"""
     save_name = []
     for key in save_dict:
         key_str = to_path_name(key)
@@ -332,7 +342,7 @@ def save_plot(
     save_name = "_".join(save_name)
     if not save_path.is_dir():
         save_path.mkdir(parents=True)
-    plt.savefig(save_path / save_name, bbox_inches="tight")
+    plt.savefig(save_path / save_name, bbox_inches="tight", pad_inches=0.01, dpi=600)
 
 
 def product_of_dictionary(dictionary: Dict[str, Union[list, tuple]]) -> List[dict]:
@@ -355,17 +365,17 @@ def product_of_dictionary(dictionary: Dict[str, Union[list, tuple]]) -> List[dic
 
 if __name__ == "__main__":
     sns.set_style("whitegrid")
+    plt.rc("font", size=12)
     base_path = Path("/mnt/drive_nvme2/logs_cluster/activelearning")
-    base_path2 = Path("/home/c817h/network/Cluster-Experiments/activelearning")
+    base_path2 = Path("/mnt/drive_nvme2/logs_cluster/activelearning_wloss")
+    base_path2 = Path("/mnt/drive_nvme2/logs_cluster/activelearning_balanced")
+
     save_path = Path("./plots")
-    # df = create_experiment_df(base_path, DATASETS, rewrite=True)
-    # df2 = create_experiment_df(base_path2, DATASETS, rewrite=True)
+    df = create_experiment_df(base_path, DATASETS, rewrite=True)
+    df2 = create_experiment_df(base_path2, DATASETS, rewrite=True)
 
-    # df = pd.concat([df, df2], axis=0)
+    df = pd.concat([df, df2], axis=0)
 
-    df = create_experiment_df(base_path2, DATASETS, rewrite=True)
-
-    # df.reset_index(inplace=True)
     df = preprocess_df(df, MATCH_PATTERNS, VALUE_DICT)
 
     inv_dataset = {v: k for k, v in DATASETS.items()}
@@ -386,6 +396,8 @@ if __name__ == "__main__":
         "full": {"Label Regime": [["low"], ["med"], ["high"]]},
         "bblow": {"Label Regime": [["low", "low-batchbald"]]},
         "bb": {"Label Regime": [["low-batchbald"]]},
+        "abl_cifar100": {"Label Regime": [["low_qs-50"], ["low"], ["low_qs-2000"]]},
+        "abl_isic": {"Label Regime": [["low_qs-10"], ["low_qs-40"], ["low_qs-160"]]},
     }
 
     plot_value_settings_dict = {
@@ -490,4 +502,3 @@ if __name__ == "__main__":
     aubc_df = aubc_df.drop_duplicates()
     aubc_df = preprocess_df(aubc_df, MATCH_PATTERNS, VALUE_DICT)
     aubc_df.to_csv(save_path / "aubc.csv")
-
