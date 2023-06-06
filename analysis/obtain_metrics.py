@@ -7,8 +7,13 @@ import numpy as np
 from pprint import pprint
 
 
-def compute_value(path, value_name, select="max"):
+def compute_value(path:Path, value_name:str, select:str="max"):
     values = []
+    if select == "auto":
+        if "fixmatch" in path.name.lower():
+            select = "last"
+        else:
+            select = "max"
     for sub_path in path.iterdir():
         if sub_path.is_dir():
             file = sub_path / "metrics.csv"
@@ -34,8 +39,6 @@ def compute_value(path, value_name, select="max"):
         "STD": np.round(values.std(ddof=1), 4) * 100,
         "_Runs": len(values),
     }
-    # df_row = [str(path.parts[-1]), values.mean(), values.std(ddof=1), len(values)]
-    # pprint(out_dict)
     for key in out_dict:
         out_dict[key] = [out_dict[key]]
     df = pd.DataFrame(out_dict)
@@ -65,8 +68,8 @@ if __name__ == "__main__":
         "-s",
         "--select",
         type=str,
-        default="max",
-        help="Which value to select, either [max, last]",
+        default="auto",
+        help="Which value to select, either [auto, max, last]",
     )
     args = parser.parse_args()
     level = args.level
@@ -80,3 +83,5 @@ if __name__ == "__main__":
         for sub_path in path.iterdir():
             if sub_path.is_dir():
                 compute_value(sub_path, value_name, select)
+    else:
+        raise NotImplementedError

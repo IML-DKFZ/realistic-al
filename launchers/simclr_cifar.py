@@ -16,7 +16,7 @@ hparam_dict = {
 
 naming_conv = "{data}/{model}"
 
-path_to_ex_file = "skripts/train_simclr.py"
+path_to_ex_file = "ssl/train_simclr.py"
 
 joint_iteration = None
 
