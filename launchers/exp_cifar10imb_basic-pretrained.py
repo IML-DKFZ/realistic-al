@@ -37,6 +37,7 @@ hparam_dict = {
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
     "model.weight_decay": [5e-3, 5e-3, 5e-4],
+    "model.weighted_loss": True,
     # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
@@ -48,7 +49,7 @@ hparam_dict = {
     "trainer.deterministic": True,
 }
 
-naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}"
+naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model.dropout_p}_aug-{data.transform_train}_acq-{query}_ep-{trainer.max_epochs}_freeze-{model.freeze_encoder}_smallhead-{model.small_head}__wloss-{model.weighted_loss}"
 
 
 joint_iteration = ["model.load_pretrained", "trainer.seed"]

@@ -28,7 +28,7 @@ hparam_dict = {
     "model.dropout_p": [0, 0, 0, 0.5],
     # "model.dropout_p": [0],
     "model.learning_rate": [0.001, 0.01, 0.001],
-    "model.weight_decay": [5e-3, 5e-3, 5e-3],
+    "model.weight_decay": [5e-4, 5e-3, 5e-3],
     "model.use_ema": False,
     "model.small_head": [False],
     "model.load_pretrained": load_pretrained,
@@ -37,7 +37,7 @@ hparam_dict = {
     "trainer.batch_size": 128,
     "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["imagenet_randaugMC", "imagenet_train", "imagenet_train"],
+    "data.transform_train": ["imagenet_randaug", "imagenet_train", "imagenet_train"],
     "trainer.deterministic": True,
 }
 

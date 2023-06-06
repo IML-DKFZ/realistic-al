@@ -8,9 +8,9 @@ config_dict = {
     "data": "cifar10",
     "active": ["cifar10_low", "cifar10_med"],
     "query": [
-        # "random",
-        #   "entropy",
-        # "kcentergreedy",
+        "random",
+          "entropy",
+        "kcentergreedy",
         "badge",
     ],
     "optim": "sgd_fixmatch",

@@ -34,10 +34,10 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,  # Think about this before commiting (or sweep!)
     "model.dropout_p": [0, 0, 0, 0.5, 0],
-    # "model.dropout_p": [0],
-    "model.learning_rate": [0.01, 0.01, 0.001],
+    "model.weighted_loss": False,
+    "model.learning_rate": [0.001, 0.001, 0.001],
     "model.freeze_encoder": [False],  # possibly add True
-    "model.weight_decay": [5e-4, 5e-4, 5e-3],
+    "model.weight_decay": [5e-3, 5e-3, 5e-3],
     # "model.finetune": [True],
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,

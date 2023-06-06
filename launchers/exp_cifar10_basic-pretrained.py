@@ -5,10 +5,10 @@ from config_launcher import get_pretrained_arch
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random",
-        # "entropy",
-        # "kcentergreedy",
-        # "bald",
+        "random",
+        "entropy",
+        "kcentergreedy",
+        "bald",
         "badge"
     ],
     "data": ["cifar10"],  # , "cifar100"],
@@ -30,8 +30,7 @@ hparam_dict = {
     "data.val_size": [250, 2500, None],
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,
-    # "model.dropout_p": [0, 0, 0, 0.5, 0],
-    "model.dropout_p": [0],
+    "model.dropout_p": [0, 0, 0, 0.5, 0],
     "model.learning_rate": [0.001],
     "model.freeze_encoder": [False],  # possibly add True
     # "model.finetune": [True],

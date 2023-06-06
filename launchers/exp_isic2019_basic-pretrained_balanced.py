@@ -31,13 +31,12 @@ hparam_dict = {
     "trainer.seed": [12345, 12346, 12347],
     "trainer.max_epochs": 80,
     "model.dropout_p": [0, 0, 0, 0.5, 0],
-    # "model.dropout_p": [0],
-    "model.learning_rate": [0.01, 0.001, 0.01],
-    "model.weight_decay": [5e-3, 5e-4, 5e-3],
+    "model.learning_rate": [0.001, 0.001, 0.001],
+    "model.weight_decay": [5e-3, 5e-3, 5e-3],
     "model.freeze_encoder": [False],  # possibly add True
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
-    "data.transform_train": "isic_train",
+    "data.transform_train": ["isic_train", "isic_randaugment", "isic_randaugment"],
     "model.small_head": [False],
     "trainer.precision": 32,
     "trainer.deterministic": True,
@@ -48,7 +47,7 @@ naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model
 
 joint_iteration = [
     ["model.load_pretrained", "trainer.seed"],
-    ["active", "data.val_size", "model.learning_rate", "model.weight_decay"],
+    ["active", "data.val_size", "model.learning_rate", "model.weight_decay", "data.transform_train"],
     ["query", "model.dropout_p"],
 ]
 

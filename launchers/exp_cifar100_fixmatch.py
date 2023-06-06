@@ -7,7 +7,7 @@ config_dict = {
         "random",
         "entropy",
         "kcentergreedy",
-        # "badge",
+        "badge",
     ],
     "data": ["cifar100"],
     "active": [
