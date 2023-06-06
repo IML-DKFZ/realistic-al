@@ -4,7 +4,7 @@ visuals/
 plots/
 
 # Images
-*.png
+# *.png
 
 # VS Code
 .vscode
