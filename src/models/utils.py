@@ -35,7 +35,7 @@ def load_from_ssl_checkpoint(model: torch.nn.Module, path: str):
 
     add_to_sys_folder = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        "skripts",
+        "ssl",
     )
 
     sys.path.append(add_to_sys_folder)
