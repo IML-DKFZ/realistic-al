@@ -59,7 +59,13 @@ class ConsistentMCDropout(nn.Module):
         else:
             if self._mask is None or self._mask.shape[1] != BayesianModule.k:
                 self._build_mask(x, BayesianModule.k)
-            x = x.view([-1, BayesianModule.k,] + list(x.shape[1:]))  # B x  k x ...
+            x = x.view(
+                [
+                    -1,
+                    BayesianModule.k,
+                ]
+                + list(x.shape[1:])
+            )  # B x  k x ...
             x = x.masked_fill(self._mask, 0) / (1 - self.p)
             x = x.flatten(0, 1)  # NK
             return x

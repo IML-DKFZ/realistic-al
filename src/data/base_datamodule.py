@@ -3,12 +3,21 @@ from typing import Optional, Union
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import (DataLoader, Dataset, Subset,
-                              WeightedRandomSampler, random_split)
+from torch.utils.data import (
+    DataLoader,
+    Dataset,
+    Subset,
+    WeightedRandomSampler,
+    random_split,
+)
 
 from data.active import ActiveLearningDataset
-from data.utils import (ActiveSubset, RandomFixedLengthSampler,
-                        activesubset_from_subset, seed_worker)
+from data.utils import (
+    ActiveSubset,
+    RandomFixedLengthSampler,
+    activesubset_from_subset,
+    seed_worker,
+)
 
 
 class BaseDataModule(pl.LightningDataModule):
@@ -216,7 +225,8 @@ class BaseDataModule(pl.LightningDataModule):
 
     def pool_dataloader(self, batch_size=64, m: Optional[int] = None):
         """Returns the dataloader for the pool with test time transformations and optional the
-        given size of the dataset. For labeling the pool - get indices with get_pool_indices"""
+        given size of the dataset. For labeling the pool - get indices with get_pool_indices
+        """
         if not self.active:
             raise TypeError(
                 "Training Set does not have the attribute pool. \n Try to use the ActiveDataset (by enabling active)"

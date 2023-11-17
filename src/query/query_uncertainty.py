@@ -37,7 +37,6 @@ def get_post_acq_function(
 ) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
     names = str(cfg.query.name).split("_")
     if cfg.query.name == "batchbald":
-
         # This values should only be used to select the entropy computation
         num_samples = 40000  # taken from BatchBALD
 

@@ -16,7 +16,9 @@ hparam_dict = {
     "active.num_labelled": [num_classes * 100 * 7],
     "data.val_size": [num_classes * 100 * 5],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.01,],
+    "model.learning_rate": [
+        0.01,
+    ],
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
     "model.small_head": [True],

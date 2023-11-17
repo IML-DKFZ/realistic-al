@@ -9,7 +9,7 @@ config_dict = {
     "active": ["cifar10_low", "cifar10_med"],
     "query": [
         "random",
-          "entropy",
+        "entropy",
         "kcentergreedy",
         "badge",
     ],
@@ -26,7 +26,9 @@ hparam_dict = {
     "model.load_pretrained": None,  # if this is set to None, weird errors appear!
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_basic",],
+    "data.transform_train": [
+        "cifar_basic",
+    ],
     "sem_sl.eman": [False],
     "trainer.precision": 32,
     "trainer.deterministic": True,

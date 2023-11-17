@@ -12,7 +12,6 @@ class MIOTCDDataset(Dataset):
     def __init__(
         self, root="./data", train=True, transform=None, download=True, preprocess=True
     ):
-
         self.data_name = {}
         self.data_name["full"] = "data"
         self.data_url = {}
@@ -152,4 +151,3 @@ class MIOTCDDataset(Dataset):
 
                 os.remove(save_path)
                 print("Finished donwload and extraction")
-

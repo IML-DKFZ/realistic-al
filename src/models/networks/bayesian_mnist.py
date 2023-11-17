@@ -3,8 +3,11 @@ import torch.nn.functional as F
 from torch import Tensor
 from torch.utils import data
 
-from models.bayesian_module import (BayesianModule, ConsistenMCDropout2D,
-                                    ConsistentMCDropout)
+from models.bayesian_module import (
+    BayesianModule,
+    ConsistenMCDropout2D,
+    ConsistentMCDropout,
+)
 
 from .registry import register_model
 

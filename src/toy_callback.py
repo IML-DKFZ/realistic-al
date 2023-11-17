@@ -10,14 +10,22 @@ from torch import Tensor
 
 from data.toy_dm import ToyDM, make_toy_dataset
 from models.abstract_classifier import AbstractClassifier
-from plotlib.toy_plots import (close_figs, create_2d_grid_from_data,
-                               fig_class_full_2d, fig_uncertain_full_2d,
-                               vis_class_train_2d, vis_class_val_2d,
-                               vis_unc_train_2d)
-from query.query_uncertainty import (get_bald_fct, get_bay_entropy_fct,
-                                     get_var_ratios)
-from utils.concat import (AbstractBatchData, GetClassifierOutputs,
-                          concat_functional, get_batch_data)
+from plotlib.toy_plots import (
+    close_figs,
+    create_2d_grid_from_data,
+    fig_class_full_2d,
+    fig_uncertain_full_2d,
+    vis_class_train_2d,
+    vis_class_val_2d,
+    vis_unc_train_2d,
+)
+from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct, get_var_ratios
+from utils.concat import (
+    AbstractBatchData,
+    GetClassifierOutputs,
+    concat_functional,
+    get_batch_data,
+)
 
 
 class ToyVisCallback(pl.Callback):
@@ -354,7 +362,6 @@ class ToyVisCallback(pl.Callback):
 
     @staticmethod
     def fig_full_vis_2d(listdicts: List[dict]):
-
         num_rows = len(listdicts)
 
         grid_unc: dict = listdicts[0]["grid"]

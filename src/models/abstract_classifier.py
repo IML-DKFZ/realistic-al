@@ -17,8 +17,7 @@ from torch.nn import functional as F
 from torchmetrics import Accuracy
 
 from .callbacks.ema_callback import EMAWeightUpdate
-from .utils import (exclude_from_wt_decay, freeze_layers,
-                    load_from_ssl_checkpoint)
+from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
 
 
 class AbstractClassifier(pl.LightningModule):

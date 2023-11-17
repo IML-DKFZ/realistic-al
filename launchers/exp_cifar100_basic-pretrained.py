@@ -12,7 +12,11 @@ config_dict = {
         "badge",
     ],
     "data": ["cifar100"],
-    "active": ["cifar100_low", "cifar100_med", "cifar100_high",],
+    "active": [
+        "cifar100_low",
+        "cifar100_med",
+        "cifar100_high",
+    ],
     "optim": ["sgd"],
 }
 

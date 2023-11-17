@@ -13,7 +13,9 @@ config_dict = {
         # "batchbald", # already trained
     ],
     "data": ["cifar10"],  # , "cifar100"],
-    "active": ["cifar10_low",],  # did not run! "standard_250", "cifar10_low_data"
+    "active": [
+        "cifar10_low",
+    ],  # did not run! "standard_250", "cifar10_low_data"
     "optim": ["sgd"],
 }
 

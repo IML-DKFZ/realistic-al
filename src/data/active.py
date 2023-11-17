@@ -69,7 +69,6 @@ class ActiveLearningDataset(torchdata.Dataset):
         labelled_ind: np.ndarray
 
     def init_state(self):
-
         self._state = self._LabelState(
             num_label=self.n_labelled,
             labelled_ind=self.labelled.nonzero()[0].reshape([-1]),

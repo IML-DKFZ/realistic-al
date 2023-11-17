@@ -17,8 +17,11 @@ from models.bayesian import BayesianModule
 from models.fixmatch import FixMatch
 from query import QuerySampler
 from query.kcenterGreedy import KCenterGreedy
-from query.query_uncertainty import (get_bald_fct, get_bay_entropy_fct,
-                                     get_exp_entropy_fct)
+from query.query_uncertainty import (
+    get_bald_fct,
+    get_bay_entropy_fct,
+    get_exp_entropy_fct,
+)
 from run_test import get_active_torchvision_dm
 from utils.dict_utils import dict_2_df
 from utils.io import load_omega_conf

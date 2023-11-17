@@ -8,7 +8,13 @@ from omegaconf import DictConfig, OmegaConf
 
 def print_config(
     config: DictConfig,
-    fields: Sequence[str] = ("trainer", "model", "active", "data", "optim",),
+    fields: Sequence[str] = (
+        "trainer",
+        "model",
+        "active",
+        "data",
+        "optim",
+    ),
     resolve: bool = True,
 ) -> None:
     """Prints content of DictConfig using Rich library and its tree structure.

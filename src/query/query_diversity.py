@@ -66,7 +66,7 @@ def init_centers(X: np.ndarray, K: int, device: str):
 
         # if sum(D2) == 0.0: pdb.set_trace()
         D2 = D2.ravel().astype(float)
-        Ddist = (D2 ** 2) / sum(D2 ** 2)
+        Ddist = (D2**2) / sum(D2**2)
         customDist = stats.rv_discrete(name="custm", values=(np.arange(len(D2)), Ddist))
         ind = customDist.rvs(size=1)[0]
         mu.append(X[ind])
@@ -180,4 +180,3 @@ def get_kcg(model, labeled_dataloader, pool_loader, acq_size=100):
         # subtract the indices of the labeled data to get pool indices
         acq_indices -= indices_labeled.shape[0]
     return acq_indices
-

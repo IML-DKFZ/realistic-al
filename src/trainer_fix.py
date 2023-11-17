@@ -4,8 +4,7 @@ from typing import Optional
 import pytorch_lightning as pl
 import torch
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
-from batchgenerators.dataloading.multi_threaded_augmenter import \
-    MultiThreadedAugmenter
+from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 from loguru import logger
 from torch.utils.data import DataLoader
 

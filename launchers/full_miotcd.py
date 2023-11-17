@@ -3,9 +3,13 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": ["random",],
+    "query": [
+        "random",
+    ],
     "data": ["miotcd"],
-    "active": ["full_data",],
+    "active": [
+        "full_data",
+    ],
     "optim": ["sgd_cosine"],
 }
 

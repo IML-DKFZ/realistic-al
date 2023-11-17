@@ -47,7 +47,13 @@ naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model
 
 joint_iteration = [
     ["model.load_pretrained", "trainer.seed"],
-    ["active", "data.val_size", "model.learning_rate", "model.weight_decay", "data.transform_train"],
+    [
+        "active",
+        "data.val_size",
+        "model.learning_rate",
+        "model.weight_decay",
+        "data.transform_train",
+    ],
     ["query", "model.dropout_p"],
 ]
 

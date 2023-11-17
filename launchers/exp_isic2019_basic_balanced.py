@@ -3,9 +3,19 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": ["random", "entropy", "kcentergreedy", "bald", "badge",],
+    "query": [
+        "random",
+        "entropy",
+        "kcentergreedy",
+        "bald",
+        "badge",
+    ],
     "data": ["isic2019"],
-    "active": ["isic19_low", "isic19_med", "isic19_high",],
+    "active": [
+        "isic19_low",
+        "isic19_med",
+        "isic19_high",
+    ],
     "optim": ["sgd_cosine"],
 }
 
@@ -18,7 +28,9 @@ hparam_dict = {
     "model.learning_rate": [0.1],
     "model.weight_decay": [5e-3],
     "model.use_ema": False,
-    "data.transform_train": ["isic_randaugmentMC",],
+    "data.transform_train": [
+        "isic_randaugmentMC",
+    ],
     "trainer.precision": 16,
     "trainer.batch_size": 512,
     "trainer.deterministic": True,

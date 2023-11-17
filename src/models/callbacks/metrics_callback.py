@@ -170,8 +170,7 @@ class ImbClassMetricCallback(MetricCallback):
 
 class ISIC2016MetricCallback(MetricCallback):
     def __init__(self):
-        """Callback which creates and tracks the torchmetrics AUROC and Average Prescision.
-        """
+        """Callback which creates and tracks the torchmetrics AUROC and Average Prescision."""
         super().__init__()
         modes = ["train", "val", "test"]
         self.auc_dict = {f"{mode}/auroc": AUROC(num_classes=2) for mode in modes}

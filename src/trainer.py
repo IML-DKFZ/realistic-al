@@ -15,8 +15,10 @@ from pytorch_lightning.callbacks import TQDMProgressBar
 
 from data.data import TorchVisionDM
 from models.bayesian import BayesianModule
-from models.callbacks.metrics_callback import (ImbClassMetricCallback,
-                                               ISIC2016MetricCallback)
+from models.callbacks.metrics_callback import (
+    ImbClassMetricCallback,
+    ISIC2016MetricCallback,
+)
 from query import QuerySampler
 from utils.io import save_json
 from utils.log_utils import log_git

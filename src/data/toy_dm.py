@@ -1,19 +1,29 @@
 from copy import deepcopy
-from typing import Callable, Optional, Sequence, Union
+from typing import Callable, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
 from sklearn.model_selection import train_test_split
-from torch.utils.data import (DataLoader, Dataset, RandomSampler, Subset,
-                              TensorDataset, random_split)
+from torch.utils.data import (
+    DataLoader,
+    Dataset,
+    RandomSampler,
+    Subset,
+    TensorDataset,
+    random_split,
+)
 
 from .active import ActiveLearningDataset
 from .base_datamodule import BaseDataModule
 from .toy_data import *
 from .transformations import get_transform
-from .utils import (ActiveSubset, RandomFixedLengthSampler,
-                    activesubset_from_subset, seed_worker)
+from .utils import (
+    ActiveSubset,
+    RandomFixedLengthSampler,
+    activesubset_from_subset,
+    seed_worker,
+)
 
 
 def make_toy_dataset(X: np.ndarray, y: np.ndarray):

@@ -7,7 +7,7 @@ import numpy as np
 from pprint import pprint
 
 
-def compute_value(path:Path, value_name:str, select:str="max"):
+def compute_value(path: Path, value_name: str, select: str = "max"):
     values = []
     if select == "auto":
         if "fixmatch" in path.name.lower():

@@ -11,13 +11,21 @@
 
 # from .transformations import get_transform
 """This Module contains the Code to create toy datasets in numpy arrays."""
+from typing import Tuple
 
 import numpy as np
-from sklearn.datasets import (make_blobs, make_checkerboard, make_circles,
-                              make_classification, make_moons)
+from sklearn.datasets import (
+    make_blobs,
+    make_checkerboard,
+    make_circles,
+    make_classification,
+    make_moons,
+)
 
 
-def generate_hypercube_data(n_samples, noise=0.3, n_dim=2, seed=12345):
+def generate_hypercube_data(
+    n_samples: int, noise: float = 0.3, n_dim: float = 2, seed: int = 12345
+) -> Tuple[np.array, np.array]:
     """Generate a random n-class classification problem based on hypercubes in n_dim.
 
     For more Information about Data Generation process see:
@@ -35,7 +43,13 @@ def generate_hypercube_data(n_samples, noise=0.3, n_dim=2, seed=12345):
     return X, y
 
 
-def generate_blob_data(n_samples, noise=1, n_dim=2, centers=3, seed=12345):
+def generate_blob_data(
+    n_samples: int,
+    noise: float = 1,
+    n_dim: int = 2,
+    centers: int = 3,
+    seed: int = 12345,
+) -> Tuple[np.array, np.array]:
     X, y = make_blobs(
         n_samples=n_samples,
         n_features=n_dim,
@@ -46,38 +60,24 @@ def generate_blob_data(n_samples, noise=1, n_dim=2, centers=3, seed=12345):
     return X, y
 
 
-def generate_moons_data(n_samples, noise=0.15, seed=12345):
+def generate_moons_data(
+    n_samples: int, noise: float = 0.15, seed: int = 12345
+) -> Tuple[np.array, np.array]:
     X, y = make_moons(n_samples=n_samples, shuffle=True, random_state=seed, noise=noise)
     return X, y
 
 
-def generate_circles_data(n_samples, noise=0.15, seed=12345, factor=0.5):
+def generate_circles_data(
+    n_samples: int, noise: float = 0.15, seed: int = 12345, factor: float = 0.5
+) -> Tuple[np.array, np.array]:
     X, y = make_circles(
         n_samples, shuffle=True, random_state=seed, noise=noise, factor=factor
     )
     return X, y
 
 
-# WIP
-# def generate_multi_moons(n_samples, noise=0.15, seed=12345, factor=0.5, num_clusters=4):
-#     # Generate Multiple Clusters of the Two-Moons Dataset
-#     X_arr = []
-#     y_arr = []
-#     for i in num_clusters:
-#         X, y = make_circles(
-#             n_samples, shuffle=True, random_state=seed, noise=noise, factor=factor
-#         )
-#         X_arr.append(X)
-#         y_arr.append(y)
-    
-    
-#     return X, y
-# Generating Checkerboard Data is super interesting, but needs to be implemented!
-# def generate_checkerboard_data(n_samples, n_dim, seed=12345):
-#     X, y = make_checkerboard()
-
-
-def merge_labels(y, num_labels=2):
+# TODO: Write
+def merge_labels(y: np.array, num_labels: int = 2) -> np.array:
     """
     Merges the labels given with y so that the returned labels are in the range of num_labels.
     """
@@ -100,11 +100,13 @@ def merge_labels(y, num_labels=2):
 if __name__ == "__main__":
     # TODO: move all of this to tests
     import os
+
     # from utils.path_utils import visuals_folder
     from pathlib import Path
 
     import matplotlib.pyplot as plt
-    import seaborn as sns 
+    import seaborn as sns
+
     visuals_folder = Path(__file__).resolve().parent.parent.parent / "visuals"
     save_folder = visuals_folder / "toy_data"
     if os.path.exists(save_folder) is False:
@@ -134,13 +136,13 @@ if __name__ == "__main__":
             print("Label Shape: {}".format(y.shape))
 
             plt.scatter(X[:, 0], X[:, 1], c=y)
-            plt.savefig(save_folder/"toy_{}.png".format(dataname))
+            plt.savefig(save_folder / "toy_{}.png".format(dataname))
             plt.cla()
             plt.clf()
 
             if dataname == "blob_4":
                 plt.scatter(X[:, 0], X[:, 1], c=merge_labels(y, num_labels=2))
-                plt.savefig(save_folder/"toy_{}_split.png".format(dataname))
+                plt.savefig(save_folder / "toy_{}_split.png".format(dataname))
                 plt.cla()
                 plt.clf()
 
@@ -150,10 +152,7 @@ if __name__ == "__main__":
             print("Unsuccesful on Data Type {}".format(dataname))
 
     for dataname, data in datasets.items():
-        print(
-            "Mean and Std for Data Type {}".format(dataname)
-        )
+        print("Mean and Std for Data Type {}".format(dataname))
         X, y = data
         print("Mean: {}".format(X.mean(axis=0)))
         print("Std: {}".format(X.std(axis=0)))
-    

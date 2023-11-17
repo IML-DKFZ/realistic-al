@@ -112,7 +112,6 @@ def test_active_exp(path, force_override):
 
 
 if __name__ == "__main__":
-
     from argparse import ArgumentParser
 
     parser = ArgumentParser()

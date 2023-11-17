@@ -86,7 +86,7 @@ def plot_pairwise_matrix(
     plt.rcParams["axes.grid"] = False
     fig, ax = plt.subplots()
 
-    ax.tick_params(axis=u"both", which=u"both", length=0)
+    ax.tick_params(axis="both", which="both", length=0)
     im = ax.matshow(matPlot, cmap="viridis", vmin=min_e, vmax=max_e)
 
     ax.spines["top"].set_visible(False)

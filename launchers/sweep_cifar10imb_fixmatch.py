@@ -25,7 +25,9 @@ hparam_dict = {
     "model.use_ema": [False],
     "trainer.max_epochs": 200,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_basic",],
+    "data.transform_train": [
+        "cifar_basic",
+    ],
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
     "trainer.precision": 16,

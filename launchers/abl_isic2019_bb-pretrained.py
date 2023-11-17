@@ -5,7 +5,7 @@ from config_launcher import get_pretrained_arch
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random", 
+        # "random",
         # "entropy",
         # "kcentergreedy",
         # "bald",

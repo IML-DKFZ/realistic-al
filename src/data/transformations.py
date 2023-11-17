@@ -2,8 +2,7 @@ import torch
 from torchvision import transforms
 from torchvision.transforms import Lambda, RandAugment
 
-from .randaugment import (CutoutAbs, RandAugmentMC, RandAugmentMCCutout,
-                          RandAugmentPC)
+from .randaugment import CutoutAbs, RandAugmentMC, RandAugmentMCCutout, RandAugmentPC
 from .randaugment_2 import RandAugmentMC_FixMatch
 
 

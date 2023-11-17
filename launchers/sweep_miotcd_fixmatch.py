@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -22,6 +23,7 @@ hparam_dict = {
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
+    "model.distr_align": True,
     "trainer.max_epochs": 200,  # max_epochs has to be set so that 200,000 iterations are trained.
     # "trainer.max_epochs": 50,
     "trainer.seed": [12345, 12346, 12347],
@@ -33,7 +35,7 @@ hparam_dict = {
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]
 
-naming_conv = "fixmatch/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_wloss-{model.weighted_loss}"
+naming_conv = "fixmatch/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_wloss-{model.weighted_loss}_distraling-{model.distr_align}"
 
 path_to_ex_file = "src/run_training_fixmatch.py"
 

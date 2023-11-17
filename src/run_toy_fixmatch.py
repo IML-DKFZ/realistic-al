@@ -12,7 +12,9 @@ from utils import config_utils
 active_dataset = True  # unlabeled pool is necessary for training
 
 
-@hydra.main(config_path="./config", config_name="config_toy_fixmatch", version_base="1.1")
+@hydra.main(
+    config_path="./config", config_name="config_toy_fixmatch", version_base="1.1"
+)
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)

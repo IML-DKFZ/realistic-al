@@ -3,12 +3,7 @@ from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
-    "query": [
-        "random",
-        "entropy",
-        "kcentergreedy",
-        "badge"
-    ],
+    "query": ["random", "entropy", "kcentergreedy", "badge"],
     "data": ["cifar10_imb"],
     "active": [
         "cifar10_low",

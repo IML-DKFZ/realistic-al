@@ -10,7 +10,6 @@ from .utils import ActiveSubset
 def create_imbalanced_dataset(
     dataset, imb_type: str, imb_factor: float
 ) -> ActiveSubset:
-
     targets = dataset.targets
     num_classes = len(np.unique(targets))
     num_samples = len(dataset)

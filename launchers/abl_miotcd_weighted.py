@@ -15,7 +15,9 @@ hparam_dict = {
     "trainer.run_test": True,
     "data.val_size": [num_classes * 100 * 5],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.1,],
+    "model.learning_rate": [
+        0.1,
+    ],
     "model.weight_decay": [5e-3],
     "model.use_ema": False,
     "model.small_head": [True],

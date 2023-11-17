@@ -17,7 +17,8 @@ from .abstract_classifier import AbstractClassifier
 
 class FixMatch(AbstractClassifier):
     def __init__(
-        self, config: DictConfig,
+        self,
+        config: DictConfig,
     ):
         """FixMatch Classifier, which can be extended to a bayesian Neural network by setting config.dropout_p to values greater 0."""
         super().__init__(eman=config.sem_sl.eman)
@@ -173,7 +174,8 @@ class FixMatch(AbstractClassifier):
 
     def visualize_train(self, x, x_w, x_s):
         for imgs, title in zip(
-            [x, x_w, x_s], ["samples_lab", "samples_weak", "samples_strong"],
+            [x, x_w, x_s],
+            ["samples_lab", "samples_weak", "samples_strong"],
         ):
             if len(imgs) == 0:
                 continue

@@ -25,7 +25,7 @@ hparam_dict = {
     ],
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
-    "trainer.precision" :16,
+    "trainer.precision": 16,
 }
 
 naming_conv = (

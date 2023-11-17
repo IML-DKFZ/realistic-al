@@ -12,7 +12,11 @@ config_dict = {
         "badge",
     ],
     "data": ["isic2019"],
-    "active": ["isic19_low", "isic19_med", "isic19_high",],
+    "active": [
+        "isic19_low",
+        "isic19_med",
+        "isic19_high",
+    ],
     "optim": ["sgd"],
 }
 
