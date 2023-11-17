@@ -1,13 +1,13 @@
-import enum
-import os
+from collections import MutableMapping
 from pathlib import Path
-from typing import List, Iterable, Any, Optional
+from typing import Any, Iterable, List, Optional
 
 import numpy as np
 import pandas as pd
-from utils.tensor import to_numpy
-from utils import io
 from scipy.stats import entropy
+
+from utils import io
+from utils.tensor import to_numpy
 
 
 def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
@@ -39,6 +39,7 @@ def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
 
 
 from collections import MutableMapping
+
 
 # code to convert ini_dict to flattened dictionary
 # default separator '_'

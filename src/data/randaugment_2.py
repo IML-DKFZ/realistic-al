@@ -1,11 +1,10 @@
 import math
+from typing import Dict, List, Optional, Tuple
 
 import torch
-from typing import Dict, Tuple, Optional, List
-from torchvision.transforms import RandAugment
-from torchvision.transforms import functional as F, InterpolationMode
-
 from torch import Tensor
+from torchvision.transforms import InterpolationMode, RandAugment
+from torchvision.transforms import functional as F
 
 
 class RandAugmentMC_FixMatch(RandAugment):

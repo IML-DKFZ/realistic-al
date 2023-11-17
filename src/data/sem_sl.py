@@ -1,21 +1,13 @@
 from loguru import logger
 from torch.utils.data import DataLoader
 
-
-from .utils import (
-    TransformFixMatchImageNet,
-    TransformFixMatch,
-    activesubset_from_subset,
-    seed_worker,
-    MultiHeadedTransform,
-    TransformFixMatchISIC,
-)
-
 from .data import TorchVisionDM
 from .toy_dm import ToyDM
-from .utils import RandomFixedLengthSampler
-
 from .transformations import get_transform
+from .utils import (MultiHeadedTransform, RandomFixedLengthSampler,
+                    TransformFixMatch, TransformFixMatchImageNet,
+                    TransformFixMatchISIC, activesubset_from_subset,
+                    seed_worker)
 
 
 def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 6400):

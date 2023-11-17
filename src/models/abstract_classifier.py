@@ -1,24 +1,24 @@
-from abc import abstractclassmethod
 import math
-import numpy as np
-from omegaconf import DictConfig
-
-import torch
-import pytorch_lightning as pl
-from pl_bolts.optimizers.lr_scheduler import linear_warmup_decay
-from torchmetrics import Accuracy
+from abc import abstractclassmethod
 from copy import deepcopy
+from pathlib import Path
 from typing import Tuple, Union
-from torch.nn import functional as F
+
+import numpy as np
+import pytorch_lightning as pl
+import torch
 import torch.nn as nn
 import torchvision
-from pathlib import Path
 from loguru import logger
+from omegaconf import DictConfig
+from pl_bolts.optimizers.lr_scheduler import linear_warmup_decay
 from pytorch_lightning.loggers import TensorBoardLogger
+from torch.nn import functional as F
+from torchmetrics import Accuracy
 
-
-from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoint
 from .callbacks.ema_callback import EMAWeightUpdate
+from .utils import (exclude_from_wt_decay, freeze_layers,
+                    load_from_ssl_checkpoint)
 
 
 class AbstractClassifier(pl.LightningModule):

@@ -1,15 +1,15 @@
-import hydra
-from omegaconf import DictConfig
-from utils import config_utils
-from run_toy import ToyActiveLearningLoop
-import utils
 from pathlib import Path
-from loguru import logger
 
-from main import active_loop
-from run_toy import get_toy_dm
+import hydra
 import matplotlib.pyplot as plt
+from loguru import logger
+from omegaconf import DictConfig
+
+import utils
+from main import active_loop
+from run_toy import ToyActiveLearningLoop, get_toy_dm
 from toy_callback import ToyVisCallback
+from utils import config_utils
 from utils.file_utils import get_experiment_dicts
 from utils.log_utils import setup_logger
 

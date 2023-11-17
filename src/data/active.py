@@ -10,7 +10,9 @@ import numpy as np
 import torch
 import torch.utils.data as torchdata
 from sklearn.utils import check_random_state
+
 from utils import io
+
 from .utils import ActiveSubset
 
 

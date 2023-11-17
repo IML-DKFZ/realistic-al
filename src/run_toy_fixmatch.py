@@ -1,13 +1,13 @@
 import os
-from models.fixmatch import FixMatch
-from data.data import TorchVisionDM
+
 import hydra
 from omegaconf import DictConfig
-from utils import config_utils
 
 import utils
-
+from data.data import TorchVisionDM
+from models.fixmatch import FixMatch
 from run_toy import ToyActiveLearningLoop, get_toy_dm
+from utils import config_utils
 
 active_dataset = True  # unlabeled pool is necessary for training
 

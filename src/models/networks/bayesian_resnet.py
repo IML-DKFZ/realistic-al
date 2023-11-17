@@ -4,8 +4,8 @@ import torchvision.models as models
 from loguru import logger
 
 from models.bayesian_module import BayesianModule, ConsistentMCDropout
-from .mlp import MLP
 
+from .mlp import MLP
 from .registry import register_model
 
 

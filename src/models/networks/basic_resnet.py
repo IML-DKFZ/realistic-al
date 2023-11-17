@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from loguru import logger
-from .mlp import MLP
 
+from .mlp import MLP
 from .registry import register_model
 
 

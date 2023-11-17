@@ -1,15 +1,15 @@
 import os
-from data.data import TorchVisionDM
+
 import hydra
-from omegaconf import DictConfig
 from loguru import logger
-from run_training import get_torchvision_dm, label_active_dm
-from utils.log_utils import setup_logger
-from utils import config_utils
+from omegaconf import DictConfig
 
 import utils
-
+from data.data import TorchVisionDM
+from run_training import get_torchvision_dm, label_active_dm
 from trainer_fix import FixTrainingLoop
+from utils import config_utils
+from utils.log_utils import setup_logger
 
 active_dataset = True
 

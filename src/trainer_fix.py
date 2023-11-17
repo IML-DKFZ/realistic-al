@@ -1,18 +1,17 @@
+import gc
 from typing import Optional
-from loguru import logger
 
 import pytorch_lightning as pl
-
-from trainer import ActiveTrainingLoop
-
 import torch
-import gc
-
-
-from models.fixmatch import FixMatch
-from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
 from batchgenerators.dataloading.data_loader import SlimDataLoaderBase
+from batchgenerators.dataloading.multi_threaded_augmenter import \
+    MultiThreadedAugmenter
+from loguru import logger
+from torch.utils.data import DataLoader
+
 from data.utils import ConcatDataloader
+from models.fixmatch import FixMatch
+from trainer import ActiveTrainingLoop
 
 
 class ConcatenatedAugmenters:
@@ -39,7 +38,7 @@ class ConcatenatedAugmenters:
 class DataLoaderWrapper(SlimDataLoaderBase):
     def __init__(
         self,
-        data_loader,
+        data_loader: DataLoader,
         batch_size: int,
         number_of_threads_in_multithreaded: Optional[int] = None,
     ):
@@ -93,8 +92,8 @@ class FixTrainingLoop(ActiveTrainingLoop):
         persistent_workers = self.datamodule.persistent_workers
         timeout = self.datamodule.timeout
 
-        if self.datamodule.dataset in ["miotcd", "isic2019"]:
-            # if True:
+        # if self.datamodule.dataset in ["miotcd", "isic2019"]:
+        if True:
             logger.info("Use Pytorch DataLoader multiprocessing")
             datamodule = self.model.wrap_dm(self.datamodule)
             loader_label, loader_pool = datamodule.train_dataloader()
@@ -116,14 +115,14 @@ class FixTrainingLoop(ActiveTrainingLoop):
                 None,
                 worker_label,
                 pin_memory=False,
-                # timeout=timeout,
+                timeout=timeout,
             )
             multi_pool = MultiThreadedAugmenter(
                 DataLoaderWrapper(loader_pool, None, worker_pool),
                 None,
                 worker_pool,
                 pin_memory=False,
-                # timeout=timeout,
+                timeout=timeout,
             )
 
             self.datamodule.num_workers = num_workers

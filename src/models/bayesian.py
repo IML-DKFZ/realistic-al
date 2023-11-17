@@ -1,10 +1,12 @@
-from typing import Any, List, Optional
 import math
+from typing import Any, List, Optional
+
+import torch
+import torch.nn as nn
 from omegaconf import DictConfig
 
-import torch.nn as nn
-import torch
 from models.networks import build_model
+
 from .abstract_classifier import AbstractClassifier
 
 

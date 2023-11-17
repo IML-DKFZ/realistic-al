@@ -1,11 +1,10 @@
 # Adapted from: https://github.com/meliketoy/wide-resnet.pytorch/blob/master/networks/wide_resnet.py
 
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.init as init
 import torch.nn.functional as F
-
-import numpy as np
+import torch.nn.init as init
 
 from .registry import register_model
 

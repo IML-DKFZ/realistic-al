@@ -13,8 +13,8 @@
 """This Module contains the Code to create toy datasets in numpy arrays."""
 
 import numpy as np
-from sklearn.datasets import make_classification
-from sklearn.datasets import make_moons, make_circles, make_checkerboard, make_blobs
+from sklearn.datasets import (make_blobs, make_checkerboard, make_circles,
+                              make_classification, make_moons)
 
 
 def generate_hypercube_data(n_samples, noise=0.3, n_dim=2, seed=12345):
@@ -99,11 +99,12 @@ def merge_labels(y, num_labels=2):
 
 if __name__ == "__main__":
     # TODO: move all of this to tests
-    import matplotlib.pyplot as plt
-    import seaborn as sns
+    import os
     # from utils.path_utils import visuals_folder
-    from pathlib import Path 
-    import os 
+    from pathlib import Path
+
+    import matplotlib.pyplot as plt
+    import seaborn as sns 
     visuals_folder = Path(__file__).resolve().parent.parent.parent / "visuals"
     save_folder = visuals_folder / "toy_data"
     if os.path.exists(save_folder) is False:

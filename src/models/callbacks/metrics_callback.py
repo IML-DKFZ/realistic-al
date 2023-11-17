@@ -1,12 +1,7 @@
-import torch
-
 import pytorch_lightning as pl
+import torch
 from pytorch_lightning import Callback
-from torchmetrics import (
-    AUROC,
-    AveragePrecision,
-    ConfusionMatrix,
-)
+from torchmetrics import AUROC, AveragePrecision, ConfusionMatrix
 
 
 class MetricCallback(Callback):

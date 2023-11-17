@@ -1,5 +1,4 @@
-from .registry import model_entrypoints
-from .registry import is_model
+from .registry import is_model, model_entrypoints
 
 
 def build_model(config, **kwargs):

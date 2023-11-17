@@ -1,8 +1,9 @@
-import rich
-import rich.tree
-import rich.syntax
-from omegaconf import DictConfig, OmegaConf
 from typing import Sequence
+
+import rich
+import rich.syntax
+import rich.tree
+from omegaconf import DictConfig, OmegaConf
 
 
 def print_config(

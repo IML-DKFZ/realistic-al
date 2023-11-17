@@ -1,23 +1,14 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
 import numpy as np
-import torch
-from torch.utils.data import (
-    Dataset,
-    DataLoader,
-    Subset,
-    random_split,
-    WeightedRandomSampler,
-)
 import pytorch_lightning as pl
-from data.active import ActiveLearningDataset
+import torch
+from torch.utils.data import (DataLoader, Dataset, Subset,
+                              WeightedRandomSampler, random_split)
 
-from data.utils import (
-    ActiveSubset,
-    seed_worker,
-    RandomFixedLengthSampler,
-    activesubset_from_subset,
-)
+from data.active import ActiveLearningDataset
+from data.utils import (ActiveSubset, RandomFixedLengthSampler,
+                        activesubset_from_subset, seed_worker)
 
 
 class BaseDataModule(pl.LightningDataModule):

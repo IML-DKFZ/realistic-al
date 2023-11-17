@@ -1,28 +1,25 @@
-from copy import deepcopy
-import os
-from pathlib import Path
-
-
-from loguru import logger
-import numpy as np
-from omegaconf import DictConfig
-import pytorch_lightning as pl
-
-from pytorch_lightning.callbacks import TQDMProgressBar
-from models.bayesian import BayesianModule
-from data.data import TorchVisionDM
-from query import QuerySampler
-import torch
-from typing import Dict, Optional, Union
 import gc
+import os
+from copy import deepcopy
 from datetime import datetime
-from utils.log_utils import log_git
-from utils.io import save_json
-from models.callbacks.metrics_callback import (
-    ISIC2016MetricCallback,
-    ImbClassMetricCallback,
-)
 from functools import cached_property
+from pathlib import Path
+from typing import Dict, Optional, Union
+
+import numpy as np
+import pytorch_lightning as pl
+import torch
+from loguru import logger
+from omegaconf import DictConfig
+from pytorch_lightning.callbacks import TQDMProgressBar
+
+from data.data import TorchVisionDM
+from models.bayesian import BayesianModule
+from models.callbacks.metrics_callback import (ImbClassMetricCallback,
+                                               ISIC2016MetricCallback)
+from query import QuerySampler
+from utils.io import save_json
+from utils.log_utils import log_git
 
 
 class ActiveTrainingLoop(object):

@@ -1,20 +1,19 @@
 # from data.data import TorchVisionDM
-from copy import deepcopy
 import os
-import numpy as np
+from copy import deepcopy
+
 import hydra
+import matplotlib.pyplot as plt
+import numpy as np
 from omegaconf import DictConfig
 
-import matplotlib.pyplot as plt
-
+import utils
+from data.toy_dm import ToyDM
+from query.storing import ActiveStore
+from toy_callback import ToyVisCallback
+from trainer import ActiveTrainingLoop
 from utils import config_utils
 from utils.tensor import to_numpy
-import utils
-from trainer import ActiveTrainingLoop
-
-from data.toy_dm import ToyDM
-from toy_callback import ToyVisCallback
-from query.storing import ActiveStore
 
 
 def close_figs():

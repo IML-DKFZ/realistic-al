@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from scipy import stats
 import torch.nn.functional as F
+from scipy import stats
 from torch.utils.data import DataLoader
 
 from models.bayesian_module import BayesianModule

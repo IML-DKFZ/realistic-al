@@ -42,7 +42,6 @@ def load_from_ssl_checkpoint(model: torch.nn.Module, path: str):
     from train_simclr import SimCLR_algo as SimCLR
 
     ################### SUPER UGLY CODE ENDS HERE ######################
-
     # Deprecated due to WideResNet
     # from pl_bolts.models.self_supervised.simclr.simclr_module import SimCLR
 

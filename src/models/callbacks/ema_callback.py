@@ -1,7 +1,8 @@
-import pytorch_lightning as pl
-from pytorch_lightning import Callback
-import torch.nn as nn
 from typing import Sequence
+
+import pytorch_lightning as pl
+import torch.nn as nn
+from pytorch_lightning import Callback
 
 
 class EMAWeightUpdate(Callback):

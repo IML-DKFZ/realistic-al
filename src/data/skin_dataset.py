@@ -1,15 +1,14 @@
+import ctypes
+import multiprocessing as mp
 import os
 import zipfile
+from urllib.request import urlretrieve
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
-
-from urllib.request import urlretrieve
-import multiprocessing as mp
-import ctypes
-import torch
 
 
 class AbstractISIC(Dataset):

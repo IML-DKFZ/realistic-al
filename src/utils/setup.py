@@ -1,9 +1,9 @@
 import os
 import random
-import numpy as np
-import torch
-import pytorch_lightning as pl
 
+import numpy as np
+import pytorch_lightning as pl
+import torch
 from loguru import logger
 
 

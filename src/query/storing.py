@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 # TODO: This class requires a major Rework!
 @dataclass
 class ActiveStore:

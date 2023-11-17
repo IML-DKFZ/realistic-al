@@ -1,12 +1,14 @@
-from typing import Any, Iterable
-import torch
 import random
-import numpy as np
-from torchvision import transforms
-from .randaugment import RandAugmentMC, RandAugmentMCCutout
+from typing import Any, Iterable
 
-from torch.utils.data import Subset, Sampler, Dataset
+import numpy as np
+import torch
+from torch.utils.data import Dataset, Sampler, Subset
+from torchvision import transforms
+
 from utils.tensor import to_numpy
+
+from .randaugment import RandAugmentMC, RandAugmentMCCutout
 
 
 class RandomFixedLengthSampler(Sampler):

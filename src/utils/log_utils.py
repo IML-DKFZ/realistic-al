@@ -1,14 +1,14 @@
 # code is adapted from: https://github.com/MIC-DKFZ/nnDetection/blob/main/nndet/utils/info.py
 
-from optparse import Option
-from loguru import logger
 import os
-from omegaconf import OmegaConf
-
+from optparse import Option
 from pathlib import Path
-from typing import Union, Optional
-from git import Repo, InvalidGitRepositoryError
+from typing import Optional, Union
+
 import __main__
+from git import InvalidGitRepositoryError, Repo
+from loguru import logger
+from omegaconf import OmegaConf
 
 
 def setup_logger(path: Optional[Union[Path, str]] = None):
@@ -75,10 +75,12 @@ def save_config_to_tests(cfg, save_name):
         cfg (_type_): _description_
         save_name (_type_): _description_
     """
-    from omegaconf import OmegaConf
-    from utils.path_utils import test_data_folder
-    import utils.io as io
     import os
+
+    from omegaconf import OmegaConf
+
+    import utils.io as io
+    from utils.path_utils import test_data_folder
 
     save_name = save_name.replace(".py", "")
     save_file = os.path.join(test_data_folder, save_name)

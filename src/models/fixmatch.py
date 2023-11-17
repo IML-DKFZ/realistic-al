@@ -1,17 +1,18 @@
-from typing import Any, List, Optional, Tuple
 import math
-from loguru import logger
-from omegaconf import DictConfig
+from typing import Any, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
-import torchvision
 import torch.nn.functional as F
-from data.data import TorchVisionDM
-from models.networks import build_model
-from .abstract_classifier import AbstractClassifier
+import torchvision
+from loguru import logger
+from omegaconf import DictConfig
 
+from data.data import TorchVisionDM
 from data.sem_sl import wrap_fixmatch_train_dataloader
+from models.networks import build_model
+
+from .abstract_classifier import AbstractClassifier
 
 
 class FixMatch(AbstractClassifier):

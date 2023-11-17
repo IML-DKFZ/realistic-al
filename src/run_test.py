@@ -1,22 +1,19 @@
 import os
+from pathlib import Path
 
-from utils.io import load_omega_conf
+import pandas as pd
+from loguru import logger
 from omegaconf import DictConfig
-from models.callbacks.metrics_callback import ImbClassMetricCallback
 
 import utils
 from data.data import TorchVisionDM
-from trainer import ActiveTrainingLoop
+from models.callbacks.metrics_callback import ImbClassMetricCallback
 from run_training import get_torchvision_dm, label_active_dm
+from trainer import ActiveTrainingLoop
 from utils import config_utils
-from loguru import logger
+from utils.io import load_omega_conf
 from utils.log_utils import setup_logger
-
 from utils.tensor import to_numpy
-
-import pandas as pd
-
-from pathlib import Path
 
 
 def main(cfg: DictConfig, path: str):

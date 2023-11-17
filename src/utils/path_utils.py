@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 src_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 base_folder = os.path.dirname(src_folder)
 visuals_folder = os.path.join(base_folder, "visuals")

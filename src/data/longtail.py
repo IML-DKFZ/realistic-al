@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 import numpy as np
 from torchvision.datasets import CIFAR10
+
 from .utils import ActiveSubset
 
 

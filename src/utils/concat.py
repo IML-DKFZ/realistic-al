@@ -1,6 +1,6 @@
-from typing import Any, Dict, Iterable, Tuple, Callable
 from abc import abstractclassmethod
 from collections import defaultdict
+from typing import Any, Callable, Dict, Iterable, Tuple
 
 import numpy as np
 import torch

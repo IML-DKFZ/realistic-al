@@ -1,18 +1,18 @@
 import os
-
-import numpy as np
-import torch
-import torch.nn as nn
-import pytorch_lightning as pl
-
 from typing import Optional, Tuple
 
-from . import query_diversity, query_uncertainty
-from data.base_datamodule import BaseDataModule
-
-from query.storing import ActiveStore
-from plotlib import active_plots
 import matplotlib.pyplot as plt
+import numpy as np
+import pytorch_lightning as pl
+import torch
+import torch.nn as nn
+
+from data.base_datamodule import BaseDataModule
+from plotlib import active_plots
+from query.storing import ActiveStore
+
+from . import query_diversity, query_uncertainty
+
 
 # TODO: simplify the logic of this class -- I do not 100% understand this anymore!
 class QuerySampler:

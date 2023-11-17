@@ -1,8 +1,8 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
-from scipy import stats
-import pandas as pd
 import numpy as np
+import pandas as pd
+from scipy import stats
 
 
 def get_aubc(
@@ -13,7 +13,7 @@ def get_aubc(
     """Computes the Area Under the Budget Curve following:
     https://www.ijcai.org/proceedings/2021/0634.pdf
     Default dx makes integral go from 0 to 1
-    
+
     Args:
         performance (np.ndarray): value under which budget should be computed
         x (Union[None, np.ndarray], optional): gives points over which to integrate. Defaults to None.

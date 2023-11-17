@@ -1,21 +1,20 @@
 import math
 import os
+import time
 from typing import Callable, Union
 
 import hydra
 import numpy as np
+import pandas as pd
+from loguru import logger
 from omegaconf import DictConfig
 
 import utils
 from data.data import TorchVisionDM
-from trainer import ActiveTrainingLoop
 from run_training import get_torchvision_dm, label_active_dm
+from trainer import ActiveTrainingLoop
 from utils import config_utils
-import time
-from loguru import logger
 from utils.log_utils import setup_logger
-
-import pandas as pd
 
 
 @hydra.main(config_path="./config", config_name="config", version_base="1.1")

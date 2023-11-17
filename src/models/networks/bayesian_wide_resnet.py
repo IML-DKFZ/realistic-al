@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 
-from .wide_resnet import Wide_ResNet, build_wideresnet
-from .mlp import MLP
-
-from .registry import register_model
 from models.bayesian_module import BayesianModule, ConsistentMCDropout
+
+from .mlp import MLP
+from .registry import register_model
+from .wide_resnet import Wide_ResNet, build_wideresnet
+
 
 # TODO: Possibly combine all Feature Based Bayesian Models!!
 class BayesianWideResNet(BayesianModule):

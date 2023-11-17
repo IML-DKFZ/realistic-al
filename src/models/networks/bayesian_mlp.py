@@ -1,4 +1,5 @@
 from torch import Tensor
+
 from models.bayesian_module import BayesianModule
 
 from .mlp import MLP

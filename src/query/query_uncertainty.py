@@ -1,14 +1,13 @@
 import math
-import numpy as np
-import torch
-
-from torch.utils.data import DataLoader
-
-import torch.nn.functional as F
-
 from typing import Callable, Tuple
 
+import numpy as np
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+
 from utils.tensor import to_numpy
+
 from .batchbald_redux.batchbald import get_batchbald_batch
 
 # DEVICE = "cuda:0"

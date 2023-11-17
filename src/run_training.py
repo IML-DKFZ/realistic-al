@@ -1,15 +1,15 @@
 import os
-from data.base_datamodule import BaseDataModule
-from data.data import TorchVisionDM
-import hydra
-from omegaconf import DictConfig, OmegaConf
-from utils import config_utils
-from loguru import logger
-from utils.log_utils import setup_logger
 
+import hydra
+from loguru import logger
+from omegaconf import DictConfig, OmegaConf
 
 import utils
+from data.base_datamodule import BaseDataModule
+from data.data import TorchVisionDM
 from trainer import ActiveTrainingLoop
+from utils import config_utils
+from utils.log_utils import setup_logger
 
 
 @hydra.main(config_path="./config", config_name="config", version_base="1.1")

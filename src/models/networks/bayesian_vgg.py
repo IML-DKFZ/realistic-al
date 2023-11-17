@@ -2,13 +2,10 @@
 import torch.nn as nn
 from torch import Tensor
 from torch.hub import load_state_dict_from_url
-
 from torch.nn import functional as F
-from models.bayesian_module import (
-    ConsistenMCDropout2D,
-    ConsistentMCDropout,
-    BayesianModule,
-)
+
+from models.bayesian_module import (BayesianModule, ConsistenMCDropout2D,
+                                    ConsistentMCDropout)
 
 from .registry import register_model
 

@@ -1,13 +1,11 @@
 # Adapted from: https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py
 
-from typing import Type, Any, Callable, Union, List, Optional
+from typing import Any, Callable, List, Optional, Type, Union
 
 import torch
 import torch.nn as nn
 from torch import Tensor
-
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
-
 
 __all__ = [
     "ResNet",

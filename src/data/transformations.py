@@ -1,9 +1,10 @@
 import torch
 from torchvision import transforms
+from torchvision.transforms import Lambda, RandAugment
 
-from .randaugment import RandAugmentMC, RandAugmentMCCutout, RandAugmentPC, CutoutAbs
+from .randaugment import (CutoutAbs, RandAugmentMC, RandAugmentMCCutout,
+                          RandAugmentPC)
 from .randaugment_2 import RandAugmentMC_FixMatch
-from torchvision.transforms import RandAugment, Lambda
 
 
 def get_transform(name="basic", mean=[0], std=[1], shape=None):

@@ -1,11 +1,10 @@
 from email.policy import default
+from math import ceil
 from typing import Dict, Tuple
 from xml.dom.pulldom import default_bufsize
-import numpy as np
 
 import matplotlib.pyplot as plt
-from math import ceil
-
+import numpy as np
 import seaborn as sns
 
 sns.set_style()
@@ -252,10 +251,10 @@ def imshow_contin(ax, xx, yy, prob):
 def run_example_data():
     """Example with SK-Learn to showcase how functions work."""
     from sklearn import datasets
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.model_selection import train_test_split
     from sklearn.gaussian_process import GaussianProcessClassifier
     from sklearn.gaussian_process.kernels import RBF
+    from sklearn.model_selection import train_test_split
+    from sklearn.tree import DecisionTreeClassifier
 
     # from sklearn.model_selection import GridSearchCV #TODO: potentially experiment with this here!
     iris = datasets.load_iris()
