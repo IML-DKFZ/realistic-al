@@ -1,11 +1,12 @@
-from argparse import ArgumentParser, Namespace
 import os
 import subprocess
-from itertools import product
+from argparse import ArgumentParser, Namespace
 from copy import deepcopy
+from itertools import product
 from typing import Optional
-from config_launcher import get_pretrained_arch
+
 import yaml
+from config_launcher import get_pretrained_arch
 
 cluster_sync_call = "cluster_sync"
 cluster_log_path = "/dkfz/cluster/gpu/checkpoints/OE0612/c817h"
@@ -75,7 +76,7 @@ class BaseLauncher:
             self.log_path = local_log_path
 
     def sync_cluster(self):
-        subprocess.call(self.cluster_sync_call, shell=True)
+        subprocess.run(self.cluster_sync_call, shell=True, check=True)
 
     def create_product(self) -> product:
         return product(
@@ -237,7 +238,7 @@ class BaseLauncher:
 
             print(launch_command)
             if not self.launcher_args.debug:
-                subprocess.call(launch_command, shell=True)
+                subprocess.run(launch_command, shell=True, check=True)
 
     def prepare_launch(self):
         if self.launcher_args.cluster and self.launcher_args.debug is False:
@@ -327,7 +328,11 @@ class ExperimentLauncher(BaseLauncher):
                     )
                 filename = filename[0]
             path_to_config = os.path.join(
-                base_dir, "src", "config", config_name, filename + file_ending,
+                base_dir,
+                "src",
+                "config",
+                config_name,
+                filename + file_ending,
             )
             print(path_to_config)
             assert os.path.isfile(
