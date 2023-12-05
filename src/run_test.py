@@ -49,8 +49,8 @@ def main(cfg: DictConfig, path: str):
     # training_loop.init_model()
     training_loop.model.load_only_state_dict(ckpt_path)
     # training_loop.model = training_loop.model.to("cuda:0")
-    training_loop.init_trainer()
-    training_loop.test()
+    training_loop._init_trainer()
+    training_loop._test()
 
     imb_metric_callback: ImbClassMetricCallback = training_loop.callbacks[
         monitor_callback

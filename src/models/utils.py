@@ -1,9 +1,26 @@
+from typing import Any, Iterator, List, Tuple
+
 import torch
 
 
 def exclude_from_wt_decay(
-    named_params, weight_decay, skip_list=["bias", "bn"], learning_rate=None
-):
+    named_params: Iterator[Tuple[str, torch.Tensor]],
+    weight_decay: float,
+    skip_list: List[str] = ["bias", "bn"],
+    learning_rate: float = None,
+) -> List[dict[str, Any]]:
+    """Exclude parameters from weight decay and get groups with specific instructions for optimizers.
+    Ignores parameters where requires_grad is False.
+
+    Args:
+        named_params (Iterator[Tuple[str, torch.Tensor]]): List of named parameters
+        weight_decay (float): weight decay param for optimizer
+        skip_list (List[str], optional): Parameters without weight decay. Defaults to ["bias", "bn"].
+        learning_rate (float, optional): _description_. Defaults to None.
+
+    Returns:
+        List[dict[str, Any]]: [Paramdict with weight decay, Paramdict without weight decay]
+    """
     params = []
     excluded_params = []
 
@@ -56,7 +73,16 @@ def load_from_ssl_checkpoint(model: torch.nn.Module, path: str):
     print(f"Skipped Parameters: {skip_names}")
 
 
-def freeze_layers(model, freeze_string=None, keep_string=None):
+def freeze_layers(
+    model: torch.nn.Module, freeze_string: str = None, keep_string: str = None
+) -> None:
+    """Freezes specific parameters in model if name is matching freeze_string but not keep_string.
+
+    Args:
+        model (torch.nn.Module): model, changed in place.
+        freeze_string (str, optional): string which is matched with parameter name. Defaults to None.
+        keep_string (str, optional): string which is matched with parameter name. Defaults to None.
+    """
     for param in model.named_parameters():
         if freeze_string is None and keep_string is None:
             param[1].requires_grad = False
@@ -66,7 +92,13 @@ def freeze_layers(model, freeze_string=None, keep_string=None):
             param[1].requires_grad = False
 
 
-def unfreeze_layers(model, unfreeze_string=None):
+def unfreeze_layers(model: torch.nn.Module, unfreeze_string: str = None) -> None:
+    """Unfreezes specific parameters in model if name is matching unfreeze_string.
+
+    Args:
+        model (torch.nn.Module): model, changed in place.
+        unfreeze_string (str, optional): string which is matched with parameter name. Defaults to None.
+    """
     for param in model.named_parameters():
         if unfreeze_string is None or unfreeze_string in param[0]:
             param[1].requires_grad = True

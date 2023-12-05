@@ -7,7 +7,13 @@ import torch
 from loguru import logger
 
 
-def set_seed(seed):
+def set_seed(seed: int):
+    """Set seed with modules: pytorch lightning, torch, numpy and random.
+    Disable cudnn.benchmark and enables cudnn.deterministic
+
+    Args:
+        seed (int): seed set for all modules.
+    """
     logger.info("SETTING GLOBAL SEED: {}".format(seed))
     pl.seed_everything(seed)
     torch.manual_seed(seed)

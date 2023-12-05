@@ -1,6 +1,9 @@
+from typing import Tuple
+
 import numpy as np
 import torch
 import torch.nn.functional as F
+from omegaconf import DictConfig
 from scipy import stats
 from torch.utils.data import DataLoader
 
@@ -8,38 +11,60 @@ from models.bayesian_module import BayesianModule
 
 from .kcenterGreedy import KCenterGreedy
 
-names = """kcentergreedy badge""".split()
+NAMES = ["kcentergreedy", "badge"]
 
 DEVICE = "cuda:0"
 
 
-def query_sampler(cfg, model, labeled_dataloader, unlabeled_dataloader, acq_size):
+def query_sampler(
+    cfg: DictConfig,
+    model: torch.nn.Module,
+    labeled_dataloader: DataLoader,
+    unlabeled_dataloader: DataLoader,
+    acq_size: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Computes queries for all diversity based query methods.
+    IMPLEMENTATION: Add diversity queries here.
+
+    Args:
+        cfg (DictConfig): config
+        model (torch.nn.Module): model for queries.
+        labeled_dataloader (DataLoader): carries labeled data.
+        unlabeled_dataloader (DataLoader): carries unlabeled data.
+        acq_size (int): size of query in datapoints.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: [pool_indices, ranking values]
+    """
     name = cfg.query.name
+    ### IMPLEMENTATION
+    # Add novel query methods here
     if name == "kcentergreedy":
-        indices = get_kcg(
+        indices = _get_kcg(
             model, labeled_dataloader, unlabeled_dataloader, acq_size=acq_size
         )
+        # there is no ranking, therefore we add descending numerics as ranking values
         return indices, np.arange(acq_size)[::-1]
     elif name == "badge":
-        indices = get_badge(
+        indices = _get_badge(
             model, labeled_dataloader, unlabeled_dataloader, acq_size=acq_size
         )
+        # there is no ranking, therefore we add descending numerics as ranking values
         return indices, np.arange(acq_size)[::-1]
     else:
         raise NotImplementedError
 
 
-def init_centers(X: np.ndarray, K: int, device: str):
-    """
+def init_centers(X: np.ndarray, K: int) -> np.ndarray:
+    """Determines k centers using KMeans++ of data.
     Source: https://github.com/decile-team/distil/blob/main/distil/active_learning_strategies/badge.py
 
     Args:
-        X (np.ndarray): _description_
-        K (int): _description_
-        device (_type_): _description_
+        X (np.ndarray): NxD data
+        K (int): #centers to be determined
 
     Returns:
-        _type_: _description_
+        np.ndarray: Indices of centers
     """
     ind = np.argmax([np.linalg.norm(s, 2) for s in X])
     mu = [X[ind]]
@@ -64,7 +89,6 @@ def init_centers(X: np.ndarray, K: int, device: str):
                     centInds[i] = cent
                     D2[i] = newD[i]
 
-        # if sum(D2) == 0.0: pdb.set_trace()
         D2 = D2.ravel().astype(float)
         Ddist = (D2**2) / sum(D2**2)
         customDist = stats.rv_discrete(name="custm", values=(np.arange(len(D2)), Ddist))
@@ -77,7 +101,18 @@ def init_centers(X: np.ndarray, K: int, device: str):
 
 def chunked_pdist(
     x: torch.Tensor, y: torch.Tensor, device: str = "cuda:0", max_size: int = 8
-):
+) -> torch.Tensor:
+    """Compute Pairwise Distance for chunks given a maximal size of each chunk part.
+
+    Args:
+        x (torch.Tensor): input tensor NxD
+        y (torch.Tensor): input tensor MxD
+        device (str, optional): device for computation. Defaults to "cuda:0".
+        max_size (int, optional): maximum size of chunk of x for pdist computation in GB. Defaults to 8.
+
+    Returns:
+        torch.Tensor: NxM pairwise distance matrix
+    """
     pdist = torch.nn.PairwiseDistance(p=2)
     new_shape = x.shape[0]
     while (x.element_size() * x.nelement() / 10e9) * (
@@ -91,7 +126,7 @@ def chunked_pdist(
     dists = []
     while ind_start < x.shape[0]:
         ind_offset = int(min(new_shape, x.shape[0] - ind_start))
-        dist_part = pdist(x[ind_start : ind_start + ind_offset].to("cuda"), y_dev).to(
+        dist_part = pdist(x[ind_start : ind_start + ind_offset].to(device), y_dev).to(
             "cpu"
         )
         dists.append(dist_part)
@@ -102,12 +137,31 @@ def chunked_pdist(
 
 
 def get_grad_embedding(
-    model, dataloader: DataLoader, grad_embedding_type="linear"
+    model: torch.nn.Module,
+    dataloader: DataLoader,
+    grad_embedding_type: str = "linear",
+    device: str = "cuda:0",
 ) -> torch.Tensor:
+    """Compute gradient embedding of final layer of model for each input in dataloader.
+
+    Args:
+        model (torch.nn.Module): requires get_features and classifer
+        dataloader (DataLoader): contains data.
+        grad_embedding_type (str, optional): in [bias, linear,...]. Defaults to "linear".
+        device (str, optional): device for gradient computation. Defaults to "cuda:0".
+
+    Returns:
+        torch.Tensor: Embedding of last layer gradient
+    """
+
     BayesianModule.k = 1
     start_index = 0
+    assert hasattr(model, "model")  # model requires sub class model (due to code)
+    assert hasattr(
+        model.model, "classifer"
+    )  # model.model requires classification head (due to code).
     for i, (x, y) in enumerate(dataloader):
-        inputs = x.to(DEVICE)
+        inputs = x.to(device)
         with torch.no_grad():
             features = model.get_features(inputs)  # B x Z
         l1 = features  # B x Z
@@ -145,15 +199,27 @@ def get_grad_embedding(
     return gradient_embeddings
 
 
-def get_badge(model, labeled_dataloader, pool_loader, acq_size=100):
+def _get_badge(
+    model: torch.nn.Module,
+    labeled_dataloader: DataLoader,
+    pool_loader: DataLoader,
+    acq_size: int = 100,
+):
+    assert hasattr(model, "get_features")  # model requires function get_features
     grad_embedding = get_grad_embedding(model, pool_loader)
     grad_embedding = grad_embedding.numpy()
-    acq_indices = init_centers(grad_embedding, acq_size, DEVICE)
+    acq_indices = init_centers(grad_embedding, acq_size)
     return np.array(acq_indices)
 
 
-def get_kcg(model, labeled_dataloader, pool_loader, acq_size=100):
+def _get_kcg(
+    model: torch.nn.Module,
+    labeled_dataloader: DataLoader,
+    pool_loader: DataLoader,
+    acq_size: int = 100,
+):
     """Returns the indices of the core-set for the pool of the model via the k-center Greedy approach."""
+    assert hasattr(model, "get_features")  # model requires function get_features
     with torch.no_grad():
         features = torch.tensor([]).to(DEVICE)
         for inputs, _ in labeled_dataloader:

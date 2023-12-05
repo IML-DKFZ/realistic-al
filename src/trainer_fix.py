@@ -63,10 +63,10 @@ class DataLoaderWrapper(SlimDataLoaderBase):
 
 
 class FixTrainingLoop(ActiveTrainingLoop):
-    def init_model(self):
+    def _init_model(self):
         self.model = FixMatch(self.cfg)
 
-    def init_trainer(self):
+    def _init_trainer(self):
         self.trainer = pl.Trainer(
             gpus=self.cfg.trainer.n_gpus,
             logger=self.loggers,
@@ -84,7 +84,7 @@ class FixTrainingLoop(ActiveTrainingLoop):
             limit_train_batches=self.cfg.trainer.train_iters_per_epoch,
         )
 
-    def fit(self):
+    def _fit(self):
         """Performs the fit, selects the best performing model and cleans up cache."""
         num_workers = self.datamodule.num_workers
         pin_memory = self.datamodule.pin_memory

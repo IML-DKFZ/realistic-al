@@ -1,19 +1,33 @@
+import os
 from argparse import ArgumentParser
 from itertools import product
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Union
-
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
+from typing import Dict, List, Tuple, Union
 
 # required for accessing functions from src
 import ipynb_setup
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from dataframe import *
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 
 from plotlib.performance_plots import plot_standard_dev
-from dataframe import *
 from utils.eval import get_aubc
 
+#### Set Style
+sns.set_style("whitegrid")
+plt.rc("font", size=12)
+
+### Set Paths
+# contains RESULTSPATH/DATASET/LABEL-REGIME/EXPERIMENT/SEEDS/LOOPS
+RESULTSPATH = "/mnt/drive_nvme2/logs_cluster/activelearning"
+
+# will be filled with results
+SAVEPATH = "./plots"
+
+### Paths to full modles.
 FULL_MODELS = {
     "CIFAR-10": {
         "Basic": "basic_model-resnet_drop-0_aug-cifar_randaugmentMC_wd-0.0005_lr-0.1_optim-sgd_cosine",
@@ -146,15 +160,17 @@ def get_label_regime(x: str) -> str:
     return out
 
 
-def load_full_data(base_path: Path, dataset: str):
-    """Load plots of experiments ran on the whole dataset.
+def load_full_data(
+    base_path: Path, dataset: str
+) -> Dict[str, Dict[str, Dict[str, float]]]:
+    """Obtain performance values for models trained on the entire dataset.
 
     Args:
-        base_path (Path): path to the experiment folder
-        dataset (str): dataset name
+        base_path (Path): _description_
+        dataset (str): _description_
 
     Returns:
-        dictionary of metrics on the whole dataset
+        Dict[str, Dict[str, Dict[str, float]]]: nested dictionary with performance metrics.
     """
     full_paths = {}
     for model in FULL_MODELS[dataset]:
@@ -190,12 +206,12 @@ def plot_experiment(
     plot_key: str,
     upper_bound: bool = False,
     sharey=True,
-    num_cols: Optional[int] = None,
+    num_cols: int = None,
     full_models_dict: Dict[str, float] = None,
     ylabel: str = None,
     xlabel: str = None,
     ax_legend: int = 0,
-) -> Tuple[plt.Figure, List[plt.Axes]]:
+) -> Tuple[Figure, List[Axes]]:
     """Plotting Script for whole Experiment rows.
     Resulting in a figure with multiple plots.
     If some dfs are missing to fill num_cols then they are filled up
@@ -215,7 +231,7 @@ def plot_experiment(
         ax_legend (int, optional): from which ax the legend is taken. Defaults to 0.
 
     Returns:
-        Tuple[plt.Figure, List[plt.Axes]]: _description_
+        Tuple[Figure, List[Axes]]: Figures and corresponding plots
     """
     if num_cols is None:
         num_cols = len(dfs)
@@ -281,11 +297,17 @@ def plot_experiment(
     return fig, axs
 
 
-def set_legend(ylabel: str, xlabel: str, fig: plt.Figure, axs: List[plt.Axes]):
+def set_legend(ylabel: str, xlabel: str, fig: Figure, axs: List[Axes]) -> None:
     """Sets the labels and removes legends on axes and sets legend below figure
 
     ___
     Note: it is best to have only one legend on all axs if identical
+
+    Args:
+        ylabel (str): ylabel name
+        xlabel (str): xlabel name
+        fig (Figure): Figure to be changed
+        axs (List[Axes]): axes belonging to figure
     """
     num_cols = len(axs)
     for i in range(num_cols):
@@ -308,12 +330,12 @@ def set_legend(ylabel: str, xlabel: str, fig: plt.Figure, axs: List[plt.Axes]):
     )
 
 
-def add_upper_bound(axs: List[plt.Axes], hline_dicts: List[Dict[str, any]]):
+def add_upper_bound(axs: List[plt.Axes], hline_dicts: List[Dict[str, float]]):
     """Add upper bound to axes with axhline given a list of dictionary with alles inputs for ax.hline
 
     Args:
         axs (List[plt.Axes]): axes to be annotated
-        hline_dicts (List[Dict[any]]): must contain {"y" : int} and can contain other values
+        hline_dicts (List[Dict[any]]): must contain {"y" : flaot} and can contain other values
     """
     num_cols = len(axs)
     for i in range(num_cols):
@@ -321,11 +343,24 @@ def add_upper_bound(axs: List[plt.Axes], hline_dicts: List[Dict[str, any]]):
             axs[i].axhline(**hline_dict)
 
 
-def to_path_name(string: str):
+def to_path_name(string: str) -> str:
+    """Converts a given string to a valid path name by replacing spaces with hyphens,
+    converting to lowercase, and removing periods.
+
+    Args:
+        string (str): The input string to be converted.
+
+    Returns:
+        str: The resulting path name.
+
+    Example:
+        >>> to_path_name("Hello World.txt")
+        'hello-worldtxt'
+
+    """
     out = string.replace(" ", "-")
     out = out.lower()
     out = out.replace(".", "")
-    # out = out.replace("")
     return out
 
 
@@ -333,7 +368,24 @@ def save_plot(
     save_path: Path,
     save_dict: Dict[str, any],
 ):
-    """Turns all values in the save_dict into a string as a name and saves active plot"""
+    """
+    Turns all values in the save_dict into a string as a name and saves the active plot.
+
+    Args:
+        save_path (Path): The directory path where the plot will be saved.
+        save_dict (Dict[str, Any]): A dictionary containing values to be included in the plot name.
+
+    Returns:
+        None
+
+    Raises:
+        FileNotFoundError: If the specified save_path directory does not exist.
+
+    Example:
+        >>> save_dict = {'title': 'My Plot', 'size': (10, 8), 'color': 'blue'}
+        >>> save_plot(Path('plots'), save_dict)
+        # Saves the plot with a name like 'title-my-plot_size-(10,8)_color-blue.png'
+    """
     save_name = []
     for key in save_dict:
         key_str = to_path_name(key)
@@ -346,15 +398,23 @@ def save_plot(
 
 
 def product_of_dictionary(dictionary: Dict[str, Union[list, tuple]]) -> List[dict]:
-    """Returns a list of dictionaries of the product of all values in the dictionary
-    -----------
-    dictionary = {"sharey": [True, False], "upper_bound": [True, False]}
-    list_of_products = product_of_dictionary(dictionary)
-    list_of_products = [{'sharey': True, 'upper_bound': True},
-        {'sharey': True, 'upper_bound': False},
-        {'sharey': False, 'upper_bound': True},
-        {'sharey': False, 'upper_bound': False}
-    ]
+    """Returns a list of dictionaries representing the Cartesian product of values in the input dictionary.
+
+    Args:
+        dictionary (Dict[str, Union[list, tuple]]): A dictionary where each key corresponds to a parameter
+            and the associated value is a list or tuple of possible values for that parameter.
+
+    Returns:
+        List[dict]: A list of dictionaries representing all combinations of parameter values.
+
+    Example:
+        >>> dictionary = {"sharey": [True, False], "upper_bound": [True, False]}
+        >>> list_of_products = product_of_dictionary(dictionary)
+        >>> list_of_products
+        [{'sharey': True, 'upper_bound': True},
+         {'sharey': True, 'upper_bound': False},
+         {'sharey': False, 'upper_bound': True},
+         {'sharey': False, 'upper_bound': False}]
     """
     product_values = [x for x in product(*dictionary.values())]
     list_of_products = [
@@ -364,17 +424,17 @@ def product_of_dictionary(dictionary: Dict[str, Union[list, tuple]]) -> List[dic
 
 
 if __name__ == "__main__":
-    sns.set_style("whitegrid")
-    plt.rc("font", size=12)
-    base_path = Path("/mnt/drive_nvme2/logs_cluster/activelearning")
-    base_path2 = Path("/mnt/drive_nvme2/logs_cluster/activelearning_wloss")
-    base_path2 = Path("/mnt/drive_nvme2/logs_cluster/activelearning_balanced")
+    RESULTSPATH = Path(RESULTSPATH)
+    SAVEPATH = Path(SAVEPATH)
+    if not SAVEPATH.exists():
+        os.makedirs(SAVEPATH)
+    df = create_experiment_df(
+        RESULTSPATH, DATASETS, rewrite=True, save_file=SAVEPATH / "safe_df.pkl"
+    )
 
-    save_path = Path("./plots")
-    df = create_experiment_df(base_path, DATASETS, rewrite=True)
-    df2 = create_experiment_df(base_path2, DATASETS, rewrite=True)
+    # df2 = create_experiment_df(base_path2, DATASETS, rewrite=True)
 
-    df = pd.concat([df, df2], axis=0)
+    # df = pd.concat([df, df2], axis=0)
 
     df = preprocess_df(df, MATCH_PATTERNS, VALUE_DICT)
 
@@ -387,7 +447,7 @@ if __name__ == "__main__":
     print(df["Query Method"].unique())
 
     full_models_dict = {
-        dataset: load_full_data(base_path, dataset) for dataset in DATASETS
+        dataset: load_full_data(RESULTSPATH, dataset) for dataset in DATASETS
     }
 
     settings_dict = {"Dataset": "CIFAR-10", "Label Regime": ["low"]}
@@ -489,7 +549,7 @@ if __name__ == "__main__":
                                 **plot_setting,
                             )
                             plot_save_path = (
-                                save_path
+                                SAVEPATH
                                 / dataset
                                 / label_setting_name
                                 / value_setting_name
@@ -501,4 +561,4 @@ if __name__ == "__main__":
     aubc_df["Experiment Name"] = aubc_df[sortname].apply(lambda x: x.split("/")[-1])
     aubc_df = aubc_df.drop_duplicates()
     aubc_df = preprocess_df(aubc_df, MATCH_PATTERNS, VALUE_DICT)
-    aubc_df.to_csv(save_path / "aubc.csv")
+    aubc_df.to_csv(SAVEPATH / "aubc.csv")

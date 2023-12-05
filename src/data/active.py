@@ -242,11 +242,13 @@ class ActiveLearningDataset(torchdata.Dataset):
         indices = []
 
         if random:
-            # labels = []
-            # for (x, y) in self.pool:
-            #     labels.append(y)
-            # labels = np.array(labels)
-            labels = self.pool.targets
+            if hasattr(self.pool, "targets"):
+                labels: np.ndarray = self.pool.targets
+            else:
+                labels = []
+                for x, y in self.pool:
+                    labels.append(y)
+                labels = np.array(labels)
             for c in range(num_classes):
                 class_indices = np.where(labels == c)[0]
                 indices.append(

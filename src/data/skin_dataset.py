@@ -24,7 +24,8 @@ class AbstractISIC(Dataset):
         self.use_cache = False
         self.cached_indices = None
 
-    def init_cache(self, indices):
+    # TODO: possibly delete this function
+    def _init_cache(self, indices):
         # Caches indices according to:
         # https://discuss.pytorch.org/t/dataloader-resets-dataset-state/27960/6
         self.use_cache = True
@@ -73,8 +74,10 @@ class AbstractISIC(Dataset):
     def preprocess(self):
         basepath = Path(self.root)
         preprocessed_data = []
-        print("Preprocessing files...")
-        for filepath in tqdm(self.data):
+        requires_preprocessing = []
+
+        # check for preprocessed data
+        for filepath in self.data:
             filepath = Path(filepath)
             filename = str(filepath.name).split(".")[0]
             pardir = str(filepath.parent)
@@ -83,6 +86,13 @@ class AbstractISIC(Dataset):
                 basepath / (pardir + "_preprocessed") / (filename + ".png")
             )
             if not preprocessed_path.is_file():
+                requires_preprocessing.append((preprocessed_path, filepath))
+            preprocessed_data.append(preprocessed_path)
+
+        if len(requires_preprocessing) > 0:
+            print("Preprocessing files...")
+            # preprocessing
+            for preprocessed_path, filepath in tqdm(requires_preprocessing):
                 img = Image.open(filepath)
                 img = img.convert("RGB")
                 img = img.resize(
@@ -92,7 +102,9 @@ class AbstractISIC(Dataset):
                     preprocessed_path.parent.mkdir()
 
                 img.save(preprocessed_path)
-            preprocessed_data.append(preprocessed_path)
+            print("Finished preprocessing.")
+        else:
+            print("Data already preprocessed.")
         self.data = preprocessed_data
 
     def download(self):

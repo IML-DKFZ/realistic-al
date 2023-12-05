@@ -10,9 +10,6 @@ def to_numpy(data: Any) -> np.ndarray:
     Args:
         data (Any): data carrier (torch, list, tuple, numpy)
 
-    Raises:
-        TypeError: _description_
-
     Returns:
         np.ndarray: array carrying data from data
     """

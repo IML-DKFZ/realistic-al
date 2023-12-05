@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 
 
-# TODO: This class requires a major Rework!
+# INFO: this class and use is deprecated but is kept to keep old experiments supported.
 @dataclass
 class ActiveStore:
     """Class to capture the outputs of the ActiveCallback"""

@@ -2,19 +2,35 @@ from typing import Any, List
 
 
 def dict_2_df(
-    in_dict: dict, col_names: List[Any], i: int = 0, skip_list: List[Any] = list()
+    in_dict: dict, col_names: List[str], i: int = 0, skip_list: List[str] = list()
 ) -> List[dict]:
-    """Converts nested dictionaries to a list of dictionaries via recursion,
+    """Converts nested dictionaries to a list of dictionaries via recursion
     for easy conversion to dataframes.
 
     Args:
-        in_dict (dict): _description_
-        col_names (List[Any]): _description_
-        i (int, optional): _description_. Defaults to 0.
-        skip_list (List[Any], optional): _description_. Defaults to list().
+        in_dict (dict): nested dictionary
+        col_names (List[str]): defines maximal recursion depth and gives names to keys.
+        i (int, optional): current depth of recursion. Defaults to 0.
+        skip_list (List[str], optional): keys not taken into final dataset. Defaults to list().
 
     Returns:
-        List[dict]: _description_
+        List[dict]: flat dictinoary, easily convertable to pd.Dataframe
+
+
+    ---
+    Example:
+    test_dict = {
+        "a": {"b": {"c": "v_c1", "d": "v_d1"}, "e": {"c": "v_c2", "d": "v_d2"}},
+        "g": {"h": {"i": "v_i1", "j": "v_j1"}},
+    }
+
+    out_list = dict_2_df(test_dict, ["First", "Second"])
+
+    out_list = [
+        {"First": "a", "Second": "b", "c": "v_c1", "d": "v_d1"},
+        {"First": "a", "Second": "e", "c": "v_2", "d": "v_d2"},
+        {"First": "g", "Second": "h", "i": "v_i1", "j": "v_j1"},
+    ]
     """
     out_list = []
     for key in in_dict.keys():

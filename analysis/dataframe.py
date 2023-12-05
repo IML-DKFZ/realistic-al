@@ -1,18 +1,32 @@
-from argparse import ArgumentParser
 from pathlib import Path
-from typing import Callable, List, Dict, Tuple
+from typing import Callable, Dict, List
 
-import matplotlib.pyplot as plt
-import pandas as pd
-from rich.pretty import pprint
-
+# required to access files in src
 import ipynb_setup
+import pandas as pd
 
-from plotlib.performance_plots import plot_standard_dev
 from utils.file_utils import get_experiment_df
 
 
-def get_exp_paths(base_path: Path, dataset_dict: Dict[str, str]):
+def get_exp_paths(base_path: Path, dataset_dict: Dict[str, str]) -> List[Path]:
+    """
+    Retrieves a list of experiment paths based on a base path and a dataset dictionary.
+
+    Args:
+        base_path (Path): The base directory path where experiments are stored.
+        dataset_dict (Dict[str, str]): A dictionary mapping dataset names to their corresponding paths.
+
+    Returns:
+        List[Path]: A list of Path objects representing experiment paths.
+
+    Example:
+        >>> base_path = Path('/path/to/experiments')
+        >>> dataset_dict = {'dataset1': 'path/to/dataset1', 'dataset2': 'path/to/dataset2'}
+        >>> exp_paths = get_exp_paths(base_path, dataset_dict)
+        >>> exp_paths
+        [Path('/path/to/experiments/dataset1/active/experiment1'),
+         Path('/path/to/experiments/dataset2/active/experiment2')]
+    """
     exp_paths = []
     for datapath in base_path.iterdir():
         if datapath.name in dataset_dict.values() and datapath.is_dir():
@@ -25,14 +39,30 @@ def get_exp_paths(base_path: Path, dataset_dict: Dict[str, str]):
     return exp_paths
 
 
-def get_exp_df(exp_path: Path):
-    experiment_frame = get_experiment_df(exp_path, name=None)
+def get_exp_df(exp_path: Path) -> pd.DataFrame:
+    """
+    Retrieves a pandas DataFrame representing experiment data from the given experiment path.
+    Patterns which are searched for below the path: `stored.npz` and `test_metrics.csv`
+
+    Args:
+        exp_path (Path): The path to the experiment directory.
+
+    Returns:
+        pd.DataFrame or None: A DataFrame containing experiment data, or None if no data is found.
+
+    Example:
+        >>> exp_path = Path('/path/to/experiment')
+        >>> experiment_data = get_exp_df(exp_path)
+        >>> print(experiment_data)
+           Metric1  Metric2  Metric3            Path
+        0      0.1      0.5      0.3  /path/to/experiment
+    """
+    experiment_frame = get_experiment_df(exp_path, pattern="stored.npz", name=None)
     if experiment_frame is None:
         return None
 
     # Add new metric values
     experiment_add = get_experiment_df(exp_path, pattern="test_metrics.csv", name=None)
-    # experiment_add = None
     if experiment_add is not None:
         del experiment_add["Name"]
         del experiment_add["version"]
@@ -49,12 +79,33 @@ def create_experiment_df(
     base_path: Path,
     dataset_dict: Dict[str, str],
     rewrite: bool = True,
-):
-    save_file = Path("./plots/save.pkl")
-    # if save_file.exists() and rewrite is False:
-    #     df = pd.read_pickle(save_file)
-    #     try:
-    #         df
+    save_file: str = "./plots/safe_df.pkl",
+) -> pd.DataFrame:
+    """
+    Creates or loads a pandas DataFrame representing experiment data from the given base path and dataset dictionary.
+
+    Args:
+        base_path (Path): The base directory path where experiments are stored.
+        dataset_dict (Dict[str, str]): A dictionary mapping dataset names to their corresponding paths.
+        rewrite (bool, optional): If True, recreate the DataFrame even if a saved file exists. Default is True.
+        save_file (str, optional): The file path to save or load the DataFrame. Default is "./plots/safe_df.pkl".
+
+    Returns:
+        pd.DataFrame: A DataFrame containing experiment data.
+
+    Raises:
+        FileNotFoundError: If no saved DataFrame file is found and `rewrite` is set to False.
+
+    Example:
+        >>> base_path = Path('/path/to/experiments')
+        >>> dataset_dict = {'dataset1': 'path/to/dataset1', 'dataset2': 'path/to/dataset2'}
+        >>> experiment_data = create_experiment_df(base_path, dataset_dict)
+        >>> print(experiment_data)
+           index  Metric1  Metric2  Metric3            Path  Rel. Path
+        0      0      0.1      0.5      0.3  /path/to/experiment  dataset1/active/experiment1
+        1      0      0.2      0.6      0.4  /path/to/experiment  dataset2/active/experiment2
+    """
+    save_file = Path(save_file)
 
     if not save_file.exists() or rewrite:
         exp_paths = get_exp_paths(base_path, dataset_dict)
@@ -81,7 +132,29 @@ def preprocess_df(
     df_funcdict: Dict[str, Callable] = {
         "Training": lambda x: "PT: {}, Sem-SL: {}".format(x["Self-SL"], x["Semi-SL"])
     },
-):
+) -> pd.DataFrame:
+    """
+    Preprocesses a DataFrame by adding columns for dataset, label regime, and experiment name,
+    and performs additional transformations based on matching patterns.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing experiment data.
+        match_patterns (List[str]): List of patterns to filter and match experiment names.
+        df_funcdict (Dict[str, Callable], optional): A dictionary of functions to apply to the DataFrame.
+            Default is {"Training": lambda x: "PT: {}, Sem-SL: {}".format(x["Self-SL"], x["Semi-SL"])}.
+
+    Returns:
+        pd.DataFrame: The preprocessed DataFrame.
+
+    Example:
+        >>> df = create_experiment_df(base_path, dataset_dict)
+        >>> match_patterns = ['acq-rand', 'acq-entropy']
+        >>> preprocessed_df = preprocess_df(df, match_patterns)
+        >>> print(preprocessed_df)
+           index  Metric1  Metric2  Metric3  ...  Semi-SL           Training
+        0      0      0.1      0.5      0.3  ...   False  PT: False, Sem-SL: True
+        1      0      0.2      0.6      0.4  ...    True  PT: True, Sem-SL: True
+    """
     df["Dataset"] = df["Rel. Path"].map(lambda x: x.split("/")[0])
     df["Label Regime"] = df["Rel. Path"].map(lambda x: x.split("/")[1])
     df["Experiment Name"] = df["Rel. Path"].map(lambda x: x.split("/")[2])
@@ -105,19 +178,11 @@ def preprocess_df(
 
     for key, function in df_funcdict.items():
         df_match[key] = df_match.apply(function, axis=1)
-    # df_match[style_name] = df_match.apply(
-    #     lambda x: "PT: {}, Sem-SL: {}".format(x["Self-SL"], x["Semi-SL"]), axis=1
-    # )
 
     return df_match
 
 
-def create_plot_df(
-    df: pd.DataFrame,
-    settings_dict: Dict[str, List[str]],
-    filter_dict: Dict[str, List[str]],
-):
-    """Create the Dataframe for a single plot
+"""Create the Dataframe for a single plot
 
     Args:
         df (pd.DataFrame): Input Dataframe
@@ -138,6 +203,36 @@ def create_plot_df(
     }
 
     """
+
+
+def create_plot_df(
+    df: pd.DataFrame,
+    settings_dict: Dict[str, List[str]],
+    filter_dict: Dict[str, List[str]],
+):
+    """
+    Creates a filtered DataFrame for generating plots based on settings and filter criteria.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing experiment data.
+        settings_dict (Dict[str, List[str]]): A dictionary of settings to include in the filtered DataFrame.
+        filter_dict (Dict[str, List[str]]): A dictionary of filter criteria to exclude from the DataFrame.
+
+    Returns:
+        pd.DataFrame: The filtered DataFrame for generating plots.
+
+    Example:
+        >>> df = preprocess_df(df, match_patterns)
+        >>> settings_dict = {'Query Method': ['rand', 'entropy'], 'Training': ['PT: False, Sem-SL: True']}
+        >>> filter_dict = {'Label Regime': ['active']}
+        >>> plot_df = create_plot_df(df, settings_dict, filter_dict)
+        >>> print(plot_df)
+           index  Metric1  Metric2  Metric3  ...  Semi-SL           Training  Dataset        ...
+        0      0      0.1      0.5      0.3  ...   False  PT: False, Sem-SL: True  dataset1   ...
+        1      0      0.2      0.6      0.4  ...    True  PT: False, Sem-SL: True  dataset1   ...
+        ...
+    """
+
     df_out = df.copy(deep=True)
     # Filter out all experiments matching filter patterns in filter_dict
 
@@ -155,58 +250,34 @@ def create_plot_df(
     return df_out
 
 
-def get_experiments_matching(df: pd.DataFrame, key: str, patterns: List[str]):
-    """Returns true for each row in key if any of the patterns are True.
-    If patterns is empty, returns True for all.
+def get_experiments_matching(
+    df: pd.DataFrame, key: str, patterns: List[str]
+) -> pd.Series:
+    """
+    Returns a boolean Series indicating whether each row in the specified column matches any of the given patterns.
+
+    If patterns is empty, returns True for all rows.
 
     Args:
-        df (pd.DataFrame): _description_
-        key (str): _description_
-        patterns (List[str]): _description_
+        df (pd.DataFrame): The input DataFrame containing experiment data.
+        key (str): The column name to match against.
+        patterns (List[str]): A list of patterns to match.
 
     Returns:
-        pd.Series: can be used df[matches] to keep rues
+        pd.Series: A boolean Series, where True indicates a match.
+
+    Example:
+        >>> df = preprocess_df(df, match_patterns)
+        >>> patterns = ['rand', 'entropy']
+        >>> matches = get_experiments_matching(df, 'Query Method', patterns)
+        >>> filtered_df = df[matches]
+        >>> print(filtered_df)
+           index  Metric1  Metric2  Metric3  ...  Semi-SL           Training  Dataset        ...
+        0      0      0.1      0.5      0.3  ...   False  PT: False, Sem-SL: True  dataset1   ...
+        1      0      0.2      0.6      0.4  ...    True  PT: False, Sem-SL: True  dataset1   ...
+        ...
     """
     # Returns true if any of the patterns are true using piping |
     # Source: https://stackoverflow.com/questions/8888567/match-a-line-with-multiple-regex-using-python/8888615#8888615
     matches = df[key].str.match("|".join(patterns))
     return matches
-
-
-def main():
-    parser = ArgumentParser()
-    # parser.add_argument("-d", "--dataset", type=str, choices=list(DATASETS.keys()))
-    parser.add_argument(
-        "-s", "--save-path", type=Path, default=Path("./plots").resolve()
-    )
-    parser.add_argument(
-        "-b",
-        "--base-path",
-        type=Path,
-        default=Path(
-            "~/network/Personal/carsten_al_cvpr_2023-November/logs_cluster/activelearning"
-        ).expanduser(),
-    )
-    parser.add_argument("--hue-name", type=str, default="Acquisition")
-    parser.add_argument("--hue-split", type=str, default="acq-")
-    parser.add_argument(
-        "--style-name", type=str, default="PreTraining & Semi-Supervised"
-    )
-    parser.add_argument("--unit-name", type=str, default="Unit")
-    args = parser.parse_args()
-
-    # print(args)
-
-    # df = create_experiment_df(Path(args.base_path))
-    # df = preprocess_df(df, MATCH_PATTERNS)
-    # settings_dict = {"Dataset": ["cifar10"], "Label Regime": ["active-cifar10_low"]}
-    # filter_dict = {"Rel. Path": [r".*batchbald.*"]}
-    # style_name = "Training"
-    # plot_df = create_plot_df(df, settings_dict, filter_dict)
-
-    # fig, ax = create_plots(plot_df, style_name)
-    # plt.savefig("./plots/test.pdf")
-
-
-# if __name__ == "__main__":
-#     main()

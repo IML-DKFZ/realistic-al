@@ -2,15 +2,13 @@ import requests
 from tqdm import tqdm
 
 
-def download_url(url, save_path):
+def download_url(url: str, save_path: str):
     """Chunk wise downloading to not overuse RAM.
 
-    Parameters
-    ----------
-    url : str
-        URL from where to download.
-    save_path : str
-        Path where to save file.
+
+    Args:
+        url (str): URL from where to download.
+        save_path (str): Path where to save file.
     """
     r = requests.get(url, stream=True, allow_redirects=True)
     total_length = int(r.headers.get("content-length"))

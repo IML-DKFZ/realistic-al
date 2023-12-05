@@ -1,6 +1,6 @@
 from collections import MutableMapping
 from pathlib import Path
-from typing import Any, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,7 @@ from utils.tensor import to_numpy
 
 
 def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
-    """Returns all files in the root folder matching pattern in a sorted order
+    """Returns all files in the root folder matching pattern in a sorted order.
 
     Args:
         root (Path): Root for search of pattern
@@ -21,16 +21,7 @@ def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
         List[Path]: Files in subdir matching pattern
     """
     files = []
-    # for root_dirlist, dirlist, filelist in os.walk(root):
-    #     for file in filelist:
-    #         if file == pattern:
-    #             print(root_dirlist)
-    #             print(dirlist)
-    #             print(filelist)
-    #             # if re.match(pattern, file):
-    #             # files.append(Path(root_dir) / dir / file)
 
-    # this works only for 1 level!
     files = []
     for file in root.rglob(pattern):
         files.append(file)
@@ -41,9 +32,21 @@ def get_all_files_naming(root: Path, pattern: str) -> List[Path]:
 from collections import MutableMapping
 
 
-# code to convert ini_dict to flattened dictionary
+# code to convert init_dict to flattened dictionary
 # default separator '_'
-def convert_flatten(d: MutableMapping, parent_key="", sep="."):
+def convert_flatten(
+    d: MutableMapping, parent_key: str = "", sep: str = "."
+) -> Dict[str, Any]:
+    """Recursively go through nested mutable mapping and return a flattened version with keys being appended and seperated by sep.
+
+    Args:
+        d (MutableMapping): nested dictionary to be read out.
+        parent_key (str, optional): key used as a prefix. Defaults to "".
+        sep (str, optional): seperator between layers. Defaults to ".".
+
+    Returns:
+        Dict[str, Any]: Flattened Dictonary
+    """
     items = []
     for k in d.keys():
         new_key = parent_key + sep + k if parent_key else k
@@ -61,8 +64,18 @@ def convert_flatten(d: MutableMapping, parent_key="", sep="."):
 
 
 def get_experiment_configs_df(
-    experiment_path: Path, name: Optional[str] = None, pattern: str = "config.yaml"
-):
+    experiment_path: Path, name: str = None, pattern: str = "config.yaml"
+) -> pd.DataFrame:
+    """Load configs for experiments and return them as a Dataframe.
+
+    Args:
+        experiment_path (Path): base path from which experiments are searched with rglob.
+        name (str, optional): value to be added under key "Name", if none use name of path. Defaults to None.
+        pattern (str, optional): files that are searched for as configs. Defaults to "config.yaml".
+
+    Returns:
+        pd.DataFrame: 2D tabular data with all keys from config.
+    """
     files = get_all_files_naming(experiment_path, pattern)
     out_dicts = []
     print("Loading Experiment:", experiment_path)
@@ -75,7 +88,7 @@ def get_experiment_configs_df(
     dataframe = []
     for i, out_dict in enumerate(out_dicts):
         df_temp = pd.DataFrame(out_dict)
-        df_temp["version"] = i  # ToDo - change this to version
+        df_temp["version"] = i
         dataframe.append(df_temp)
     dataframe = pd.concat(dataframe)
     if name is None:
@@ -86,24 +99,23 @@ def get_experiment_configs_df(
 
 def get_experiment_df(
     experiment_path: Path,
-    name: Optional[str] = None,
+    name: str = None,
     pattern: str = "stored.npz",
     verbose: bool = False,
 ) -> pd.DataFrame:
     """Returns a cleaned dataframe with results from an experiment with a npz save structure.
 
     Args:
-        experiment_path (Path): _description_
-        name (Optional[str], optional): _description_. Defaults to None.
-        pattern (str, optional): _description_. Defaults to "stored.npz".
+        experiment_path (Path): base path from which rglob search for pattern is executed.
+        name (str, optional): value to be added under key "Name", if none use name of path. Defaults to None.
+        pattern (str, optional): files that are searched for as results. Defaults to "stored.npz".
+        verbose (bool, optional): function talks to you. Defaults to False.
 
     Returns:
-        _type_: _description_
+        pd.DataFrame: contains multiple experiments differentiated by version.
     """
     files = get_all_files_naming(experiment_path, pattern)
     out_dicts = []
-    # print("Loading Experiment:", experiment_path)
-    # print(f"Found num files: {len(files)}")
     if len(files) == 0:
         return None
     for file in files:
@@ -120,12 +132,12 @@ def get_experiment_df(
             data_dict = csv_dict.to_dict(orient="list")
         out_dicts.append(data_dict)
 
-    # TODO: possible extension, add config values from hydra (hparams.yaml)
     dataframe = []
     for i, out_dict in enumerate(out_dicts):
         # throw out all data which cannot be easily converted to a dataframe
         if len(out_dict) == 0:
-            # print("File {} \nIs empty and will be skipped!".format(file))
+            if verbose:
+                print("File {} \nIs empty and will be skipped!".format(file))
             return None
         for key in out_dict:
             pop_keys = []
@@ -157,7 +169,7 @@ def get_experiment_df(
         for key in pop_keys:
             out_dict.pop(key)
 
-        # TODO: Check if this is needed generally!
+        # this part of the code is quite ugly but was necessary.
         pop_keys = []
         for key in out_dict:
             if len(out_dict[key].shape) == 2:
@@ -169,7 +181,7 @@ def get_experiment_df(
             out_dict.pop(key)
 
         df_temp = pd.DataFrame(out_dict)
-        df_temp["version"] = i  # ToDo - change this to version
+        df_temp["version"] = i
         dataframe.append(df_temp)
     dataframe = pd.concat(dataframe)
     if name is None:
@@ -178,6 +190,7 @@ def get_experiment_df(
     return dataframe
 
 
+# TODO: delete this for submission open source.
 def get_experiment_dicts(experiment_path: Path) -> List[dict]:
     file_paths = get_nested_file_list(
         experiment_path, pardir="loop", subfolder="save_dict"
@@ -186,6 +199,7 @@ def get_experiment_dicts(experiment_path: Path) -> List[dict]:
     return dictlist
 
 
+# TODO: delete this for submission open source.
 def load_files_to_dict(files: Iterable[Path]):
     def to_dict(object: Any):
         out_dict = dict()

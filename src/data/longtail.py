@@ -2,7 +2,6 @@
 from typing import List, Tuple
 
 import numpy as np
-from torchvision.datasets import CIFAR10
 
 from .utils import ActiveSubset
 
@@ -10,20 +9,29 @@ from .utils import ActiveSubset
 def create_imbalanced_dataset(
     dataset, imb_type: str, imb_factor: float
 ) -> ActiveSubset:
+    """Creates an imbalanced dataset from dataset.
+
+    Args:
+        dataset (Dataset): Dataset with attribute dataset.targets
+        imb_type (str): in [exp, step, balanced]
+        imb_factor (float): #samples_min/ #samples_max
+
+    Returns:
+        ActiveSubset: Imbalanced dataset class
+    """
     targets = dataset.targets
     num_classes = len(np.unique(targets))
     num_samples = len(dataset)
-    img_num_per_cls = get_samples_per_cls(
+    img_num_per_cls = _get_samples_per_cls(
         num_samples, num_classes, imb_type, imb_factor
     )
     imb_dataset, class_dict = gen_imbalanced_data(dataset, img_num_per_cls)
     for key in class_dict:
         print("Class {} : #Samples {}".format(key, class_dict[key]))
-    # this might be a good place for logging exact values
     return imb_dataset
 
 
-def get_samples_per_cls(
+def _get_samples_per_cls(
     num_samples: int, cls_num: int, imb_type: str, imb_factor: float
 ) -> List[int]:
     """Computes the amount of samples for each class given a balanced dataset and an imbalance setting.
@@ -56,8 +64,9 @@ def get_samples_per_cls(
     return img_num_per_cls
 
 
-def gen_imbalanced_data(dataset: ActiveSubset, img_num_per_cls: List[int]):
-    # -> Tuple(ActiveSubset, dict):
+def gen_imbalanced_data(
+    dataset: ActiveSubset, img_num_per_cls: List[int]
+) -> Tuple[ActiveSubset, dict]:
     targets = [y for x, y in dataset]
     targets_np = np.array(targets, dtype=np.int)
     classes = np.unique(targets_np)

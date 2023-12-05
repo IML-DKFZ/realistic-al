@@ -28,7 +28,7 @@ def get_torchvision_dm(cfg: DictConfig, active_dataset: bool = True) -> TorchVis
         active_dataset (bool, optional): . Defaults to True.
 
     Returns:
-        TorchVisionDM: _description_
+        TorchVisionDM: DataModule used for training.
     """
     balanced_sampling = False
     if "balanced_sampling" in cfg.data:
@@ -78,11 +78,11 @@ def label_active_dm(
     Specific for imbalanced datasets (miotcd, isic2019, isic2016 & datamodule.imbalance=True)
 
     Args:
-        cfg (DictConfig): _description_
-        num_labelled (int): _description_
-        balanced (bool): _description_
-        datamodule (BaseDataModule): _description_
-        balanced_per_cls (int, optional): _description_. Defaults to 5.
+        cfg (DictConfig): config from main
+        num_labelled (int): number of samples for anntation
+        balanced (bool): label (part of dataset) balanced
+        datamodule (BaseDataModule): Datamodule with active train_set
+        balanced_per_cls (int, optional): #samples drawn balanced per class for specific cases. Defaults to 5.
     """
     cfg.data.num_classes = cfg.data.num_classes
     if cfg.data.name in ["isic2019", "miotcd", "isic2016"] and balanced:
@@ -114,6 +114,11 @@ def label_active_dm(
 
 @logger.catch
 def train(cfg: DictConfig):
+    """Run standard training.
+
+    Args:
+        cfg (DictConfig): config from main
+    """
     active_dataset = cfg.active.num_labelled is not None
     logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)

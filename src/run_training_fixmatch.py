@@ -24,6 +24,11 @@ def main(cfg: DictConfig):
 
 @logger.catch
 def train(cfg: DictConfig):
+    """Run standard training for FixMatch.
+
+    Args:
+        cfg (DictConfig): config from main
+    """
     logger.info("Set seed")
     utils.set_seed(cfg.trainer.seed)
     datamodule = get_torchvision_dm(cfg, active_dataset=True)

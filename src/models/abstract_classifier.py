@@ -2,7 +2,7 @@ import math
 from abc import abstractclassmethod
 from copy import deepcopy
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 import pytorch_lightning as pl
@@ -10,10 +10,8 @@ import torch
 import torch.nn as nn
 import torchvision
 from loguru import logger
-from omegaconf import DictConfig
 from pl_bolts.optimizers.lr_scheduler import linear_warmup_decay
 from pytorch_lightning.loggers import TensorBoardLogger
-from torch.nn import functional as F
 from torchmetrics import Accuracy
 
 from .callbacks.ema_callback import EMAWeightUpdate
@@ -23,7 +21,10 @@ from .utils import exclude_from_wt_decay, freeze_layers, load_from_ssl_checkpoin
 class AbstractClassifier(pl.LightningModule):
     def __init__(self, eman: bool = True):
         """Abstract Classifier carrying the logic for Bayesian Models with MC Dropout and logging for base values.
-        Dropout is per default used always, also during validation due to nature of Bayesian Model (Yarin Gal)
+        Dropout is per default used always, also during validation due to make use of its Bayesian properties.
+
+        Args:
+            eman (bool, optional): Whether or not to use Exponentially Moving AVerage Norm model. Defaults to True.
         """
         super().__init__()
 
@@ -42,8 +43,17 @@ class AbstractClassifier(pl.LightningModule):
     def forward(
         self, x: torch.Tensor, k: int = None, agg: bool = True, ema: bool = False
     ) -> torch.Tensor:
-        """Forward Pass which selects the correct model and returns class logprobabilities if agg=True,
-        else it returns the logits"""
+        """Forward Pass for the model.
+
+        Args:
+            x (torch.Tensor): input
+            k (int, optional): #MC samples. Defaults to None.
+            agg (bool, optional): return logprobs if True, otherwise logits. Defaults to True.
+            ema (bool, optional): select EMA model if True. Defaults to False.
+
+        Returns:
+            torch.Tensor: logprobs or logits
+        """
         model_forward = self.select_forward_model(ema=ema)
         if k is None:
             k = self.k
@@ -58,6 +68,14 @@ class AbstractClassifier(pl.LightningModule):
         return out
 
     def mc_nll(self, logits: torch.Tensor) -> torch.Tensor:
+        """Computs mean logits as required for predictive entropy
+
+        Args:
+            logits (torch.Tensor): logits
+
+        Returns:
+            torch.Tensor: NLL
+        """
         out = torch.log_softmax(logits, dim=-1)
         if len(logits.shape) > 2:
             k = out.shape[1]
@@ -70,7 +88,16 @@ class AbstractClassifier(pl.LightningModule):
         return super().training_step(*args, **kwargs)
 
     def select_forward_model(self, ema: bool = False) -> torch.nn.Module:
-        """Selects exponential moving avg or normal model according to training state"""
+        """Selects exponential moving avg or normal model according to training state.
+        During training select select model except when ema is True.
+        During validation select ema model when defined.
+
+        Args:
+            ema (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            torch.nn.Module: Model for execution of forward pass.
+        """
         if ema and self.ema_model is not None:
             return self.ema_model
         elif self.training:
@@ -82,25 +109,59 @@ class AbstractClassifier(pl.LightningModule):
                 return self.model
 
     def get_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Get Features of underlying model.
+
+        Args:
+            x (torch.Tensor): input Nx...
+
+        Returns:
+            torch.Tensor: Features NxD
+        """
         model_forward = self.select_forward_model()
         return model_forward.get_features(x).flatten(start_dim=1)
 
     def init_ema_model(self, use_ema: bool = False):
+        """Initialize EMA model if use_ema is True.
+
+        Args:
+            use_ema (bool, optional): whether EMA IS USED. Defaults to False.
+        """
         if use_ema:
             self.ema_model = deepcopy(self.model)
             for param in self.ema_model.parameters():
                 param.requires_grad = False
             self.ema_weight_update = EMAWeightUpdate(eman=self.eman)
 
-    def step(self, batch: Tuple[torch.tensor, torch.tensor], k: int = None):
+    def step(
+        self, batch: Tuple[torch.tensor, torch.tensor], k: int = None
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Standard supervised step using provided loss function.
+
+        Args:
+            batch (Tuple[torch.tensor, torch.tensor]): Data from Dataloader.
+            k (int, optional): #MC sampels. Defaults to None.
+
+        Returns:
+            Tuple[torch.tensor, torch.tensor, torch.tensor, torch.tensor]: loss, logprob, predictions, labels
+        """
         x, y = batch
         logprob = self.forward(x, k=k)
         loss = self.loss_fct(logprob, y)
-        # loss = F.nll_loss(logprob, y)
         preds = torch.argmax(logprob, dim=1)
         return loss, logprob, preds, y
 
-    def validation_step(self, batch, batch_idx, *args, **kwargs):
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int, *args, **kwargs
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Supervised validation step.
+
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): data from dataloader.
+            batch_idx (int): batch counter
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: logprob, labels
+        """
         mode = "val"
         loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
@@ -110,7 +171,18 @@ class AbstractClassifier(pl.LightningModule):
                 self.visualize_inputs(batch[0], name=f"{mode}/data")
         return logprob, y
 
-    def test_step(self, batch, batch_idx, *args, **kwargs):
+    def test_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int, *args, **kwargs
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Supervised test step.
+
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): data from dataloader.
+            batch_idx (int): batch counter
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: logprob, labels
+        """
         mode = "test"
         loss, logprob, preds, y = self.step(batch)
         self.log(f"{mode}/loss", loss, on_step=False, on_epoch=True)
@@ -120,13 +192,21 @@ class AbstractClassifier(pl.LightningModule):
                 self.visualize_inputs(batch[0], name=f"{mode}/data")
         return logprob, y
 
-    def on_train_batch_end(self, outputs, batch, batch_idx: int) -> None:
+    def on_train_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+        """Update the EMA model after every batch.
+
+        Args:
+            outputs (Any): outputs of model
+            batch (Any): data from dataloader
+            batch_idx (int): Batch counter
+        """
         if self.ema_model is not None:
             self.ema_weight_update.on_train_batch_end(
                 self.trainer, self, outputs, batch, batch_idx
             )
 
     def on_train_epoch_start(self) -> None:
+        """Reset training accuracy internal state and set encoder when frozen in eval mode as well as EMA model."""
         self.acc_train.reset()
         if self.hparams.model.freeze_encoder:
             self.model.resnet.eval()
@@ -145,25 +225,31 @@ class AbstractClassifier(pl.LightningModule):
                 logger.log_hyperparams(self.hparams, metrics=metric_placeholder)
 
     def on_validation_epoch_start(self) -> None:
+        """Reset validation accuracy internal state."""
         self.acc_val.reset()
 
     def on_test_epoch_start(self) -> None:
+        """Rest test accuracy internal state."""
         self.acc_test.reset()
 
     def on_train_epoch_end(self) -> None:
+        """Log values during training to disk."""
         mode = "train"
         self.log(f"{mode}/acc", self.acc_train.compute(), on_step=False, on_epoch=True)
 
     def on_validation_epoch_end(self) -> None:
+        """Log values during valudation to disk."""
         mode = "val"
         self.log(f"{mode}/acc", self.acc_val.compute(), on_step=False, on_epoch=True)
 
     def on_test_epoch_end(self) -> None:
+        """Log values during test to disk."""
         mode = "test"
         self.log(f"{mode}/acc", self.acc_test.compute(), on_step=False, on_epoch=True)
 
     def setup_data_params(self, dm: pl.LightningDataModule):
         """Create internal parameter with the amount of training iterations per epoch.
+        Set up weighted loss values if specified in config.
 
         Args:
             dm (pl.LightningDataModule): DataModule
@@ -203,7 +289,17 @@ class AbstractClassifier(pl.LightningModule):
             )
             self.loss_fct = nn.NLLLoss(weight=class_weights)
 
-    def configure_optimizers(self):
+    def configure_optimizers(
+        self,
+    ) -> Tuple[
+        List[torch.optim.Optimizer], List[torch.optim.lr_scheduler._LRScheduler]
+    ]:
+        """Setup optimizers and LR schedulers according to config.
+        IMPLEMENTATION: insert new optimizers and schedulers here.
+
+        Returns:
+            Tuple[ List[torch.optim.Optimizer], List[torch.optim.lr_scheduler._LRScheduler] ]: used in Lightning
+        """
         optimizer_name = self.hparams.optim.optimizer.name
         lr = self.hparams.model.learning_rate
         wd = self.hparams.model.weight_decay
@@ -291,7 +387,13 @@ class AbstractClassifier(pl.LightningModule):
         else:
             raise NotImplementedError
 
-    def visualize_inputs(self, inputs, name):
+    def visualize_inputs(self, inputs: torch.Tensor, name: str):
+        """Saves images of inputs to logger[0] (Tensorboard) with info about epoch etc.
+
+        Args:
+            inputs (torch.Tensor): image data [3xHxW]
+            name (str): name under which to display
+        """
         num_imgs = 64
         num_rows = 8
         grid = (
@@ -308,15 +410,29 @@ class AbstractClassifier(pl.LightningModule):
                 self.current_epoch,
             )
 
-    # TODO: Change this so that it works for many different models!
     def load_from_ssl_checkpoint(self):
         """Loads a Self-Supervised Resnet from a Checkpoint obtained from PL Bolts"""
+        ### IMPLEMENTATION ###
+        # Code needs to be changed here to allow different ssl pretrained models to be loaded.
         load_from_ssl_checkpoint(self.model, path=self.hparams.model.load_pretrained)
 
     def wrap_dm(self, dm: pl.LightningDataModule) -> pl.LightningDataModule:
+        """Prepare Datamodule for use. This here is a placeholder.
+
+        Args:
+            dm (pl.LightningDataModule): Datamodule to be used for training
+
+        Returns:
+            pl.LightningDataModule: Input datamodule without any changes
+        """
         return dm
 
-    def load_only_state_dict(self, path):
+    def load_only_state_dict(self, path: str):
+        """Load the state from checkpoint path.
+
+        Args:
+            path (str): Path to torch loadable file.
+        """
         ckpt = torch.load(path)
         logger.debug("Loading Model from Path: {}".format(path))
         logger.info("Loading checkpoint from Epoch: {}".format(ckpt["epoch"]))

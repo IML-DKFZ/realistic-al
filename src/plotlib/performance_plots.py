@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,22 +50,24 @@ def plot_standard_dev(
 
 
 def plot_pairwise_matrix(
-    matrix: dict,
+    matrix: Dict[str, Dict[str, float]],
     title_tag: str = "Test",
-    name_dict: dict = None,
+    name_dict: Dict[str, str] = None,
     max_poss_ent: int = 1,
-    savepath=None,
+    savepath: str = None,
     show: bool = False,
 ):
-    """Plots pairwise comparison matrix.
+    """Plots or saves pairwise penalty matrix (PPM).
+    Ech row i indicates the number of settings in which algorithm i beats other algorithms
+    and each column j indicates the number of settings in which algorithm j is beaten by another algorithm.
 
     Args:
-        matrix (dict): _description_
-        title_tag (str, optional): _description_. Defaults to "Test".
-        name_dict (dict, optional): _description_. Defaults to None.
-        max_poss_ent (int, optional): _description_. Defaults to 1.
-        savepath (_type_, optional): _description_. Defaults to None.
-        show (bool, optional): _description_. Defaults to False.
+        matrix (Dict[str, Dict[str, float]]): PPM matrix.
+        title_tag (str, optional): Title of Figure. Defaults to "Test".
+        name_dict (Dict[str, str], optional): {name_in_matrix: name_in_plot}. Defaults to None.
+        max_poss_ent (int, optional): Maximal value obtainable, equal to #AL experimentsß. Defaults to 1.
+        savepath (str, optional): If not None, save to path. Defaults to None.
+        show (bool, optional): If True, show plot. Defaults to False.
     """
     algs = [alg for alg in matrix.keys()]
     if name_dict is None:

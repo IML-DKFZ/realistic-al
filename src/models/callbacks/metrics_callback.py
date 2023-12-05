@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning import Callback
@@ -5,23 +7,26 @@ from torchmetrics import AUROC, AveragePrecision, ConfusionMatrix
 
 
 class MetricCallback(Callback):
+    """Class for using using multiple different metrics including automated resets.
+    IMPLEMENTATION: add additional metrics here."""
+
     def on_train_epoch_start(self, trainer, pl_module) -> None:
         mode = "train"
-        self.reset_metric_dict(self.auc_dict, pl_module, mode)
-        self.reset_metric_dict(self.pred_dict, pl_module, mode)
-        self.reset_metric_dict(self.pred_conf, pl_module, mode)
+        self.reset_metric_dict(self.auc_dict, mode)
+        self.reset_metric_dict(self.pred_dict, mode)
+        self.reset_metric_dict(self.pred_conf, mode)
 
     def on_validation_epoch_start(self, trainer, pl_module) -> None:
         mode = "val"
-        self.reset_metric_dict(self.auc_dict, pl_module, mode)
-        self.reset_metric_dict(self.pred_dict, pl_module, mode)
-        self.reset_metric_dict(self.pred_conf, pl_module, mode)
+        self.reset_metric_dict(self.auc_dict, mode)
+        self.reset_metric_dict(self.pred_dict, mode)
+        self.reset_metric_dict(self.pred_conf, mode)
 
     def on_test_epoch_start(self, trainer, pl_module) -> None:
         mode = "test"
-        self.reset_metric_dict(self.auc_dict, pl_module, mode)
-        self.reset_metric_dict(self.pred_dict, pl_module, mode)
-        self.reset_metric_dict(self.pred_conf, pl_module, mode)
+        self.reset_metric_dict(self.auc_dict, mode)
+        self.reset_metric_dict(self.pred_dict, mode)
+        self.reset_metric_dict(self.pred_conf, mode)
 
     def on_train_epoch_end(self, trainer, pl_module) -> None:
         mode = "train"
@@ -41,13 +46,20 @@ class MetricCallback(Callback):
         self.log_metric_dict(self.pred_dict, pl_module, mode=mode)
         self.log_metrics(pl_module, mode)
 
-    def log_metrics(self, pl_module, mode):
+    def log_metrics(self, pl_module: pl.LightningModule, mode: str) -> None:
         pass
 
     @staticmethod
-    def log_metric_dict(metric_dict, pl_module, mode):
-        # metric_dict = pl_module.metric_dict
-        # metric_dict = self.auc_dict
+    def log_metric_dict(
+        metric_dict: Dict[str, Any], pl_module: pl.LightningModule, mode: str
+    ) -> None:
+        """Log values in metric dict with correct mode to pytorch lightning module logger.
+
+        Args:
+            metric_dict (Dict[str, Any]): dictionary with keys: {mode/metric_name: metric}
+            pl_module (pl.LightningModule): module used
+            mode (str): prefix name of logdict e.g. train, val, test
+        """
         for key in metric_dict:
             if key.split("/")[0] == mode:
                 pl_module.log(
@@ -55,26 +67,44 @@ class MetricCallback(Callback):
                 )
 
     @staticmethod
-    def reset_metric_dict(metric_dict, pl_module, mode):
-        # metric_dict = pl_module.metric_dict
-        # metric_dict = self.auc_dict
+    def reset_metric_dict(metric_dict: Dict[str, Any], mode: str) -> None:
+        """Reset metrics in metric dict for a specific mode.
+
+        Args:
+            metric_dict (Dict[str, Any]): dictionary with keys: {mode/metric_name: metric}
+            mode (str): prefix name of logdict e.g. train, val, test
+        """
         for key in metric_dict:
             if key.split("/")[0] == mode:
                 metric_dict[key].reset()
 
     @staticmethod
-    def update_metric_dict(metric_dict, pl_module, mode, preds, y):
-        # metric_dict = pl_module.metric_dict
-        # metric_dict = self.auc_dict
+    def update_metric_dict(
+        metric_dict: Dict[str, Any], mode: str, preds: torch.Tensor, y: torch.Tensor
+    ):
+        """Update metrics in metric dict for a specific mode.
+
+        Args:
+            metric_dict (Dict[str, Any]): dictionary with keys: {mode/metric_name: metric}
+            mode (str): prefix name of logdict e.g. train, val, test
+            preds (torch.Tensor): predictions
+            y (torch.Tensor): labels
+        """
         for key in metric_dict:
             if key.split("/")[0] == mode:
                 metric_dict[key].update(preds, y)
 
 
+### IMPLEMENTATION
+# New callbacks for metrics can be implemented here following the examples of ImbClassMetricCallback
+
+
 class ImbClassMetricCallback(MetricCallback):
-    def __init__(self, num_classes):
-        """Callback which creates and tracks the torchmetrics AUROC and Average Prescision.
-        Note: balanced multiclass accuracy = mean of diagonal of conf matrix, divided by positive incidences
+    def __init__(self, num_classes: int):
+        """Callback which creates and tracks the torchmetrics AUROC and Average Prescision and values from Confusion Matrix (balanced accuracy, precision, F1 etc.).
+
+        Args:
+            num_classes (int): #of classes in dataset
         """
         super().__init__()
         modes = ["train", "val", "test"]
@@ -100,9 +130,22 @@ class ImbClassMetricCallback(MetricCallback):
             }
         )
 
-    def compute_pred_metrics(self, mode: str, class_wise: bool = False):
+    def compute_pred_metrics(
+        self, mode: str, class_wise: bool = False
+    ) -> Dict[str, float]:
+        """Compute prediction values based on confusion matrix.
+        When class_wise is true, return rec, prec and f1 for every class.
+
+        Args:
+            mode (str): prefix name of logdict e.g. train, val, test
+            class_wise (bool, optional): add values per class. Defaults to False.
+
+        Returns:
+            dict: values for logging in subsequent steps
+        """
         conf_mat = self.pred_conf[mode].compute()
         acc = conf_mat.diag().sum() / conf_mat.sum()
+        # Note: balanced multiclass accuracy = mean of diagonal of conf matrix, divided by positive incidences
         w_acc = (conf_mat.diag() / conf_mat.sum(dim=1)).mean()
         av_prec = (conf_mat.diag() / conf_mat.sum(dim=0)).mean()
         av_f1 = (
@@ -128,46 +171,71 @@ class ImbClassMetricCallback(MetricCallback):
 
         return out_dict
 
-    def log_metrics(self, pl_module, mode):
+    def log_metrics(self, pl_module: pl.LightningModule, mode: str):
+        """Compute log_metrics and write them to loggers.
+
+        Args:
+            pl_module (pl.LightningModule): Module for training
+            mode (str): prefix name of logdict e.g. train, val, test
+        """
         if mode in self.pred_conf:
             log_dict = self.compute_pred_metrics(mode)
             pl_module.log_dict(log_dict, on_epoch=True, on_step=False)
 
     def on_train_batch_end(
-        self, trainer, pl_module, outputs, batch, batch_idx, unused: int = 0
+        self,
+        trainer,
+        pl_module,
+        outputs: Dict[str, torch.Tensor],
+        batch,
+        batch_idx,
+        unused: int = 0,
     ) -> None:
+        """Update confusion matrix and auc dicts with data from train batch.
+
+        Args:
+            outputs (Dict[str, torch.Tensor]): contains keys [logprob, label]
+            ...
+        """
         mode = "train"
         logprob = outputs["logprob"]
         y = outputs["label"]
         pred = torch.argmax(logprob, dim=-1)
-        self.update_metric_dict(
-            self.pred_conf, pl_module, mode, pred.to("cpu"), y.to("cpu")
-        )
-        self.update_metric_dict(self.auc_dict, pl_module, mode, torch.exp(logprob), y)
+        self.update_metric_dict(self.pred_conf, mode, pred.to("cpu"), y.to("cpu"))
+        self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)
 
     def on_validation_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, unused: int = 0
     ) -> None:
+        """Update confusion matrix and auc dicts with data from validation batch.
+
+        Args:
+            outputs (Dict[str, torch.Tensor]): contains keys [logprob, label]
+            ...
+        """
         mode = "val"
         logprob, y = outputs
         pred = torch.argmax(logprob, dim=-1)
-        self.update_metric_dict(
-            self.pred_conf, pl_module, mode, pred.to("cpu"), y.to("cpu")
-        )
-        self.update_metric_dict(self.auc_dict, pl_module, mode, torch.exp(logprob), y)
+        self.update_metric_dict(self.pred_conf, mode, pred.to("cpu"), y.to("cpu"))
+        self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)
 
     def on_test_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, unused: int = 0
     ) -> None:
+        """Update confusion matrix and auc dicts with data from test batch.
+
+        Args:
+            outputs (Dict[str, torch.Tensor]): contains keys [logprob, label]
+            ...
+        """
         mode = "test"
         logprob, y = outputs
         pred = torch.argmax(logprob, dim=-1)
-        self.update_metric_dict(
-            self.pred_conf, pl_module, mode, pred.to("cpu"), y.to("cpu")
-        )
-        self.update_metric_dict(self.auc_dict, pl_module, mode, torch.exp(logprob), y)
+        self.update_metric_dict(self.pred_conf, mode, pred.to("cpu"), y.to("cpu"))
+        self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)
 
 
+# TODO: Delete this for open source version.
 class ISIC2016MetricCallback(MetricCallback):
     def __init__(self):
         """Callback which creates and tracks the torchmetrics AUROC and Average Prescision."""
@@ -186,18 +254,18 @@ class ISIC2016MetricCallback(MetricCallback):
         mode = "train"
         logprob = outputs["logprob"]
         y = outputs["label"]
-        self.update_metric_dict(self.auc_dict, pl_module, mode, torch.exp(logprob), y)
+        self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)
 
     def on_validation_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, unused: int = 0
     ) -> None:
         mode = "val"
         logprob, y = outputs
-        self.update_metric_dict(self.auc_dict, pl_module, mode, torch.exp(logprob), y)
+        self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)
 
     def on_test_batch_end(
         self, trainer, pl_module, outputs, batch, batch_idx, unused: int = 0
     ) -> None:
         mode = "test"
         logprob, y = outputs
-        self.update_metric_dict(self.auc_dict, pl_module, mode, torch.exp(logprob), y)
+        self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)

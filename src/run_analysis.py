@@ -18,9 +18,9 @@ from models.fixmatch import FixMatch
 from query import QuerySampler
 from query.kcenterGreedy import KCenterGreedy
 from query.query_uncertainty import (
-    get_bald_fct,
-    get_bay_entropy_fct,
-    get_exp_entropy_fct,
+    _get_bald_fct,
+    _get_bay_entropy_fct,
+    _get_exp_entropy_fct,
 )
 from run_test import get_active_torchvision_dm
 from utils.dict_utils import dict_2_df
@@ -76,9 +76,9 @@ class AnalyzeExperiment:
         self.query_fct = self.cfg.query.name
 
         self.function_dict = {
-            "MI": get_bald_fct(self.model),
-            "Entropy": get_bay_entropy_fct(self.model),
-            "Exp-Entropy": get_exp_entropy_fct(self.model),
+            "MI": _get_bald_fct(self.model),
+            "Entropy": _get_bay_entropy_fct(self.model),
+            "Exp-Entropy": _get_exp_entropy_fct(self.model),
             "Pred": lambda x: self.model.forward(x).argmax(dim=1),
             "Repr": lambda x: self.model.get_features(x),
         }

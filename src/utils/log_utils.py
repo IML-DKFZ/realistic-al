@@ -1,17 +1,21 @@
 # code is adapted from: https://github.com/MIC-DKFZ/nnDetection/blob/main/nndet/utils/info.py
 
 import os
-from optparse import Option
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, Union
 
 import __main__
 from git import InvalidGitRepositoryError, Repo
 from loguru import logger
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 
 
-def setup_logger(path: Optional[Union[Path, str]] = None):
+def setup_logger(path: Union[Path, str] = None) -> None:
+    """Set up the loguru logger in path with the __main__ filename.
+
+    Args:
+        path (Union[Path, str], optional): parent directory where logfile is written to, if None: os.getcwd(). Defaults to None.
+    """
     logger.info("Current Working Directory: {}".format(os.getcwd()))
     logger.info("Main: {}".format((__main__.__file__.split(".")[0] + ".log")))
     if path is None:
@@ -22,14 +26,15 @@ def setup_logger(path: Optional[Union[Path, str]] = None):
     logger.info("Logging to file: {}".format(logpath))
 
 
-def get_repo_info(path: Union[str, Path]):
-    """
-    Parse repository information from path
+def get_repo_info(path: Union[str, Path]) -> Dict[str, str]:
+    """Parse repository information from path
+
     Args:
-        path (str): path to repo. If path is not a repository it
+        path (Union[str, Path]): path to repo. If path is not a repository it
         searches parent folders for a repository
+
     Returns:
-        dict: contains the current hash, gitdir and active branch
+        Dict[str, str]: contains the current hash, gitdir and active branch
     """
 
     def find_repo(findpath):
@@ -52,11 +57,14 @@ def get_repo_info(path: Union[str, Path]):
     }
 
 
-def log_git(repo_path: Union[Path, str], repo_name: str = None):
-    """
-    Use python logging module to log git information
+def log_git(repo_path: Union[Path, str]) -> Dict[str, str]:
+    """Use python logging module to log git information
+
     Args:
-        repo_path (Union[pathlib.Path, str]): path to repo or file inside repository (repository is recursively searched)
+        repo_path (Union[Path, str]): path to repo or file inside repository (repository is recursively searched)
+
+    Returns:
+        Dict[str, str]: git repo information
     """
     try:
         git_info = get_repo_info(repo_path)
@@ -68,20 +76,18 @@ def log_git(repo_path: Union[Path, str], repo_name: str = None):
         return {}
 
 
-def save_config_to_tests(cfg, save_name):
+# TODO: check if deletion is save
+def save_config_to_tests(cfg: DictConfig, save_name: str):
     """Place this function inside of a main to extract the OmegaConf dictionary.
 
     Args:
-        cfg (_type_): _description_
-        save_name (_type_): _description_
+        cfg (DictConfig): config
+        save_name (str): savename
     """
-    import os
-
-    from omegaconf import OmegaConf
 
     import utils.io as io
-    from utils.path_utils import test_data_folder
+    from utils.path_utils import TEST_DATA_FOLDER
 
     save_name = save_name.replace(".py", "")
-    save_file = os.path.join(test_data_folder, save_name)
+    save_file = os.path.join(TEST_DATA_FOLDER, save_name)
     io.save_omega_conf(cfg, save_file)
