@@ -49,7 +49,7 @@ def train(cfg: DictConfig):
 
 
 class FixToyTrainingLoop(ToyActiveLearningLoop):
-    def init_model(self):
+    def _init_model(self):
         self.model = FixMatch(self.cfg)
 
 

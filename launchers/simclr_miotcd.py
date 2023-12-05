@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import BaseLauncher
 
 config_dict = {

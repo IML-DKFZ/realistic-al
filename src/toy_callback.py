@@ -19,7 +19,7 @@ from plotlib.toy_plots import (
     vis_class_val_2d,
     vis_unc_train_2d,
 )
-from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct, get_var_ratios
+from query.query_uncertainty import _get_bald_fct, _get_bay_entropy_fct, _get_var_ratios
 from utils.concat import (
     AbstractBatchData,
     GetClassifierOutputs,
@@ -109,7 +109,7 @@ class ToyVisCallback(pl.Callback):
             pool_loader = None
 
         # this stays only until better method for creating meshgrid is found!
-        test_data = concat_functional(test_loader)
+        test_data = concat_functional(test_loader, get_batch_data)
 
         grid_arrays = create_2d_grid_from_data(test_data["data"])
         X_grid = np.c_[grid_arrays[0].ravel(), grid_arrays[1].ravel()]
@@ -416,9 +416,9 @@ class GetModelUncertainties(AbstractBatchData):
 
     def custom_call(self, x: Tensor, out_dict: dict, **kwargs):
         x = x.to(self.device)
-        bald_fct = get_bald_fct(self.model)
-        entropy_fct = get_bay_entropy_fct(self.model)
-        varratios_fct = get_var_ratios(self.model)
+        bald_fct = _get_bald_fct(self.model)
+        entropy_fct = _get_bay_entropy_fct(self.model)
+        varratios_fct = _get_var_ratios(self.model)
         out_dict["entropy"] = entropy_fct(x)
         out_dict["bald"] = bald_fct(x)
         out_dict["varratios"] = varratios_fct(x)

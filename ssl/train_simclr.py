@@ -1,35 +1,30 @@
 import os
+import sys
 
 import hydra
-from omegaconf import DictConfig
-
-from pl_bolts.models.self_supervised.simclr.simclr_module import *
-from pytorch_lightning import loggers
-
-import sys
-import os
 import torch
 import torchvision
-
-from pytorch_lightning.utilities import rank_zero_warn
-from pytorch_lightning.loggers import TensorBoardLogger
+from omegaconf import DictConfig
 from pl_bolts.callbacks.ssl_online import SSLOnlineEvaluator
 from pl_bolts.models.self_supervised.evaluator import SSLEvaluator
+from pl_bolts.models.self_supervised.simclr.simclr_module import *
 from pl_bolts.models.self_supervised.simclr.transforms import (
     SimCLREvalDataTransform,
     SimCLRTrainDataTransform,
 )
+from pytorch_lightning import loggers
+from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.utilities import rank_zero_warn
 
 src_folder = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"
 )
 
 sys.path.append(src_folder)
-from data.data import TorchVisionDM
 import utils
-from utils.config_utils import print_config
+from data.data import TorchVisionDM
 from models.networks import build_wideresnet
-
+from utils.config_utils import print_config
 
 """
 For Cifar10 Training:

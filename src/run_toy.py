@@ -27,12 +27,12 @@ def main(cfg: DictConfig):
 
 
 class ToyActiveLearningLoop(ActiveTrainingLoop):
-    def init_callbacks(self):
-        super().init_callbacks()
+    def _init_callbacks(self):
+        super()._init_callbacks()
         if self.cfg.trainer.vis_callback:
             save_paths = [self.log_dir]
             if True:
-                save_paths.append(utils.visuals_folder)
+                save_paths.append(utils.VISUALS_FOLDER)
             save_paths = tuple(
                 [os.path.join(save_path, "epoch_vis") for save_path in save_paths]
             )
@@ -69,7 +69,7 @@ class ToyActiveLearningLoop(ActiveTrainingLoop):
             grid_arrays,
         )
         # TODO: fix this before final commit
-        save_paths = (self.log_dir, utils.visuals_folder)
+        save_paths = (self.log_dir, utils.VISUALS_FOLDER)
 
         ToyVisCallback.baseline_plots(
             train_data, val_data, grid_data, pool_data, grid_unc, save_paths

@@ -23,7 +23,7 @@ from run_toy import ToyActiveLearningLoop, get_toy_dm
 from utils.setup import set_seed
 
 # DATA_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = path_utils.test_data_folder
+DATA_DIR = path_utils.TEST_DATA_FOLDER
 
 
 @pytest.fixture

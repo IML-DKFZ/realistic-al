@@ -29,7 +29,7 @@ hparam_dict = {
     "data.transform_train": ["isic_train"],
     "trainer.num_worker": 12,
     "optim.lr_scheduler.warmup_epochs": 3,  # set to 3 for some warmup similar to ImageNet experiments
-    "trainer.precision": 32,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
+    "trainer.precision": 16,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]
