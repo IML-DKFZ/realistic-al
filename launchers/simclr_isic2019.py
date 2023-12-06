@@ -36,7 +36,7 @@ if __name__ == "__main__":
     if "model.load_pretrained" in hparam_dict:
         hparam_dict["model.load_pretrained"] = BaseLauncher.finalize_paths(
             hparam_dict["model.load_pretrained"],
-            on_cluster=launcher_args.cluster or launcher_args.bsub,
+            on_cluster=launcher_args.bsub,
         )
 
     launcher = BaseLauncher(
@@ -47,7 +47,8 @@ if __name__ == "__main__":
         path_to_ex_file,
         joint_iteration=joint_iteration,
     )
-    if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_2gpu.sh"
+
+    if launcher_args.bsub:
+        launcher.ex_call = "~/run_active_2gpu.sh python"
 
     launcher.launch_runs()

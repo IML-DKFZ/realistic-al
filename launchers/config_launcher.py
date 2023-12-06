@@ -18,8 +18,11 @@ class PretrainedArch:
         self.ckpt_path = self.rel_path_to
 
 
-# TODO: This might be automated based on hparams and pathfinder --> see nnDetection stuff
-model_list = [
+### Running ###
+### IMPLEMENTATION ###
+# Add own checkpoints here for loading.
+
+MODEL_LIST = [
     # Pretrained Archs from Cifar10 with ResNets
     PretrainedArch(
         "SSL/cifar10/cifar_resnet18/2022-01-07_16-51-48-043111/checkpoints/last.ckpt",
@@ -106,7 +109,35 @@ model_list = [
 
 
 def get_pretrained_arch(dataset: str, model: str, seed: int) -> PretrainedArch:
-    for pretrained_arch in model_list:
+    """
+    Retrieves a pretrained architecture from a global list based on the specified dataset,
+    model type, and seed.
+
+    Args:
+        dataset (str): The name of the dataset.
+        model (str): The type of the model architecture.
+        seed (int): The seed value associated with the pretrained architecture.
+
+    Returns:
+        PretrainedArch: The pretrained architecture matching the provided specifications.
+
+    Raises:
+        NotImplementedError: If no pretrained architecture matches the specified dataset,
+            model type, and seed in the global MODEL_LIST.
+
+    Note:
+        This function searches the global MODEL_LIST for a pretrained architecture that
+        matches the specified dataset, model type, and seed. If found, it returns the
+        corresponding pretrained architecture. If no match is found, a NotImplementedError
+        is raised with a message indicating the absence of a pretrained architecture with
+        the provided specifications.
+
+    Example:
+        If called with ('CIFAR-10', 'ResNet', 42), the function searches for a pretrained
+        architecture in MODEL_LIST with dataset='CIFAR-10', model_type='ResNet', and seed=42.
+        If a match is found, the corresponding PretrainedArch object is returned.
+    """
+    for pretrained_arch in MODEL_LIST:
         if (
             model == pretrained_arch.model_type
             and dataset == pretrained_arch.dataset
@@ -115,18 +146,18 @@ def get_pretrained_arch(dataset: str, model: str, seed: int) -> PretrainedArch:
             return pretrained_arch
 
     raise NotImplementedError(
-        "There is no pretrained arch with these specifics in the model_list: \n Dataset:{} \n Model:{} \n Seed: {}".format(
+        "There is no pretrained arch with these specifics in global MODEL_LIST: \n Dataset:{} \n Model:{} \n Seed: {}".format(
             dataset, model, seed
         )
     )
 
 
-for model in model_list:
+for model in MODEL_LIST:
     model.add_ckpt()
 
 
 if __name__ == "__main__":
-    print("Length of Model List: {}".format(len(model_list)))
+    print("Length of Model List: {}".format(len(MODEL_LIST)))
     dataset = "cifar10"
     # model = "wideresnet28-2"
     model = "bayesian_wide_resnet"

@@ -64,8 +64,6 @@ if __name__ == "__main__":
         joint_iteration=joint_iteration,
     )
 
-    if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
     if launcher_args.bsub:
         launcher.ex_call = "~/run_active_20gb.sh python"
 
