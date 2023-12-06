@@ -24,8 +24,8 @@ LOCAL_LOG_PATH = "/home/c817h/Documents/logs_cluster"
 class BaseLauncher:
     def __init__(
         self,
-        config_args: Dict[List[Any]],
-        overwrite_args: Dict[List[Any]],
+        config_args: Dict[str, List[Any]],
+        overwrite_args: Dict[str, List[Any]],
         launcher_args: Namespace,
         naming_convention: str,
         path_to_ex_file: str,

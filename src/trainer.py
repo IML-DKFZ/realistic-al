@@ -123,7 +123,7 @@ class ActiveTrainingLoop(object):
         # based on: https://github.com/MIC-DKFZ/nnDetection/blob/6ac7dac6fd9ffd85b74682a2f565e0028305c2c0/scripts/train.py#L187-L226
         meta_data = {}
         meta_data["date"] = str(datetime.now())
-        meta_data["git"] = log_git(repo_path, repo_name=repo_name)
+        meta_data["git"] = log_git(repo_path)
         return meta_data
 
     def _init_loggers(self):

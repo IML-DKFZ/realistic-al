@@ -1,4 +1,4 @@
-from typing import Any, Iterator, List, Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 
 import torch
 
@@ -8,7 +8,7 @@ def exclude_from_wt_decay(
     weight_decay: float,
     skip_list: List[str] = ["bias", "bn"],
     learning_rate: float = None,
-) -> List[dict[str, Any]]:
+) -> List[Dict[str, Any]]:
     """Exclude parameters from weight decay and get groups with specific instructions for optimizers.
     Ignores parameters where requires_grad is False.
 
