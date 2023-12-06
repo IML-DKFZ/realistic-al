@@ -235,7 +235,7 @@ class ImbClassMetricCallback(MetricCallback):
         self.update_metric_dict(self.auc_dict, mode, torch.exp(logprob), y)
 
 
-# TODO: Delete this for open source version.
+# This code is not used in benchmark, but maybe it is useful for some people.
 class ISIC2016MetricCallback(MetricCallback):
     def __init__(self):
         """Callback which creates and tracks the torchmetrics AUROC and Average Prescision."""

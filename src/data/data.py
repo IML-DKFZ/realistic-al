@@ -106,8 +106,8 @@ class TorchVisionDM(BaseDataModule):
         """Creates the active training dataset and validation and test datasets"""
         try:
             self.dataset_cls(root=self.data_root, download=False)
-        except:  # TODO: add error case for data not found here
-            """Download the TorchVision Dataset"""
+        except:  # Error is assumed here to stem from data not being present.
+            # Download the TorchVision Dataset
             self.dataset_cls(root=self.data_root, download=True)
         self.train_set = self.dataset_cls(
             self.data_root, train=True, transform=self.train_transforms

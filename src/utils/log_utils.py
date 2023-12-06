@@ -76,7 +76,6 @@ def log_git(repo_path: Union[Path, str]) -> Dict[str, str]:
         return {}
 
 
-# TODO: check if deletion is save
 def save_config_to_tests(cfg: DictConfig, save_name: str):
     """Place this function inside of a main to extract the OmegaConf dictionary.
 

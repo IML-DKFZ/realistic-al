@@ -439,7 +439,6 @@ def wide_resnet101_2(
     )
 
 
-# ToDo: continue implementation!
 def wide_resnet28_2(
     pretrained: bool = False, progress: bool = True, **kwargs: Any
 ) -> ResNet:

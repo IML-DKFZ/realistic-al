@@ -43,7 +43,12 @@ def exclude_from_wt_decay(
 
 def load_from_ssl_checkpoint(model: torch.nn.Module, path: str):
     """Loads the parameters from path"""
-    # TODO: Generalize this function!!!!
+    # I know, this is ugly but for now me and you will have to leave with it...
+    # at least until I find time to fix this. (or you :))
+
+    ### Impelmentation ###
+    # add loading of alternatie ssl checkpoints here.
+
     # Approach: load only the state dict and then take the values for the encoder.
     #################### SUPER UGLY CODE STARTS HERE ##################
     # Change this part so that there are no cross dependencies between skripts and source folder!

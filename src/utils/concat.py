@@ -9,8 +9,6 @@ from torch import Tensor
 
 from .tensor import to_numpy
 
-# TODO: delete unnecessary code for open source version.
-
 
 def get_batch_data(batch: Any, out_dict: dict = None) -> Dict[str, np.ndarray]:
     """Access data inside of a batch and return it in form of a dictionary.

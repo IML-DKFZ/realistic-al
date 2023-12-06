@@ -10,7 +10,6 @@ from omegaconf import DictConfig
 from torch.utils.data import DataLoader, Dataset
 
 from data.base_datamodule import BaseDataModule
-from plotlib import active_plots
 from query.storing import ActiveStore
 
 from . import query_diversity, query_uncertainty
@@ -198,20 +197,3 @@ def evaluate_accuracy(model: torch.nn.Module, dataloader: DataLoader, device="cu
             correct += (pred.cpu() == y).sum().item()
             counts += y.shape[0]
     return correct / counts
-
-
-# TODO: possibly detele!
-def vis_callback(n_labelled, acq_labels, acq_data, acq_vals, num_classes, count=None):
-    suffix = ""
-    if count is not None:
-        suffix = f"_{count}"
-    vis_path = "."
-    fig, axs = active_plots.visualize_samples(
-        active_plots._normalize(acq_data), acq_vals
-    )
-    plt.savefig(os.path.join(vis_path, "labeled_samples{}.pdf".format(suffix)))
-    plt.clf()
-
-    fig, axs = active_plots.visualize_labels(acq_labels, num_classes)
-    plt.savefig(os.path.join(vis_path, "labelled_targets{}.pdf".format(suffix)))
-    plt.clf()

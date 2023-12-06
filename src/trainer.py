@@ -50,7 +50,9 @@ class ActiveTrainingLoop(object):
 
     def _init_ckpt_callback(self) -> pl.callbacks.ModelCheckpoint:
         ckpt_path = os.path.join(self.log_dir, "checkpoints")
-        # TODO: Clean this up via selection via a config file!
+        ### Implementation ###
+        # Datasets with specific main performance other than accuracy
+        # add changes here.
         if self.datamodule.val_dataloader() is not None:
             if self.cfg.data.name == "isic2016":
                 monitor = "val/auroc"
@@ -192,65 +194,6 @@ class ActiveTrainingLoop(object):
 
     def final_callback(self):
         pass
-
-    # TODO: Delete for open repostitory!
-    # TODO: Saving in log_save_dict could be done via pickle allowing for more datatypes?
-    def update_save_dict(self, sub_key: str, sub_dict: Dict[str, np.ndarray]):
-        """Update the values of _save_dict with a new dictionary.
-
-        Args:
-            sub_key (str): Key which is added
-            sub_dict (Dict[str, np.ndarray]): Dictionary which is added
-        """
-        for key, val in sub_dict.items():
-            if not isinstance(val, np.ndarray):
-                raise TypeError("sub_dict needs values of type np.ndarray")
-            if not isinstance(key, str):
-                raise TypeError("sub_dict needs keys of type str")
-        self._save_dict[sub_key] = sub_dict
-
-    # TODO: Delete for open repostitory!
-    def log_save_dict(self):
-        """Saves the values of _save_dict to log_dir"""
-        for sub_key, sub_dict in self._save_dict.items():
-            self.log_dict(sub_key, sub_dict, level="log", sub_folder="save_dict")
-
-    # TODO: Delete for open repostitory!
-    def log_dict(
-        self,
-        name: str,
-        dictionary: Dict[str, np.ndarray],
-        level: str = "log",
-        sub_folder: Optional[str] = None,
-        path: Optional[Union[str, Path]] = None,
-        ending: str = "npz",
-    ):
-        """Save dictionary consisting of np.ndarrays according to log.
-        Pattern: path/sub_folder/name.ending
-
-        Args:
-            name (str): basename of file
-            dictionary (Dict[np.ndarray]): dictionary to save
-            level (str, optional): "base" or "log". Defaults to "log".
-            sub_folder (Optional[str], optional): Additional Path. Defaults to None.
-            path (Optional[Union[str, Path]], optional): Path in which it is saved. Defaults to None.
-            ending (str, optional): _description_. Defaults to "npz".
-
-        Raises:
-            ValueError: _description_
-        """
-        if path is None:
-            if level == "base":
-                path = self.base_dir
-            elif level == "log":
-                path = self.log_dir
-            else:
-                raise ValueError("level is neither base or log and path is None.")
-        path = os.path.join(path, sub_folder)
-        if os.path.isdir(path) is False:
-            os.makedirs(path)
-        save_file = os.path.join(path, "{}.{}".format(name, ending))
-        np.savez_compressed(save_file, **dictionary)
 
     def _setup_log_struct(self):
         """Save Meta data to a json file."""

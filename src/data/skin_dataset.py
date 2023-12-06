@@ -24,7 +24,6 @@ class AbstractISIC(Dataset):
         self.use_cache = False
         self.cached_indices = None
 
-    # TODO: possibly delete this function
     def _init_cache(self, indices):
         # Caches indices according to:
         # https://discuss.pytorch.org/t/dataloader-resets-dataset-state/27960/6

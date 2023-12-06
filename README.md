@@ -57,7 +57,7 @@ Automatically created by GitHub.
 ## Installation
 
 **Realistic-AL requires Python version 3.8 or later.** It is recommended to
-install FD-Shifts in its own environment (venv, conda environment, ...).
+install Realistic-AL in its own environment (venv, conda environment, ...).
 
 1. **Install an appropriate version of [PyTorch](https://pytorch.org/).** Check
    that CUDA is available and that the CUDA toolkit version is compatible with
@@ -80,7 +80,7 @@ install FD-Shifts in its own environment (venv, conda environment, ...).
 ├── ssl # simclr training 
 │   └── config # configs for simclr
 └── src
-    ├── config
+    ├── config # configs for main experiments
     ├── data # everything data
     ├── models # pl.Lightning models 
     │   ├── callbacks # lightning callbacks

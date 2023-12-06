@@ -4,7 +4,6 @@ from loguru import logger
 from torch.utils.data import DataLoader
 
 from .data import TorchVisionDM
-from .toy_dm import ToyDM
 from .transformations import get_transform
 from .utils import (
     MultiHeadedTransform,

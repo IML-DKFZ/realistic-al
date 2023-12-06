@@ -190,31 +190,6 @@ def get_experiment_df(
     return dataframe
 
 
-# TODO: delete this for submission open source.
-def get_experiment_dicts(experiment_path: Path) -> List[dict]:
-    file_paths = get_nested_file_list(
-        experiment_path, pardir="loop", subfolder="save_dict"
-    )
-    dictlist = [load_files_to_dict(pathfiles) for pathfiles in file_paths]
-    return dictlist
-
-
-# TODO: delete this for submission open source.
-def load_files_to_dict(files: Iterable[Path]):
-    def to_dict(object: Any):
-        out_dict = dict()
-        for key in object.keys():
-            out_dict[key] = object[key]
-        return out_dict
-
-    out_dict = dict()
-    for file in files:
-        key = file.with_suffix("").name
-        data = to_dict(np.load(file))
-        out_dict[key] = data
-    return out_dict
-
-
 def get_nested_file_list(
     root_path: Path, pardir: str, subfolder: str
 ) -> List[List[Path]]:

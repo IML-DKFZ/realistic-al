@@ -17,12 +17,12 @@ sys.path.append(src_folder)
 
 ####################################################
 
+from run_toy import ToyActiveLearningLoop, get_toy_dm
+
 import utils.io as io
 import utils.path_utils as path_utils
-from run_toy import ToyActiveLearningLoop, get_toy_dm
 from utils.setup import set_seed
 
-# DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = path_utils.TEST_DATA_FOLDER
 
 
@@ -31,25 +31,12 @@ def data_dir():
     return DATA_DIR
 
 
-# TODO: Write test that ensures that whatever happens in between -- the random data labelling stays identical!
-
-
 # tmp_path is generally obtainable in pytest which shows a folder structure created by pytest
 @pytest.fixture
 def tmp_test_dir(tmp_path, data_dir):
     # HACK: The analysis script deduces the exp name from the path
     tmp_test_path: Path = tmp_path / "tests" / "tests"
     tmp_test_path.mkdir(parents=True, exist_ok=True)
-
-    # shutil.copy(data_dir / "config.yaml", tmp_test_path)
-    # shutil.copy(data_dir / "raw_output.npz", tmp_test_path)
-    # shutil.copy(data_dir / "external_confids.npz", tmp_test_path)
-
-    # if (data_dir / "raw_output_dist.npz").is_file():
-    #     shutil.copy(data_dir / "raw_output_dist.npz", tmp_test_path)
-
-    # if (data_dir / "external_confids_dist.npz").is_file():
-    #     shutil.copy(data_dir / "external_confids_dist.npz", tmp_test_path)
 
     return tmp_test_path
 

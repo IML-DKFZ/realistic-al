@@ -8,7 +8,6 @@ from .registry import register_model
 from .wide_resnet import Wide_ResNet, build_wideresnet
 
 
-# TODO: Possibly combine all Feature Based Bayesian Models!!
 class BayesianWideResNet(BayesianModule):
     def __init__(
         self,
