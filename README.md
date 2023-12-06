@@ -53,14 +53,15 @@ url={https://openreview.net/forum?id=Dqn715Txgl}
 ```
 
 ## Table Of Contents
-
+---
 <!--toc:start-->
 
-*toc
+- TOC
 {:toc}
 
 
 <!--toc:end-->
+---
 
 ## Installation
 
