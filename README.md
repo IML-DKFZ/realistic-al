@@ -53,15 +53,7 @@ url={https://openreview.net/forum?id=Dqn715Txgl}
 ```
 
 ## Table Of Contents
----
-<!--toc:start-->
-
-- TOC
-{:toc}
-
-
-<!--toc:end-->
----
+automatically created by GitHub.
 
 ## Installation
 
