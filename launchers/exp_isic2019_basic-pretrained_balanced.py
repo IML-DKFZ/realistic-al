@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
-from launcher import ExperimentLauncher
+
 from config_launcher import get_pretrained_arch
+from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
@@ -47,7 +48,13 @@ naming_conv = "{data}/active-{active}/basic-pretrained_model-{model}_drop-{model
 
 joint_iteration = [
     ["model.load_pretrained", "trainer.seed"],
-    ["active", "data.val_size", "model.learning_rate", "model.weight_decay", "data.transform_train"],
+    [
+        "active",
+        "data.val_size",
+        "model.learning_rate",
+        "model.weight_decay",
+        "data.transform_train",
+    ],
     ["query", "model.dropout_p"],
 ]
 

@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -21,18 +22,19 @@ hparam_dict = {
     "model.use_ema": False,
     "model.small_head": [True],
     "model.weighted_loss": True,
+    "model.distr_align": True,
     "trainer.max_epochs": 200,  # has to be set that 200,000 iterations are trained.
     # "trainer.max_epochs": 50,
     "trainer.seed": [12345, 12346, 12347],
     "data.transform_train": ["isic_train"],
     "trainer.num_worker": 12,
     "optim.lr_scheduler.warmup_epochs": 3,  # set to 3 for some warmup similar to ImageNet experiments
-    "trainer.precision": 32,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
+    "trainer.precision": 16,  # prec 16 is 1.5 times faster than prec 32 (NaN errors for prec16)
 }
 
 joint_iteration = [["active.num_labelled", "data.val_size"]]
 
-naming_conv = "fixmatch/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_wloss-{model.weighted_loss}"
+naming_conv = "fixmatch/{data}/fixmatch_lab-{active.num_labelled}_{model}_ep-{trainer.max_epochs}_drop-{model.dropout_p}_lr-{model.learning_rate}_wd-{model.weight_decay}_opt-{optim}_trafo-{data.transform_train}_wloss-{model.weighted_loss}-distralign-{model.distr_align}"
 
 path_to_ex_file = "src/run_training_fixmatch.py"
 
@@ -55,8 +57,6 @@ if __name__ == "__main__":
         joint_iteration=joint_iteration,
     )
 
-    if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_25gb.sh"
     if launcher_args.bsub:
         launcher.ex_call = "~/run_active_25gb.sh python"
 

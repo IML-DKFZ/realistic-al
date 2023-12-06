@@ -1,4 +1,3 @@
-from abc import abstractclassmethod
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,10 +7,14 @@ class BayesianModule(nn.Module):
     k = None
 
     def __init__(self):
+        """Bayesian Module which copies has a deterministic part for the forward pass and a stochastic one.
+        Allows to compute deterministic part (CNN) first and then do the stochastic part afterward (e.g. classification head).
+        """
         super().__init__()
 
     def forward(self, x: torch.Tensor, k: int):
-        """Standard Forward Pass of the module."""
+        """Standard Forward Pass of the module.
+        k is number of MC samples"""
         BayesianModule.k = k
 
         x = self.det_forward_impl(x)
@@ -48,6 +51,13 @@ class BayesianModule(nn.Module):
 
 class ConsistentMCDropout(nn.Module):
     def __init__(self, p: float = 0.5):
+        """MC Dropout module with internal state for masking operation.
+        Subsequent iterations when model is in validation mode mask the same inputs.
+        This is required for BatchBALD.
+
+        Args:
+            p (float, optional): Dropout p for Bernoulli distribution. Defaults to 0.5.
+        """
         super().__init__()
         self.p = p
         self._mask = None
@@ -58,7 +68,13 @@ class ConsistentMCDropout(nn.Module):
         else:
             if self._mask is None or self._mask.shape[1] != BayesianModule.k:
                 self._build_mask(x, BayesianModule.k)
-            x = x.view([-1, BayesianModule.k,] + list(x.shape[1:]))  # B x  k x ...
+            x = x.view(
+                [
+                    -1,
+                    BayesianModule.k,
+                ]
+                + list(x.shape[1:])
+            )  # B x  k x ...
             x = x.masked_fill(self._mask, 0) / (1 - self.p)
             x = x.flatten(0, 1)  # NK
             return x

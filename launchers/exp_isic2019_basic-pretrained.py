@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
-from launcher import ExperimentLauncher
+
 from config_launcher import get_pretrained_arch
+from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
@@ -12,7 +13,11 @@ config_dict = {
         "badge",
     ],
     "data": ["isic2019"],
-    "active": ["isic19_low", "isic19_med", "isic19_high",],
+    "active": [
+        "isic19_low",
+        "isic19_med",
+        "isic19_high",
+    ],
     "optim": ["sgd"],
 }
 

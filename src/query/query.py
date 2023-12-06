@@ -1,31 +1,36 @@
 import os
+from typing import Iterable, Optional, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
+from omegaconf import DictConfig
+from torch.utils.data import DataLoader, Dataset
 
-from typing import Optional, Tuple
+from data.base_datamodule import BaseDataModule
+from plotlib import active_plots
+from query.storing import ActiveStore
 
 from . import query_diversity, query_uncertainty
-from data.base_datamodule import BaseDataModule
 
-from query.storing import ActiveStore
-from plotlib import active_plots
-import matplotlib.pyplot as plt
 
-# TODO: simplify the logic of this class -- I do not 100% understand this anymore!
 class QuerySampler:
     def __init__(
-        self, cfg, model: nn.Module, count: Optional[int] = None, device="cuda:0"
+        self,
+        cfg: DictConfig,
+        model: nn.Module,
+        count: Optional[int] = None,
+        device: str = "cuda:0",
     ):
         """Carries functionality to query samples from the pool.
         acq_size is selected based on cfg.active.acq_size
 
 
         Args:
-            cfg (_type_): carries needed parameters
-            model (nn.Module): _description_
+            cfg (DictConfig): config
+            model (nn.Module): Model based on which query is performed
             count (Optional[int], optional): used for vis -- which iteration. Defaults to None.
             device (str, optional): _description_. Defaults to "cuda:0".
         """
@@ -40,26 +45,26 @@ class QuerySampler:
         self.model.eval()
 
     def query_samples(
-        self, datamodule: BaseDataModule
+        self, datamodule: BaseDataModule, fastrandom: bool = False
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Query samples with the selected Query Sampler for the Active Datamodule
 
         Args:
-            datamodule (pl.LightningDataModule): _description_
+            datamodule (BaseDataModule): contains labeled and unlabeled data.
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: Queries -- (rankings + pool_indices)
+            Tuple[np.ndarray, np.ndarray]: Queries [pool_indices, rankvalue]
         """
-        # TODO: update to this -- currently this destroys perfect reproducibility with old trainings!
-        # if self.acq_method == "random":
-        #     acq_inds = np.random.choice(
-        #         np.arange(len(datamodule.train_set.pool)),
-        #         size=self.cfg.active.acq_size,
-        #         replace=False,
-        #     )
-        #     acq_vals = np.arange(self.cfg.active.acq_size) * -1
-        # else:
-        if True:
+        # this random does not require predicting the whole unlabeled set.
+        if self.acq_method == "random" and fastrandom:
+            acq_inds = np.random.choice(
+                np.arange(len(datamodule.train_set.pool)),
+                size=self.cfg.active.acq_size,
+                replace=False,
+            )
+            acq_vals = np.arange(self.cfg.active.acq_size) * -1
+
+        else:
             # possibility to select random subset of pool with certain Size via parameter m
             pool_loader = datamodule.pool_dataloader(
                 batch_size=datamodule.batch_size, m=self.m
@@ -77,18 +82,17 @@ class QuerySampler:
         return acq_inds, acq_vals
 
     def active_callback(
-        self, datamodule: pl.LightningDataModule, vis: bool = False
+        self, datamodule: BaseDataModule, vis: bool = False
     ) -> ActiveStore:
         """Queries samples on the pool of the datamodule with selected method, evaluates the current model.
         Requests are the indices to be labelled relative to the pool. (This changes if pool changes)
 
         Args:
-            datamodule (pl.LightningDataModule): _description_
+            datamodule (BaseDataModule): Datamodule carrying both labeled and unlabeled data.
 
         Returns:
-            ActiveStore: _description_
+            ActiveStore: Carries output values.
         """
-        # TODO: Make this use pre-defined methods for the model!
         acq_inds, acq_vals = self.query_samples(datamodule)
 
         acq_data, acq_labels = obtain_data_from_pool(
@@ -129,7 +133,7 @@ class QuerySampler:
         pass
 
     def ranking_step(
-        self, pool_loader, labeled_loader
+        self, pool_loader: DataLoader, labeled_loader: DataLoader
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Computes Ranking of the data and returns indices of
         data to be acquired (with scores if possible).
@@ -137,14 +141,14 @@ class QuerySampler:
         Acquisition Strategy: Values with highest scores are acquired.
 
         Args:
-            pool_loader (_type_): _description_
-            labeled_loader (_type_): _description_
+            pool_loader (DataLoader): unlabeled dataloader w.o. augmentations
+            labeled_loader (DataLoader): labeled dataloader w.o. augmentations
 
         Returns:
             indices, scores: indices of the pool and scores for acquisition
         """
         acq_size = self.acq_size
-        if self.acq_method.split("_")[0] in query_uncertainty.names:
+        if self.acq_method.split("_")[0] in query_uncertainty.NAMES:
             acq_function = query_uncertainty.get_acq_function(self.cfg, self.model)
             post_acq_function = query_uncertainty.get_post_acq_function(
                 self.cfg, device=self.device
@@ -156,7 +160,7 @@ class QuerySampler:
                 acq_size=acq_size,
                 device=self.device,
             )
-        elif self.acq_method.split("_")[0] in query_diversity.names:
+        elif self.acq_method.split("_")[0] in query_diversity.NAMES:
             acq_ind, acq_scores = query_diversity.query_sampler(
                 self.cfg, self.model, labeled_loader, pool_loader, acq_size=acq_size
             )
@@ -167,7 +171,7 @@ class QuerySampler:
         return acq_ind, acq_scores
 
 
-def obtain_data_from_pool(pool, indices):
+def obtain_data_from_pool(pool: Dataset, indices: Iterable[int]):
     data, labels = [], []
     for ind in indices:
         sample = pool[ind]
@@ -180,7 +184,7 @@ def obtain_data_from_pool(pool, indices):
     return data, labels
 
 
-def evaluate_accuracy(model, dataloader, device="cuda:0"):
+def evaluate_accuracy(model: torch.nn.Module, dataloader: DataLoader, device="cuda:0"):
     if dataloader is None:
         return 0
     counts = 0
@@ -196,13 +200,14 @@ def evaluate_accuracy(model, dataloader, device="cuda:0"):
     return correct / counts
 
 
+# TODO: possibly detele!
 def vis_callback(n_labelled, acq_labels, acq_data, acq_vals, num_classes, count=None):
     suffix = ""
     if count is not None:
         suffix = f"_{count}"
     vis_path = "."
     fig, axs = active_plots.visualize_samples(
-        active_plots.normalize(acq_data), acq_vals
+        active_plots._normalize(acq_data), acq_vals
     )
     plt.savefig(os.path.join(vis_path, "labeled_samples{}.pdf".format(suffix)))
     plt.clf()

@@ -1,17 +1,23 @@
-from typing import Any, List, Optional
 import math
+from typing import Tuple
+
+import torch
+import torch.nn as nn
 from omegaconf import DictConfig
 
-import torch.nn as nn
-import torch
 from models.networks import build_model
+
 from .abstract_classifier import AbstractClassifier
 
 
 class BayesianModule(AbstractClassifier):
     def __init__(self, config: DictConfig):
         """Simple Bayesian Neural Network which can be used with BatchBALD.
-        For a Non-Bayesian Network set config.dopout_p to 0."""
+        For a Non-Bayesian Network set config.dopout_p to 0.
+
+        Args:
+            config (DictConfig): all hparams.
+        """
         super().__init__(eman=True)
         self.save_hyperparameters(config)
         self.model = build_model(
@@ -29,7 +35,18 @@ class BayesianModule(AbstractClassifier):
             # the weights are overwritten at a later stage.
             self.loss_fct = nn.NLLLoss(weight=torch.ones(self.hparams.data.num_classes))
 
-    def training_step(self, batch, batch_idx):
+    def training_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
+    ) -> dict:
+        """Perform training step for the current batch.
+
+        Args:
+            batch (Tuple[torch.Tensor, torch.Tensor]): data from dataloader
+            batch_idx (int): batch counter
+
+        Returns:
+            dict: out_dict for logging
+        """
         mode = "train"
         loss, logprob, preds, y = self.step(batch, k=1)
         self.log(f"{mode}/loss", loss)

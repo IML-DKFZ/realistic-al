@@ -1,15 +1,19 @@
+import ctypes
+import multiprocessing as mp
 import os
 import zipfile
+from pathlib import Path
+from typing import Callable
+from urllib.request import urlretrieve
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
-from urllib.request import urlretrieve
-import multiprocessing as mp
-import ctypes
-import torch
+from utils.download_url import download_url
 
 
 class AbstractISIC(Dataset):
@@ -20,7 +24,8 @@ class AbstractISIC(Dataset):
         self.use_cache = False
         self.cached_indices = None
 
-    def init_cache(self, indices):
+    # TODO: possibly delete this function
+    def _init_cache(self, indices):
         # Caches indices according to:
         # https://discuss.pytorch.org/t/dataloader-resets-dataset-state/27960/6
         self.use_cache = True
@@ -67,10 +72,11 @@ class AbstractISIC(Dataset):
         return len(self.data)
 
     def preprocess(self):
-        from pathlib import Path
-
         basepath = Path(self.root)
         preprocessed_data = []
+        requires_preprocessing = []
+
+        # check for preprocessed data
         for filepath in self.data:
             filepath = Path(filepath)
             filename = str(filepath.name).split(".")[0]
@@ -80,6 +86,13 @@ class AbstractISIC(Dataset):
                 basepath / (pardir + "_preprocessed") / (filename + ".png")
             )
             if not preprocessed_path.is_file():
+                requires_preprocessing.append((preprocessed_path, filepath))
+            preprocessed_data.append(preprocessed_path)
+
+        if len(requires_preprocessing) > 0:
+            print("Preprocessing files...")
+            # preprocessing
+            for preprocessed_path, filepath in tqdm(requires_preprocessing):
                 img = Image.open(filepath)
                 img = img.convert("RGB")
                 img = img.resize(
@@ -89,12 +102,12 @@ class AbstractISIC(Dataset):
                     preprocessed_path.parent.mkdir()
 
                 img.save(preprocessed_path)
-            preprocessed_data.append(preprocessed_path)
+            print("Finished preprocessing.")
+        else:
+            print("Data already preprocessed.")
         self.data = preprocessed_data
 
     def download(self):
-        from utils.download_url import download_url
-
         for mode in self.data_url:
             if not os.path.exists(os.path.join(self.root, self.data_name[mode])):
                 print(
@@ -128,20 +141,24 @@ class AbstractISIC(Dataset):
 
 class ISIC2019(AbstractISIC):
     def __init__(
-        self, root="./data", train=True, transform=None, download=True, preprocess=True
+        self,
+        root: str = "./data",
+        train: bool = True,
+        transform: Callable[[Image.Image], Image.Image] = None,
+        download: bool = True,
+        preprocess: bool = True,
     ):
         """Dataset for ISIC-2019 Dataset.
         Link: https://challenge.isic-archive.com/data/#2019
 
         Class Count: 0: 4522, 1: 12875,  2: 3323, 3: 867, 4: 2624, 5: 239, 6: 253, 7: 628
 
-
         Args:
-            root (str, optional): _description_. Defaults to "./data".
-            train (bool, optional): _description_. Defaults to True.
-            transform (_type_, optional): _description_. Defaults to None.
-            download (bool, optional): _description_. Defaults to True.
-            preprocess (bool, optional): _description_. Defaults to True.
+            root (str, optional): Path to root folder. Defaults to "./data".
+            train (bool, optional): Use Train or Test Split. Defaults to True.
+            transform (Callable[[Image.Image], Image.Image], optional): Pytorch Transform. Defaults to None.
+            download (bool, optional): Tries to download dataset. Defaults to True.
+            preprocess (bool, optional): Preprocesses dataset for faster readspeed. Defaults to True.
         """
         super().__init__()
         self.folder_name = "ISIC-2019"
@@ -198,8 +215,6 @@ class ISIC2019(AbstractISIC):
         return data, targets
 
     def train_test_split(self, force_override=False):
-        from pathlib import Path
-
         split_path = Path(self.root)
         csv_train_path = split_path / "custom_ISIC_2019_Training_GroundTruth.csv"
         csv_test_path = split_path / "custom_ISIC_2019_Test_GroundTruth.csv"
@@ -232,16 +247,28 @@ class ISIC2019(AbstractISIC):
 
         if force_override:
             self.data, self.targets = self.get_data()
-            # if preprocess:
             self.preprocess()
 
 
 class ISIC2016(AbstractISIC):
-    """Skin Lesion"""
-
     def __init__(
-        self, root="./data", train=True, transform=None, download=True, preprocess=True,
+        self,
+        root="./data",
+        train=True,
+        transform=None,
+        download=True,
+        preprocess=True,
     ):
+        """Dataset for ISIC-2016 Dataset.
+        Link: https://challenge.isic-archive.com/data/#2016
+
+        Args:
+            root (str, optional): Path to root folder. Defaults to "./data".
+            train (bool, optional): Use Train or Test Split. Defaults to True.
+            transform (Callable[[Image.Image], Image.Image], optional): Pytorch Transform. Defaults to None.
+            download (bool, optional): Tries to download dataset. Defaults to True.
+            preprocess (bool, optional): Preprocesses dataset for faster readspeed. Defaults to True.
+        """
         super().__init__()
         self.folder_name = "ISIC-2016"
 
@@ -304,33 +331,14 @@ class ISIC2016(AbstractISIC):
         return data, targets
 
 
-# def print_dataset(dataset, print_time):
-#     print(len(dataset))
-#     from collections import Counter
-
-#     counter = Counter()
-#     labels = []
-#     # for index, (img, label) in enumerate(dataset):
-#     # if index % print_time == 0:
-#     #     print(img.size(), label)
-#     for index, label in enumerate(dataset.targets):
-#         labels.append(label)
-#     counter.update(labels)
-#     print(counter)
-
-
 if __name__ == "__main__":
     import os
 
     dataroot = os.getenv("DATA_ROOT")
-    # dataset = ISIC2016(root=dataroot, train=True, preprocess=False, download=False)
 
-    # print(len(dataset))
     from tqdm import tqdm
 
-    # for _ in tqdm(dataset):
-    #     pass
-
+    print("Running Dataset 2016")
     dataset = ISIC2016(root=dataroot, train=False, preprocess=True, download=False)
     print(dataset.targets)
 
@@ -340,3 +348,12 @@ if __name__ == "__main__":
     for _ in tqdm(dataset):
         pass
 
+    print("Running Dataset 2019")
+    dataset = ISIC2019(root=dataroot, train=False, preprocess=True, download=False)
+    print(dataset.targets)
+
+    print(len(dataset))
+    from tqdm import tqdm
+
+    for _ in tqdm(dataset):
+        pass

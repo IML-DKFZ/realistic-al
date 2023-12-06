@@ -2,12 +2,12 @@
 import torch.nn as nn
 from torch import Tensor
 from torch.hub import load_state_dict_from_url
-
 from torch.nn import functional as F
+
 from models.bayesian_module import (
+    BayesianModule,
     ConsistenMCDropout2D,
     ConsistentMCDropout,
-    BayesianModule,
 )
 
 from .registry import register_model
@@ -39,7 +39,8 @@ model_urls = {
 
 class VGG(BayesianModule):
     """VGG with BatchNorm performs best.
-    We only add MCDropout in the classifier head (where VGG used dropout before, too)."""
+    We only add MCDropout in the classifier head (where VGG used dropout before, too).
+    """
 
     def __init__(
         self,

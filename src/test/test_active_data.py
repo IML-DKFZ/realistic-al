@@ -1,12 +1,11 @@
-from typing import List
-
 # import pytest
 import os
 
-import numpy as np
-
 ############# Needed to execute as main ############
 import sys
+from typing import List
+
+import numpy as np
 
 src_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -14,9 +13,9 @@ sys.path.append(src_folder)
 
 ####################################################
 
-from utils.setup import set_seed
 from data.data import TorchVisionDM
 from data.toy_dm import ToyDM
+from utils.setup import set_seed
 
 shape = (3, 128, 128)
 bs = 64

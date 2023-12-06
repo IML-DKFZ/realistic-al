@@ -1,32 +1,31 @@
 import os
-from typing import Any, Dict, Iterable, Optional, Tuple, Union, List
-
 from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
-from torch import Tensor
 import torch.nn as nn
+from torch import Tensor
 
 from data.toy_dm import ToyDM, make_toy_dataset
+from models.abstract_classifier import AbstractClassifier
 from plotlib.toy_plots import (
     close_figs,
     create_2d_grid_from_data,
     fig_class_full_2d,
     fig_uncertain_full_2d,
     vis_class_train_2d,
-    vis_unc_train_2d,
     vis_class_val_2d,
+    vis_unc_train_2d,
 )
-from query.query_uncertainty import get_bald_fct, get_bay_entropy_fct, get_var_ratios
+from query.query_uncertainty import _get_bald_fct, _get_bay_entropy_fct, _get_var_ratios
 from utils.concat import (
     AbstractBatchData,
     GetClassifierOutputs,
-    get_batch_data,
     concat_functional,
+    get_batch_data,
 )
-from models.abstract_classifier import AbstractClassifier
 
 
 class ToyVisCallback(pl.Callback):
@@ -110,7 +109,7 @@ class ToyVisCallback(pl.Callback):
             pool_loader = None
 
         # this stays only until better method for creating meshgrid is found!
-        test_data = concat_functional(test_loader)
+        test_data = concat_functional(test_loader, get_batch_data)
 
         grid_arrays = create_2d_grid_from_data(test_data["data"])
         X_grid = np.c_[grid_arrays[0].ravel(), grid_arrays[1].ravel()]
@@ -363,7 +362,6 @@ class ToyVisCallback(pl.Callback):
 
     @staticmethod
     def fig_full_vis_2d(listdicts: List[dict]):
-
         num_rows = len(listdicts)
 
         grid_unc: dict = listdicts[0]["grid"]
@@ -418,9 +416,9 @@ class GetModelUncertainties(AbstractBatchData):
 
     def custom_call(self, x: Tensor, out_dict: dict, **kwargs):
         x = x.to(self.device)
-        bald_fct = get_bald_fct(self.model)
-        entropy_fct = get_bay_entropy_fct(self.model)
-        varratios_fct = get_var_ratios(self.model)
+        bald_fct = _get_bald_fct(self.model)
+        entropy_fct = _get_bay_entropy_fct(self.model)
+        varratios_fct = _get_var_ratios(self.model)
         out_dict["entropy"] = entropy_fct(x)
         out_dict["bald"] = bald_fct(x)
         out_dict["varratios"] = varratios_fct(x)

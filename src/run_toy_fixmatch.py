@@ -1,18 +1,20 @@
 import os
-from models.fixmatch import FixMatch
-from data.data import TorchVisionDM
+
 import hydra
 from omegaconf import DictConfig
-from utils import config_utils
 
 import utils
-
+from data.data import TorchVisionDM
+from models.fixmatch import FixMatch
 from run_toy import ToyActiveLearningLoop, get_toy_dm
+from utils import config_utils
 
 active_dataset = True  # unlabeled pool is necessary for training
 
 
-@hydra.main(config_path="./config", config_name="config_toy_fixmatch", version_base="1.1")
+@hydra.main(
+    config_path="./config", config_name="config_toy_fixmatch", version_base="1.1"
+)
 def main(cfg: DictConfig):
     config_utils.print_config(cfg)
     train(cfg)
@@ -47,7 +49,7 @@ def train(cfg: DictConfig):
 
 
 class FixToyTrainingLoop(ToyActiveLearningLoop):
-    def init_model(self):
+    def _init_model(self):
         self.model = FixMatch(self.cfg)
 
 

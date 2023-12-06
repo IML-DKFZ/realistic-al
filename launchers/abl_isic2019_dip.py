@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -12,7 +13,9 @@ config_dict = {
         # "batchbald",
     ],
     "data": ["isic2019"],  # , "cifar100"],
-    "active": ["isic19_high",],
+    "active": [
+        "isic19_high",
+    ],
     "optim": ["sgd_cosine"],
 }
 
@@ -27,7 +30,9 @@ hparam_dict = {
     "model.learning_rate": [0.01],
     "model.weight_decay": [5e-3, 5e-4],
     "model.use_ema": False,
-    "data.transform_train": ["isic_randaugmentMC",],
+    "data.transform_train": [
+        "isic_randaugmentMC",
+    ],
     "trainer.precision": 16,
     "trainer.batch_size": 512,
     "trainer.deterministic": True,

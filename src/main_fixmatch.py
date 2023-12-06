@@ -1,13 +1,12 @@
 import hydra
-from omegaconf import DictConfig
-from utils import config_utils
-import utils
-from loguru import logger
-
 import pytorch_lightning as pl
+from loguru import logger
+from omegaconf import DictConfig
 
-from trainer_fix import FixTrainingLoop
+import utils
 from main import active_loop, get_torchvision_dm
+from trainer_fix import FixTrainingLoop
+from utils import config_utils
 from utils.log_utils import setup_logger
 
 

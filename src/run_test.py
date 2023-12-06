@@ -1,22 +1,19 @@
 import os
+from pathlib import Path
 
-from utils.io import load_omega_conf
+import pandas as pd
+from loguru import logger
 from omegaconf import DictConfig
-from models.callbacks.metrics_callback import ImbClassMetricCallback
 
 import utils
 from data.data import TorchVisionDM
-from trainer import ActiveTrainingLoop
+from models.callbacks.metrics_callback import ImbClassMetricCallback
 from run_training import get_torchvision_dm, label_active_dm
+from trainer import ActiveTrainingLoop
 from utils import config_utils
-from loguru import logger
+from utils.io import load_omega_conf
 from utils.log_utils import setup_logger
-
 from utils.tensor import to_numpy
-
-import pandas as pd
-
-from pathlib import Path
 
 
 def main(cfg: DictConfig, path: str):
@@ -52,8 +49,8 @@ def main(cfg: DictConfig, path: str):
     # training_loop.init_model()
     training_loop.model.load_only_state_dict(ckpt_path)
     # training_loop.model = training_loop.model.to("cuda:0")
-    training_loop.init_trainer()
-    training_loop.test()
+    training_loop._init_trainer()
+    training_loop._test()
 
     imb_metric_callback: ImbClassMetricCallback = training_loop.callbacks[
         monitor_callback
@@ -115,7 +112,6 @@ def test_active_exp(path, force_override):
 
 
 if __name__ == "__main__":
-
     from argparse import ArgumentParser
 
     parser = ArgumentParser()

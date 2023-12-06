@@ -1,21 +1,20 @@
+from typing import Callable
+
 from loguru import logger
 from torch.utils.data import DataLoader
 
-
-from .utils import (
-    TransformFixMatchImageNet,
-    TransformFixMatch,
-    activesubset_from_subset,
-    seed_worker,
-    MultiHeadedTransform,
-    TransformFixMatchISIC,
-)
-
 from .data import TorchVisionDM
 from .toy_dm import ToyDM
-from .utils import RandomFixedLengthSampler
-
 from .transformations import get_transform
+from .utils import (
+    MultiHeadedTransform,
+    RandomFixedLengthSampler,
+    TransformFixMatch,
+    TransformFixMatchImageNet,
+    TransformFixMatchISIC,
+    activesubset_from_subset,
+    seed_worker,
+)
 
 
 def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 6400):
@@ -31,11 +30,9 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
                 mean=dm.mean, std=dm.std, n=2, m=10, cut_rel=0, prob=1
             )
         else:
-            # TODO: benchmark this Setting!
             train_pool.transform = TransformFixMatch(
                 mean=dm.mean, std=dm.std, n=2, m=10
             )
-            # train_pool.transform = TransformFixMatch(mean=dm.mean, std=dm.std, n=1, m=2)
     elif isinstance(dm, ToyDM):
         train_pool.transform = MultiHeadedTransform(
             [
@@ -63,9 +60,6 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             batch_size=dm.batch_size * mu,
             num_workers=workers_sem,
             sampler=RandomFixedLengthSampler(train_pool, min_samples * mu),
-            # sampler=RandomSampler(
-            #     train_pool, replacement=True, num_samples=min_samples * mu
-            # ),
             pin_memory=dm.pin_memory,
             drop_last=True,
             worker_init_fn=seed_worker,
@@ -97,9 +91,6 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
             dm.train_set,
             batch_size=dm.batch_size,
             sampler=RandomFixedLengthSampler(dm.train_set, resample_size),
-            # sampler=RandomSampler(
-            #     dm.train_set, replacement=True, num_samples=resample_size
-            # ),
             num_workers=dm.num_workers,
             pin_memory=dm.pin_memory,
             drop_last=dm.drop_last,
@@ -122,7 +113,9 @@ def fixmatch_train_dataloader(dm: TorchVisionDM, mu: int, min_samples: int = 640
     return [sup_loader, sem_loader]
 
 
-def wrap_fixmatch_train_dataloader(dm: TorchVisionDM, mu: int):
+def wrap_fixmatch_train_dataloader(
+    dm: TorchVisionDM, mu: int
+) -> Callable[[], DataLoader]:
     """Returns the executable function which allows to obtain the fixmatch train_dataloaders."""
 
     def train_dataloader():

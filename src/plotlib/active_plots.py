@@ -1,17 +1,22 @@
+# TODO: Delete this whole file!
+from typing import Iterable, Tuple
+
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+import seaborn as sns
+from matplotlib.axis import Axis
+from matplotlib.figure import Figure
 
 sns.set_style()
 
 
-def normalize(x):
+def _normalize(x):
     x -= x.min()
     x /= x.max()
     return x
 
 
-def visualize_samples(vis_data: np.ndarray, acq_vals):
+def visualize_samples(vis_data: np.ndarray, acq_vals: Iterable) -> Tuple[Figure, Axis]:
     num_samples = len(vis_data)
     n_rows, n_cols = 8, 8
     if len(vis_data.shape) == 3:

@@ -1,62 +1,81 @@
+from typing import List
+
 import torch
 from torchvision import transforms
+from torchvision.transforms import Lambda, RandAugment
 
-from .randaugment import RandAugmentMC, RandAugmentMCCutout, RandAugmentPC, CutoutAbs
+from .randaugment import CutoutAbs, RandAugmentMC, RandAugmentMCCutout, RandAugmentPC
 from .randaugment_2 import RandAugmentMC_FixMatch
-from torchvision.transforms import RandAugment, Lambda
 
 
-def get_transform(name="basic", mean=[0], std=[1], shape=None):
+def get_transform(
+    name: str = "basic",
+    mean: List[int] = [0],
+    std: List[int] = [1],
+    shape: List[int] = None,
+):
+    """Transformation selection function.
+
+    Args:
+        name (str, optional): Name of transformation. Defaults to "basic".
+        mean (List[int], optional): Mean for normalization. Defaults to [0].
+        std (List[int], optional): STD for formalization. Defaults to [1].
+        shape (List[int], optional): Desired shape -- currently unused. Defaults to None.
+
+    Returns:
+        Transform: For image Data (IMG->IMG) or tabular (NPY->NPY)
+    """
+    ### IMPLEMENTATION ###
+    # New transformations can be added here.
     transform = []
     if name == "cifar_basic":
-        transform.append(get_baseline_cifar_transfrom())
+        transform.append(_get_baseline_cifar_transfrom())
     elif name == "cifar_weak":
-        transform.append(get_weak_cifar_transform())
+        transform.append(_get_weak_cifar_transform())
     elif name == "cifar_randaugment":
-        transform.append(get_randaug_cifar_transform())
+        transform.append(_get_randaug_cifar_transform())
     elif name == "cifar_randaugment_cutout":
-        transform.append(get_randaug_cifar_cutout_transform())
-    # TODO: Make this nice down the line -- see how other people do stuff like this!
+        transform.append(_get_randaug_cifar_cutout_transform())
     elif name == "cifar_randaugmentMC":
-        return get_cifar_rand(mean, std)
+        return _get_cifar_rand(mean, std)
     elif name == "isic_train":
-        transform.append(get_isic_train_transform())
+        transform.append(_get_isic_train_transform())
     elif name == "isic_randaugment":
-        transform.append(get_isic_randaug_transform())
+        transform.append(_get_isic_randaug_transform())
     elif name == "isic_randaugmentMC":
-        transform.append(get_isic_randaugMC())
+        transform.append(_get_isic_randaugMC())
     elif name == "isic_randaugtensor":
         return get_isic_randaug_trafo(mean=mean, std=std)
     elif name == "resize_224":
-        transform.append(resize_transform(224))
+        transform.append(_resize_transform(224))
     elif name == "toy_gauss_0.05":
         return ToyNoiseTransform(sig=0.05)
     elif name == "toy_identity":
         return IdentityTransform()
     elif name == "imagenet_train":
-        transform.append(get_imagenet_train_transform())
+        transform.append(_get_imagenet_train_transform())
     elif name == "imagenet_randaug":
-        transform.append(get_imagenet_randaug_transform())
+        transform.append(_get_imagenet_randaug_transform())
     elif name == "imagenet_randaug_cutout":
-        transform.append(get_imagenet_randaug_cutout_transform())
+        transform.append(_get_imagenet_randaug_cutout_transform())
     elif name == "imagenet_randaugMC":
-        transform.append(get_imagenet_randaugMC())
+        transform.append(_get_imagenet_randaugMC())
     elif name == "imagenet_test":
-        transform.append(get_imagenet_test_transform())
+        transform.append(_get_imagenet_test_transform())
 
-    transform.append(get_norm_transform(mean, std))
+    transform.append(_get_norm_transform(mean, std))
     transform = transforms.Compose(transform)
     return transform
 
 
-def get_imagenet_train_transform():
+def _get_imagenet_train_transform():
     transform_train = transforms.Compose(
         [transforms.RandomResizedCrop(224), transforms.RandomHorizontalFlip()]
     )
     return transform_train
 
 
-def get_cifar_rand(mean, std):
+def _get_cifar_rand(mean, std):
     transform_train = transforms.Compose(
         [
             transforms.RandomHorizontalFlip(),
@@ -71,26 +90,26 @@ def get_cifar_rand(mean, std):
     return transform_train
 
 
-def get_imagenet_test_transform():
+def _get_imagenet_test_transform():
     transform = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(224)])
     return transform
 
 
-def get_imagenet_randaug_transform():
+def _get_imagenet_randaug_transform():
     transform = transforms.Compose(
-        [get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
+        [_get_imagenet_train_transform(), RandAugmentPC(n=1, m=2, cut_rel=0)]
     )
     return transform
 
 
-def get_imagenet_randaugMC():
+def _get_imagenet_randaugMC():
     transform = transforms.Compose(
-        [get_imagenet_train_transform(), RandAugmentMC(n=2, m=10, cut_rel=0, prob=1)]
+        [_get_imagenet_train_transform(), RandAugmentMC(n=2, m=10, cut_rel=0, prob=1)]
     )
     return transform
 
 
-def get_imagenet_randaug_cutout_transform():
+def _get_imagenet_randaug_cutout_transform():
     transform = transforms.Compose(
         [
             transforms.RandomResizedCrop(224),
@@ -103,21 +122,21 @@ def get_imagenet_randaug_cutout_transform():
     return transform
 
 
-def get_norm_transform(mean, std):
+def _get_norm_transform(mean, std):
     norm_transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize(mean, std)]
     )
     return norm_transform
 
 
-def get_baseline_cifar_transfrom():
+def _get_baseline_cifar_transfrom():
     baseline_transform = transforms.Compose(
         [transforms.RandomHorizontalFlip(), transforms.RandomCrop(size=32, padding=4)]
     )
     return baseline_transform
 
 
-def get_weak_cifar_transform():
+def _get_weak_cifar_transform():
     weak_transform = transforms.Compose(
         [
             transforms.RandomHorizontalFlip(),
@@ -129,7 +148,7 @@ def get_weak_cifar_transform():
     return weak_transform
 
 
-def get_randaug_cifar_transform():
+def _get_randaug_cifar_transform():
     """best transformation for wideresnet 28-2 on cifar10 according to:
     https://proceedings.neurips.cc/paper/2020/file/d85b63ef0ccb114d0a3bb7b7d808028f-Paper.pdf
     """
@@ -145,7 +164,7 @@ def get_randaug_cifar_transform():
     return randaug_transform
 
 
-def get_isic_train_transform():
+def _get_isic_train_transform():
     """Return Transformation for ISIC Skin Lesion Diagnosis.
     Based on: https://github.com/JiaxinZhuang/Skin-Lesion-Recognition.Pytorch
     """
@@ -167,7 +186,7 @@ def get_isic_train_transform():
     return train_transform
 
 
-def get_isic_randaugMC():
+def _get_isic_randaugMC():
     re_size = 300
     input_size = 224
     train_transform = transforms.Compose(
@@ -188,7 +207,7 @@ def get_isic_randaugMC():
     return train_transform
 
 
-def get_isic_randaug_transform():
+def _get_isic_randaug_transform():
     re_size = 300
     input_size = 224
     train_transform = transforms.Compose(
@@ -231,13 +250,13 @@ def get_isic_randaug_trafo(mean, std):
     return train_transform
 
 
-def resize_transform(input_size=224):
+def _resize_transform(input_size=224):
     # input_size = 224
     transform = transforms.Compose([transforms.Resize((input_size, input_size))])
     return transform
 
 
-def get_randaug_cifar_cutout_transform():
+def _get_randaug_cifar_cutout_transform():
     randaug_transform = transforms.Compose(
         [
             transforms.RandomHorizontalFlip(),

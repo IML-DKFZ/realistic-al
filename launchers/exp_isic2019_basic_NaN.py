@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -11,7 +12,11 @@ config_dict = {
         "badge",
     ],
     "data": ["isic2019"],
-    "active": ["isic19_low", "isic19_med", "isic19_high",],
+    "active": [
+        "isic19_low",
+        "isic19_med",
+        "isic19_high",
+    ],
     "optim": ["sgd_cosine"],
 }
 
@@ -25,7 +30,9 @@ hparam_dict = {
     "model.learning_rate": [0.1],
     "model.weight_decay": [5e-3, 5e-3, 5e-4],
     "model.use_ema": False,
-    "data.transform_train": ["isic_randaugmentMC",],
+    "data.transform_train": [
+        "isic_randaugmentMC",
+    ],
     "trainer.precision": 32,
     "trainer.batch_size": 512,
     "trainer.deterministic": True,
@@ -57,8 +64,6 @@ if __name__ == "__main__":
         joint_iteration=joint_iteration,
     )
 
-    if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
     if launcher_args.bsub:
         launcher.ex_call = "~/run_active_20gb.sh python"
 

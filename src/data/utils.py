@@ -1,12 +1,14 @@
-from typing import Any, Iterable
-import torch
 import random
-import numpy as np
-from torchvision import transforms
-from .randaugment import RandAugmentMC, RandAugmentMCCutout
+from typing import Any, Iterable
 
-from torch.utils.data import Subset, Sampler, Dataset
+import numpy as np
+import torch
+from torch.utils.data import Dataset, Sampler, Subset
+from torchvision import transforms
+
 from utils.tensor import to_numpy
+
+from .randaugment import RandAugmentMC, RandAugmentMCCutout
 
 
 class RandomFixedLengthSampler(Sampler):
@@ -155,7 +157,10 @@ class TransformFixMatchImageNet(TransformFixMatch):
         else:
             RandAug = RandAugmentMCCutout(n=n, m=m, cut_rel=cut_rel, prob=prob)
         self.weak = transforms.Compose(
-            [transforms.RandomResizedCrop(img_size), transforms.RandomHorizontalFlip(),]
+            [
+                transforms.RandomResizedCrop(img_size),
+                transforms.RandomHorizontalFlip(),
+            ]
         )
 
         self.strong = transforms.Compose(
@@ -215,7 +220,7 @@ def seed_worker(worker_id):
     to fix https://tanelp.github.io/posts/a-bug-that-plagues-thousands-of-open-source-ml-projects/
     ensures different random numbers each batch with each worker every epoch while keeping reproducibility
     """
-    worker_seed = torch.initial_seed() % 2 ** 32
+    worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 

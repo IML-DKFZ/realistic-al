@@ -10,10 +10,10 @@ from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 from data.mio_dataset import MIOTCDDataset
 
 from .active import ActiveLearningDataset
-from .longtail import create_imbalanced_dataset
 from .base_datamodule import BaseDataModule
-from .transformations import get_transform
+from .longtail import create_imbalanced_dataset
 from .skin_dataset import ISIC2016, ISIC2019
+from .transformations import get_transform
 
 
 class TorchVisionDM(BaseDataModule):
@@ -65,7 +65,6 @@ class TorchVisionDM(BaseDataModule):
 
         self.num_classes = num_classes
 
-        # TODO tidy up and generalize selection of transformations for more datasets
         self.mean = mean
         self.std = std
         self.shape = shape
@@ -80,6 +79,8 @@ class TorchVisionDM(BaseDataModule):
         )
         self.imbalance = imbalance
 
+        ### IMPLEMENTATION ###
+        # Novel image datasets can be added here
         if self.dataset == "mnist":
             self.dataset_cls = MNIST
         elif self.dataset == "cifar10":

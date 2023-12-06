@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 # Add Transformations from Randaugment and Changing of Learning Rates
@@ -30,7 +31,9 @@ hparam_dict = {
     "model.load_pretrained": True,
     "trainer.max_epochs": [200, 100],  # try 50!
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_basic",],
+    "data.transform_train": [
+        "cifar_basic",
+    ],
     "sem_sl.eman": [False],  # EMAN Paper
 }
 # TODO: Change naming convention!

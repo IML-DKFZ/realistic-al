@@ -1,33 +1,31 @@
+from copy import deepcopy
+from functools import cached_property
 from pathlib import Path
+from typing import Any, Callable, Dict, List
+
+import numpy as np
+import pandas as pd
+import torch
+from loguru import logger
 from omegaconf import DictConfig
+from sklearn.metrics import pairwise_distances
+from torch.utils.data import DataLoader
+
+import utils
+from data.active import ActiveSubset
 from models.bayesian import BayesianModule
 from models.fixmatch import FixMatch
-from query.kcenterGreedy import KCenterGreedy
-import utils
-from run_test import get_active_torchvision_dm
-import numpy as np
 from query import QuerySampler
-from data.active import ActiveSubset
-from utils.io import load_omega_conf
-
-from utils.tensor import to_numpy
-
-from torch.utils.data import DataLoader
+from query.kcenterGreedy import KCenterGreedy
 from query.query_uncertainty import (
-    get_bald_fct,
-    get_bay_entropy_fct,
-    get_exp_entropy_fct,
+    _get_bald_fct,
+    _get_bay_entropy_fct,
+    _get_exp_entropy_fct,
 )
-import torch
-from typing import Any, List
-from sklearn.metrics import pairwise_distances
+from run_test import get_active_torchvision_dm
 from utils.dict_utils import dict_2_df
-import pandas as pd
-from functools import cached_property
-
-from copy import deepcopy
-from typing import Dict, Callable
-from loguru import logger
+from utils.io import load_omega_conf
+from utils.tensor import to_numpy
 
 DEVICE = "cuda:0"
 
@@ -78,9 +76,9 @@ class AnalyzeExperiment:
         self.query_fct = self.cfg.query.name
 
         self.function_dict = {
-            "MI": get_bald_fct(self.model),
-            "Entropy": get_bay_entropy_fct(self.model),
-            "Exp-Entropy": get_exp_entropy_fct(self.model),
+            "MI": _get_bald_fct(self.model),
+            "Entropy": _get_bay_entropy_fct(self.model),
+            "Exp-Entropy": _get_exp_entropy_fct(self.model),
             "Pred": lambda x: self.model.forward(x).argmax(dim=1),
             "Repr": lambda x: self.model.get_features(x),
         }
@@ -355,18 +353,17 @@ def obtain_function_values(QueriedDataset: ActiveSubset, function_dict):
 
 
 if __name__ == "__main__":
-    from utils.io import load_omega_conf
     import os
+
+    from utils.io import load_omega_conf
 
     # path = Path(
     #     "/home/c817h/Documents/logs_cluster/activelearning/cifar100/active-cifar100_low/basic-pretrained_model-resnet_drop-0.5_aug-cifar_randaugment_acq-bald_ep-80_freeze-False_smallhead-False/2022-09-04_18-05-51-269506/loop-0"
     # )
-
     # cfg = load_omega_conf(path / "hparams.yaml")
     # cfg.trainer.data_root = os.getenv("DATA_ROOT")
     # cfg.model.load_pretrained = None
     # main(cfg, path)
-
     # path = Path(
     #     "/home/c817h/Documents/logs_cluster/activelearning/cifar100/active-cifar100_low/basic-pretrained_model-resnet_drop-0.5_aug-cifar_randaugment_acq-bald_ep-80_freeze-False_smallhead-False/2022-09-04_18-05-51-269506"
     # )
@@ -380,11 +377,9 @@ if __name__ == "__main__":
     # path = Path(
     #     "/home/c817h/network/Cluster-Experiments/activelearning/miotcd/active-miotcd_low/basic-pretrained_model-resnet_drop-0.5_aug-imagent_randaug_acq-bald_ep-80_freeze-False_smallhead-False/2022-09-13_23-52-03-934658"
     # )  # Done
-
     # path = Path(
     #     "/home/c817h/network/Cluster-Experiments/activelearning/miotcd/active-miotcd_low/basic-pretrained_model-resnet_drop-0.5_aug-imagent_randaug_acq-bald_ep-80_freeze-False_smallhead-False/2022-09-13_23-52-08-120366"
     # )  # Running
-
     # # ISIC-2019
     # path = Path(
     #     "/home/c817h/network/Cluster-Experiments/activelearning/isic2019/active-isic19_high/basic-pretrained_model-resnet_drop-0.5_aug-isic_randaugment_acq-bald_ep-80_freeze-False_smallhead-False/2022-09-07_04-24-45-344474"

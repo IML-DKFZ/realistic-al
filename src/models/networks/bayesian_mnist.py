@@ -2,12 +2,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 from torch.utils import data
+
 from models.bayesian_module import (
+    BayesianModule,
     ConsistenMCDropout2D,
     ConsistentMCDropout,
-    BayesianModule,
 )
+
 from .registry import register_model
+
 
 # MNIST BayesianNet from BatchBALD
 class BayesianNet(BayesianModule):

@@ -1,44 +1,42 @@
 import math
-import numpy as np
-import torch
-
-from torch.utils.data import DataLoader
-
-import torch.nn.functional as F
-
 from typing import Callable, Tuple
 
+import numpy as np
+import torch
+import torch.nn.functional as F
+from omegaconf import DictConfig
+from torch.utils.data import DataLoader
+
 from utils.tensor import to_numpy
+
 from .batchbald_redux.batchbald import get_batchbald_batch
 
-# DEVICE = "cuda:0"
-###
-
-names = """bald entropy random batchbald variationratios""".split()
+### IMPLEMENTATION
+# Add name of uncerainty method here and add computation _get_xxx_function.
+NAMES = ["bald", "entropy", "random", "batchbald", "variationratios"]
 
 
 def get_acq_function(cfg, pt_model) -> Callable[[torch.Tensor], torch.Tensor]:
     name = str(cfg.query.name).split("_")[0]
     if name == "bald":
-        return get_bald_fct(pt_model)
+        return _get_bald_fct(pt_model)
     elif name == "entropy":
-        return get_bay_entropy_fct(pt_model)
+        return _get_bay_entropy_fct(pt_model)
     elif name == "random":
-        return get_random_fct()
+        return _get_random_fct()
     elif name == "batchbald":
         return get_bay_logits(pt_model)
     elif name == "variationratios":
-        return get_var_ratios(pt_model)
+        return _get_var_ratios(pt_model)
     else:
         raise NotImplementedError
 
 
 def get_post_acq_function(
-    cfg, device="cuda:0"
+    cfg: DictConfig, device="cuda:0"
 ) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
     names = str(cfg.query.name).split("_")
     if cfg.query.name == "batchbald":
-
         # This values should only be used to select the entropy computation
         num_samples = 40000  # taken from BatchBALD
 
@@ -50,7 +48,6 @@ def get_post_acq_function(
             logprob_n_k_c = torch.from_numpy(logprob_n_k_c).to(
                 device=device, dtype=torch.double
             )
-            # TODO: compute estimate how big chunks can be made -- signifcantely speeds up computation!
             with torch.no_grad():
                 out = get_batchbald_batch(
                     logprob_n_k_c,
@@ -107,13 +104,7 @@ def query_sampler(
     return acq_ind, acq_scores
 
 
-# def sample_acq_fct(batch):
-#     x, y = batch
-#     scores = np.arange(x.shape[0])
-#     return scores
-
-
-def get_bay_entropy_fct(pt_model):
+def _get_bay_entropy_fct(pt_model: torch.nn.Module):
     def acq_bay_entropy(x: torch.Tensor):
         """Returns the Entropy of predictions of the bayesian model"""
         with torch.no_grad():
@@ -124,7 +115,7 @@ def get_bay_entropy_fct(pt_model):
     return acq_bay_entropy
 
 
-def get_exp_entropy_fct(pt_model):
+def _get_exp_entropy_fct(pt_model: torch.nn.Module):
     def acq_exp_entropy(x: torch.Tensor):
         """Returns the expected entropoy of some probabilistic model."""
         with torch.no_grad():
@@ -135,7 +126,7 @@ def get_exp_entropy_fct(pt_model):
     return acq_exp_entropy
 
 
-def get_bald_fct(pt_model):
+def _get_bald_fct(pt_model: torch.nn.Module):
     def acq_bald(x: torch.Tensor):
         """Returns the BALD-acq values (Mutual Information) between most likely labels and the model parameters"""
         with torch.no_grad():
@@ -146,7 +137,7 @@ def get_bald_fct(pt_model):
     return acq_bald
 
 
-def get_bay_logits(pt_model):
+def get_bay_logits(pt_model: torch.nn.Module):
     def acq_logits(x: torch.Tensor):
         """Returns the NxKxC logprobs needed for BatchBALD"""
         with torch.no_grad():
@@ -157,7 +148,7 @@ def get_bay_logits(pt_model):
     return acq_logits
 
 
-def get_var_ratios(pt_model):
+def _get_var_ratios(pt_model: torch.nn.Module):
     def acq_var_ratios(x: torch.Tensor):
         """Returns the variation ratio values."""
         with torch.no_grad():
@@ -168,7 +159,7 @@ def get_var_ratios(pt_model):
     return acq_var_ratios
 
 
-def get_random_fct():
+def _get_random_fct():
     def acq_random(x: torch.Tensor, c: float = 0.0001):
         """Returns random values over the interval [0, c)"""
         out = torch.rand(x.shape[0], device=x.device) * c
@@ -177,15 +168,7 @@ def get_random_fct():
     return acq_random
 
 
-def get_model_features(pt_model):
-    def get_features(x: torch.Tensor):
-        with torch.no_grad:
-            return pt_model.get_features(x)
-
-    return get_features
-
-
-def pred_entropy(logits):
+def pred_entropy(logits: torch.Tensor):
     """Get the mean entropy of multiple logits."""
     k = logits.shape[1]
     out = F.log_softmax(logits, dim=2)  # BxkxD
@@ -196,7 +179,7 @@ def pred_entropy(logits):
     return ent
 
 
-def var_ratios(logits):
+def var_ratios(logits: torch.Tensor):
     k = logits.shape[1]
     out = F.log_softmax(logits, dim=2)  # BxkxD
     out = torch.logsumexp(out, dim=1) - math.log(k)  # BxkxD --> BxD
@@ -204,18 +187,32 @@ def var_ratios(logits):
     return out
 
 
-def exp_entropy(logits):
+def exp_entropy(logits: torch.Tensor):
     out = F.log_softmax(logits, dim=2)  # BxkxD
     out = torch.sum(-torch.exp(out) * out, dim=2)  # Bxk
     out = torch.mean(out, dim=1)
     return out
 
 
-def mutual_bald(logits):
+def mutual_bald(logits: torch.Tensor):
     return pred_entropy(logits) - exp_entropy(logits)
 
 
-def acq_from_batch(batch, function, device="cuda:0"):
+def acq_from_batch(
+    batch: Tuple[torch.Tensor, torch.Tensor],
+    function: Callable[[torch.Tensor], torch.Tensor],
+    device="cuda:0",
+) -> np.ndarray:
+    """Compute function from batch inputs.
+
+    Args:
+        batch (Tuple[torch.Tensor, torch.Tensor]): [inputs, labels]
+        function (Callable[[torch.Tensor], torch.Tensor]): function where outputs are desired.
+        device (str, optional): device for computation. Defaults to "cuda:0".
+
+    Returns:
+        np.ndarray: outputs of function for batch inputs.
+    """
     x, y = batch
     x = x.to(device)
     out = function(x)

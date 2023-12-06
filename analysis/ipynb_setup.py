@@ -1,8 +1,8 @@
 """Allow jupyter notebooks in this folder to access data from src
 """
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
 
 src_path = Path(os.getcwd()).resolve().parent / "src"
 

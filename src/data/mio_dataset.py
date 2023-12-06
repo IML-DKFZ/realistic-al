@@ -1,18 +1,32 @@
 import os
-from pathlib import Path
 import tarfile
+from pathlib import Path
+from typing import Callable
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
 
 
 class MIOTCDDataset(Dataset):
     def __init__(
-        self, root="./data", train=True, transform=None, download=True, preprocess=True
+        self,
+        root: str = "./data",
+        train: bool = True,
+        transform: Callable[[Image.Image], Image.Image] = None,
+        download: bool = True,
+        preprocess: bool = True,
     ):
+        """Dataset for MIO-TCD Dataset.
 
+        Args:
+            root (str, optional): Path to root folder. Defaults to "./data".
+            train (bool, optional): Use Train or Test Split. Defaults to True.
+            transform (Callable[[Image.Image], Image.Image], optional): Pytorch Transform. Defaults to None.
+            download (bool, optional): Tries to download dataset. Defaults to True.
+            preprocess (bool, optional): Placeholder, as this is not necessary. Defaults to True.
+        """
         self.data_name = {}
         self.data_name["full"] = "data"
         self.data_url = {}
@@ -152,4 +166,3 @@ class MIOTCDDataset(Dataset):
 
                 os.remove(save_path)
                 print("Finished donwload and extraction")
-

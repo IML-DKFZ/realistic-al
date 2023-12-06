@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 # Add Transformations from Randaugment and Changing of Learning Rates
@@ -6,7 +7,10 @@ from launcher import ExperimentLauncher
 config_dict = {
     "model": "resnet_fixmatch",  # wideresnet-cifar10
     "data": "cifar10",
-    "active": ["cifar10_low", "cifar10_med",],  # standard
+    "active": [
+        "cifar10_low",
+        "cifar10_med",
+    ],  # standard
     "query": ["random", "entropy", "kcentergreedy"],
     "optim": "sgd_fixmatch",
 }
@@ -28,7 +32,9 @@ hparam_dict = {
     "model.load_pretrained": True,
     "trainer.max_epochs": 400,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["cifar_basic",],
+    "data.transform_train": [
+        "cifar_basic",
+    ],
     "sem_sl.eman": [False],
     "model.freeze_encoder": False,
     "trainer.persistent_workers": True,

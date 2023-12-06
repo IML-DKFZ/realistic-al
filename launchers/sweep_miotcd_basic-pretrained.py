@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -37,7 +38,10 @@ hparam_dict = {
     "trainer.precision": 16,
     "trainer.num_workers": 10,
     "trainer.seed": [12345, 12346, 12347],
-    "data.transform_train": ["imagenet_train", "imagenet_randaugMC",],
+    "data.transform_train": [
+        "imagenet_train",
+        "imagenet_randaugMC",
+    ],
 }
 
 joint_iteration = [

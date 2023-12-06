@@ -1,21 +1,20 @@
 import math
 import os
-from typing import Callable, Union
+import time
+from typing import Callable
 
 import hydra
 import numpy as np
+import pandas as pd
+from loguru import logger
 from omegaconf import DictConfig
 
 import utils
-from data.data import TorchVisionDM
-from trainer import ActiveTrainingLoop
+from data.base_datamodule import BaseDataModule
 from run_training import get_torchvision_dm, label_active_dm
+from trainer import ActiveTrainingLoop
 from utils import config_utils
-import time
-from loguru import logger
 from utils.log_utils import setup_logger
-
-import pandas as pd
 
 
 @hydra.main(config_path="./config", config_name="config", version_base="1.1")
@@ -41,12 +40,25 @@ def main(cfg: DictConfig):
 def active_loop(
     cfg: DictConfig,
     ActiveTrainingLoop=ActiveTrainingLoop,
-    get_active_dm_from_config: Callable = get_torchvision_dm,
-    num_labelled: Union[None, int] = 100,
+    get_active_dm_from_config: Callable[
+        [DictConfig, bool], BaseDataModule
+    ] = get_torchvision_dm,
+    num_labelled: int = 100,
     balanced: bool = True,
     acq_size: int = 10,
     num_iter: int = 0,
 ):
+    """Perform Active Learning over multiple loops.
+
+    Args:
+        cfg (DictConfig): config from main
+        ActiveTrainingLoop (Class, optional): Class that defines what happens during the training. Defaults to ActiveTrainingLoop.
+        get_active_dm_from_config (Callable, optional): class returning a datamodule usable for active learning. Defaults to get_torchvision_dm.
+        num_labelled (int, optional): starting budget for active learning. Defaults to 100.
+        balanced (bool, optional): whether starting budget is drawn balanced. Defaults to True.
+        acq_size (int, optional): query size in each active learning loop. Defaults to 10.
+        num_iter (int, optional): number of active learning loops. Defaults to 0.
+    """
     logger.info("Instantiating Datamodule")
     datamodule = get_active_dm_from_config(cfg)
     label_active_dm(cfg, num_labelled, balanced, datamodule)

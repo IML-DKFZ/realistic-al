@@ -1,13 +1,55 @@
+"""
+    Script to compute summary statistics for a given metric across multiple experiments.
+
+    Usage:
+        python script_name.py -p /path/to/experiments -l 1 -v test/acc -s auto
+
+    Arguments:
+        -p, --path: Base path containing experiment subdirectories.
+        -l, --level: Number of folders to sweep. E.g., for sweeps using the dataset dir, it is 1.
+        -v, --value-name: Metric name to compute statistics for. E.g., 'test/acc' or 'val/acc'.
+        -s, --select: Method for selecting values ('auto', 'max', 'last'). Default is 'auto'.
+
+    Example:
+        python script_name.py -p /path/to/experiments -l 1 -v test/acc -s auto
+
+    Note:
+        - Level 0 computes the metric for experiments directly under the specified path.
+        - Level 1 sweeps through subdirectories under the specified path and computes metrics.
+        - 'auto' selection chooses 'last' for 'fixmatch' experiments and 'max' for others.
+"""
 from argparse import ArgumentParser
-
 from pathlib import Path
-import pandas as pd
-import numpy as np
-
 from pprint import pprint
 
+import numpy as np
+import pandas as pd
 
-def compute_value(path:Path, value_name:str, select:str="max"):
+
+def compute_value(path: Path, value_name: str, select: str = "auto") -> pd.DataFrame:
+    """
+    Computes summary statistics for a given metric across multiple experiments and saves them in a file named:
+    `path/{value_name}.csv`
+
+    Args:
+        path (Path): The base path containing experiment subdirectories.
+        value_name (str): The name of the metric to compute statistics for.
+        select (str, optional): The method for selecting values ('max', 'last', 'auto').
+            If 'auto', 'last' is used for 'fixmatch' experiments and 'max' for others. Default is 'auto'.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing summary statistics (mean, std, runs) for the specified metric.
+
+    Example:
+        >>> exp_path = Path('/path/to/experiments')
+        >>> value_name = 'test_accuracy'
+        >>> summary_df = compute_value(exp_path, value_name, select='auto')
+        >>> print(summary_df)
+          Experiment    Mean     STD  _Runs
+        0  experiment1  85.43  1.2345     5
+        1  experiment2  89.12  0.9876     5
+        ...
+    """
     values = []
     if select == "auto":
         if "fixmatch" in path.name.lower():
@@ -28,6 +70,8 @@ def compute_value(path:Path, value_name:str, select:str="max"):
                         value = df_exp[value_name].max()
                     elif select == "last":
                         value = df_exp[value_name].dropna().iloc[-1]
+                    else:
+                        raise ValueError
                     values.append(value)
 
             except:

@@ -1,11 +1,12 @@
 from argparse import ArgumentParser
-from launcher import ExperimentLauncher
+
 from config_launcher import get_pretrained_arch
+from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
     "query": [
-        # "random", 
+        # "random",
         # "entropy",
         # "kcentergreedy",
         # "bald",

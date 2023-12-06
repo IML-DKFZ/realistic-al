@@ -1,17 +1,15 @@
-from typing import List
-from omegaconf import OmegaConf
-
 # import pytest
 import os
-from pathlib import Path
 import shutil
-
-
-import numpy as np
-import torch
 
 ############# Needed to execute as main ############
 import sys
+from pathlib import Path
+from typing import List
+
+import numpy as np
+import torch
+from omegaconf import OmegaConf
 
 src_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -20,8 +18,9 @@ sys.path.append(src_folder)
 ####################################################
 
 
-from query.query_diversity import chunked_pdist
 import torch
+
+from query.query_diversity import chunked_pdist
 
 
 def test_chunked_pdist():

@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 # Add Transformations from Randaugment and Changing of Learning Rates
@@ -25,7 +26,7 @@ hparam_dict = {
     ],
     "sem_sl.eman": [False],
     "model.load_pretrained": None,
-    "trainer.precision" :16,
+    "trainer.precision": 16,
 }
 
 naming_conv = (

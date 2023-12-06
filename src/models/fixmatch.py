@@ -1,22 +1,24 @@
-from typing import Any, List, Optional, Tuple
 import math
-from loguru import logger
-from omegaconf import DictConfig
+from typing import Any, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
-import torchvision
 import torch.nn.functional as F
-from data.data import TorchVisionDM
-from models.networks import build_model
-from .abstract_classifier import AbstractClassifier
+import torchvision
+from loguru import logger
+from omegaconf import DictConfig
 
+from data.data import TorchVisionDM
 from data.sem_sl import wrap_fixmatch_train_dataloader
+from models.networks import build_model
+
+from .abstract_classifier import AbstractClassifier
 
 
 class FixMatch(AbstractClassifier):
     def __init__(
-        self, config: DictConfig,
+        self,
+        config: DictConfig,
     ):
         """FixMatch Classifier, which can be extended to a bayesian Neural network by setting config.dropout_p to values greater 0."""
         super().__init__(eman=config.sem_sl.eman)
@@ -63,7 +65,16 @@ class FixMatch(AbstractClassifier):
             # goal is to obtain a balanced classifer, therefore p_data is uniform
             self.register_buffer("p_data", torch.ones(num_classes) / num_classes)
 
-    def training_step(self, batch, batch_idx, *args, **kwargs):
+    def training_step(self, batch: Any, batch_idx: int, *args, **kwargs) -> dict:
+        """Perform training step for the current batch.
+
+        Args:
+            batch (Any): data from dataloader
+            batch_idx (int): batch counter
+
+        Returns:
+            dict: out_dict for logging
+        """
         mode = "train"
         labeled_batch, unlabeled_batch = batch
         x, y = labeled_batch
@@ -110,31 +121,64 @@ class FixMatch(AbstractClassifier):
             "label": y,
         }
 
-    def step_logits(self, logits, y):
+    def step_logits(
+        self, logits: torch.Tensor, y: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Perform standard lightning step with the logits computing supervised loss.
+
+        Args:
+            logits (torch.Tensor): logits corresponding to labels
+            y (torch.Tensor): labels
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: [loss, predictions, labels]
+        """
         preds = torch.argmax(logits, dim=1)
         loss = self.loss_fct(F.log_softmax(logits, dim=-1), y)
         return loss, preds, y
 
-    def obtain_logits(self, x, x_w, x_s):
+    def obtain_logits(
+        self, x: torch.Tensor, x_w: torch.Tensor, x_s: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Obtain the logits of the model for the inputs of the semi-supervised step
+
+        Args:
+            x (torch.Tensor): images labeled
+            x_w (torch.Tensor): images weakly augmented
+            x_s (torch.Tensor): images strongly augmented
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: logits of [labeled, weakly, strongly] augmented images
+        """
         if self.eman and self.ema_model is not None:
             with torch.no_grad():
                 logits_w = self.forward(x_w, k=None, agg=False, ema=True)
             x_full = torch.cat([x, x_s])
-            x_full = interleave(x_full, x_full.shape[0])
+            x_full = _interleave(x_full, x_full.shape[0])
             logits_ = self.forward(x_full, k=1, agg=False)
-            logits_ = de_interleave(logits_, logits_.shape[0])
+            logits_ = _de_interleave(logits_, logits_.shape[0])
             logits = logits_[: x.shape[0]]
             logits_s = logits_[x.shape[0] :]
         else:
             x_full = torch.cat([x, x_w, x_s])
-            x_full = interleave(x_full, x_full.shape[0])
+            x_full = _interleave(x_full, x_full.shape[0])
             logits_ = self.forward(x_full, k=1, agg=False)
-            logits_ = de_interleave(logits_, logits_.shape[0])
+            logits_ = _de_interleave(logits_, logits_.shape[0])
             logits = logits_[: x.shape[0]]
             logits_w, logits_s = logits_[x.shape[0] :].chunk(2)
         return logits, logits_w, logits_s
 
-    def semi_step(self, logits_w, logits_s):
+    def semi_step(
+        self, logits_w: torch.Tensor, logits_s: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Performs the semi-supervised learning step on the unlabeled pool.
+
+        Args:
+            logits_w (torch.Tensor): logits of weakly augmented inputs
+            logits_s (torch.Tensor): logits of strongly augmented inputs
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: loss [item], %unlabeled loss
+        """
         # create mask for temp scaled output probabilities greater equal threshold
         probs = torch.exp(self.mc_nll(logits_w.detach() / self.T_semsl))
         if self.distr_align:
@@ -170,9 +214,19 @@ class FixMatch(AbstractClassifier):
         p_model /= p_model.sum()
         return p_model
 
-    def visualize_train(self, x, x_w, x_s):
+    def visualize_train(
+        self, x: torch.Tensor, x_w: torch.Tensor, x_s: torch.Tensor
+    ) -> None:
+        """Visualizes input images for FixMatch Training.
+
+        Args:
+            x (torch.Tensor): images labeled
+            x_w (torch.Tensor): images weakly augmented (unlabeled)
+            x_s (torch.Tensor): images strongly augmented (unlabeled)
+        """
         for imgs, title in zip(
-            [x, x_w, x_s], ["samples_lab", "samples_weak", "samples_strong"],
+            [x, x_w, x_s],
+            ["samples_lab", "samples_weak", "samples_strong"],
         ):
             if len(imgs) == 0:
                 continue
@@ -185,16 +239,23 @@ class FixMatch(AbstractClassifier):
         return super().on_test_epoch_end()
 
     def wrap_dm(self, dm: TorchVisionDM) -> TorchVisionDM:
+        """Return datamodule with the train_dataloader for FixMatch.
+
+        Args:
+            dm (TorchVisionDM): Datamodule used for training without FixMatch train_dataloader
+
+        Returns:
+            TorchVisionDM: Datamodule with FixMatch train_dataloader
+        """
         dm.train_dataloader = wrap_fixmatch_train_dataloader(dm, self.mu)
         return dm
 
 
-def interleave(x, size):
-    """"""
+def _interleave(x: torch.Tensor, size: int) -> torch.Tensor:
     s = list(x.shape)
     return x.reshape([-1, size] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])
 
 
-def de_interleave(x, size):
+def _de_interleave(x: torch.Tensor, size: int) -> torch.Tensor:
     s = list(x.shape)
     return x.reshape([size, -1] + s[1:]).transpose(0, 1).reshape([-1] + s[1:])

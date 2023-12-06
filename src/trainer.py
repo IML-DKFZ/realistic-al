@@ -1,28 +1,26 @@
-from copy import deepcopy
-import os
-from pathlib import Path
-
-
-from loguru import logger
-import numpy as np
-from omegaconf import DictConfig
-import pytorch_lightning as pl
-
-from pytorch_lightning.callbacks import TQDMProgressBar
-from models.bayesian import BayesianModule
-from data.data import TorchVisionDM
-from query import QuerySampler
-import torch
-from typing import Dict, Optional, Union
 import gc
+import os
+from copy import deepcopy
 from datetime import datetime
-from utils.log_utils import log_git
-from utils.io import save_json
+from pathlib import Path
+from typing import Dict, Optional, Union
+
+import numpy as np
+import pytorch_lightning as pl
+import torch
+from loguru import logger
+from omegaconf import DictConfig
+from pytorch_lightning.callbacks import TQDMProgressBar
+
+from data.data import TorchVisionDM
+from models.bayesian import BayesianModule
 from models.callbacks.metrics_callback import (
-    ISIC2016MetricCallback,
     ImbClassMetricCallback,
+    ISIC2016MetricCallback,
 )
-from functools import cached_property
+from query import QuerySampler
+from utils.io import save_json
+from utils.log_utils import log_git
 
 
 class ActiveTrainingLoop(object):
@@ -35,7 +33,7 @@ class ActiveTrainingLoop(object):
         base_dir: str = os.getcwd(),  # TODO: change this to some other value!
         loggers: str = True,
     ):
-        """Class capturing the logic for Active Training Loops."""
+        # Class capturing the logic for Active Training Loops.
         self.cfg = cfg
         self.datamodule = deepcopy(datamodule)
         self.count = count
@@ -43,14 +41,14 @@ class ActiveTrainingLoop(object):
         self.device = "cuda:0"
         self.base_dir = Path(base_dir)  # carries path to run
         self._save_dict = dict()
-        self.init_model()
-        self.ckpt_callback = self.init_ckpt_callback()
-        self.callbacks = self.init_callbacks()
+        self._init_model()
+        self.ckpt_callback = self._init_ckpt_callback()
+        self.callbacks = self._init_callbacks()
         self.loggers = False
         if loggers:
-            self.loggers = self.init_loggers()
+            self.loggers = self._init_loggers()
 
-    def init_ckpt_callback(self) -> pl.callbacks.ModelCheckpoint:
+    def _init_ckpt_callback(self) -> pl.callbacks.ModelCheckpoint:
         ckpt_path = os.path.join(self.log_dir, "checkpoints")
         # TODO: Clean this up via selection via a config file!
         if self.datamodule.val_dataloader() is not None:
@@ -78,7 +76,7 @@ class ActiveTrainingLoop(object):
             )
         return ckpt_callback
 
-    def init_callbacks(self):
+    def _init_callbacks(self):
         lr_monitor = pl.callbacks.LearningRateMonitor()
         callbacks = [lr_monitor]
         callbacks.append(self.ckpt_callback)
@@ -125,10 +123,10 @@ class ActiveTrainingLoop(object):
         # based on: https://github.com/MIC-DKFZ/nnDetection/blob/6ac7dac6fd9ffd85b74682a2f565e0028305c2c0/scripts/train.py#L187-L226
         meta_data = {}
         meta_data["date"] = str(datetime.now())
-        meta_data["git"] = log_git(repo_path, repo_name=repo_name)
+        meta_data["git"] = log_git(repo_path)
         return meta_data
 
-    def init_loggers(self):
+    def _init_loggers(self):
         tb_logger = pl.loggers.TensorBoardLogger(
             save_dir=self.cfg.trainer.experiments_root,
             name=self.name,
@@ -142,10 +140,10 @@ class ActiveTrainingLoop(object):
         )
         return [tb_logger, csv_logger]
 
-    def init_model(self):
+    def _init_model(self):
         self.model = BayesianModule(self.cfg)
 
-    def init_trainer(self):
+    def _init_trainer(self):
         self.trainer = pl.Trainer(
             gpus=self.cfg.trainer.n_gpus,
             logger=self.loggers,
@@ -164,7 +162,7 @@ class ActiveTrainingLoop(object):
             # enable_progess_bar=self.cfg.trainer.enable_progress_bar,
         )
 
-    def fit(self):
+    def _fit(self):
         """Performs the fit, selects the best performing model and cleans up cache."""
         datamodule = self.model.wrap_dm(self.datamodule)
         self.model.setup_data_params(datamodule)
@@ -178,7 +176,7 @@ class ActiveTrainingLoop(object):
         gc.collect()
         torch.cuda.empty_cache()
 
-    def test(self):
+    def _test(self):
         self.trainer.test(model=self.model, datamodule=self.datamodule)
 
     def active_callback(self):
@@ -195,6 +193,7 @@ class ActiveTrainingLoop(object):
     def final_callback(self):
         pass
 
+    # TODO: Delete for open repostitory!
     # TODO: Saving in log_save_dict could be done via pickle allowing for more datatypes?
     def update_save_dict(self, sub_key: str, sub_dict: Dict[str, np.ndarray]):
         """Update the values of _save_dict with a new dictionary.
@@ -210,11 +209,13 @@ class ActiveTrainingLoop(object):
                 raise TypeError("sub_dict needs keys of type str")
         self._save_dict[sub_key] = sub_dict
 
+    # TODO: Delete for open repostitory!
     def log_save_dict(self):
         """Saves the values of _save_dict to log_dir"""
         for sub_key, sub_dict in self._save_dict.items():
             self.log_dict(sub_key, sub_dict, level="log", sub_folder="save_dict")
 
+    # TODO: Delete for open repostitory!
     def log_dict(
         self,
         name: str,
@@ -251,10 +252,10 @@ class ActiveTrainingLoop(object):
         save_file = os.path.join(path, "{}.{}".format(name, ending))
         np.savez_compressed(save_file, **dictionary)
 
-    def setup_log_struct(self):
+    def _setup_log_struct(self):
         """Save Meta data to a json file."""
         meta_data = self.obtain_meta_data(
-            os.path.dirname(os.path.abspath(__file__)), repo_name="active-playground"
+            os.path.dirname(os.path.abspath(__file__)), repo_name="realistic-al"
         )
         if os.path.exists(self.log_dir) is False:
             os.makedirs(self.log_dir)
@@ -264,19 +265,13 @@ class ActiveTrainingLoop(object):
     def main(self):
         """Executing logic of the Trainer.
         setup_..., init_..., fit, test, final_callback"""
-        self.setup_log_struct()
+        self._setup_log_struct()
         if self.active:
             self.datamodule.train_set.save_checkpoint(self.data_ckpt_path)
-        # self.init_logger()
-        # self.init_model()
-        # self.init_callbacks()
-        self.init_trainer()
-        self.fit()
+        self._init_trainer()
+        self._fit()
         if self.trainer.interrupted:
             return
         if self.cfg.trainer.run_test:
-            self.test()
+            self._test()
         self.final_callback()
-        # add a wrap up!
-
-        # os.chdir(self.base_dir)

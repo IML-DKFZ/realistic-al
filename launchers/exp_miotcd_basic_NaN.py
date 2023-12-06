@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -22,7 +23,11 @@ hparam_dict = {
     "data.val_size": [num_classes * 5 * 5, num_classes * 25 * 5, num_classes * 100 * 5],
     # "model.dropout_p": [0, 0, 0, 0.5, 0],
     "model.dropout_p": [0],
-    "model.learning_rate": [0.01, 0.01, 0.1,],
+    "model.learning_rate": [
+        0.01,
+        0.01,
+        0.1,
+    ],
     "model.weight_decay": [5e-3, 5e-4, 5e-3],
     "model.use_ema": False,
     "model.small_head": [True],
@@ -64,8 +69,6 @@ if __name__ == "__main__":
         path_to_ex_file,
         joint_iteration=joint_iteration,
     )
-    if launcher_args.cluster:
-        launcher.ex_call = "cluster_run --launcher run_active_20gb.sh"
     if launcher_args.bsub:
         launcher.ex_call = "~/run_active_20gb.sh python"
 

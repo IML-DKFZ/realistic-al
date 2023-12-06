@@ -1,16 +1,15 @@
-from typing import List
-from omegaconf import OmegaConf
-import pytest
 import os
-from pathlib import Path
 import shutil
-
-
-import numpy as np
-import torch
 
 ############# Needed to execute as main ############
 import sys
+from pathlib import Path
+from typing import List
+
+import numpy as np
+import pytest
+import torch
+from omegaconf import OmegaConf
 
 src_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -18,13 +17,13 @@ sys.path.append(src_folder)
 
 ####################################################
 
-from utils.setup import set_seed
-import utils.path_utils as path_utils
 import utils.io as io
+import utils.path_utils as path_utils
 from run_toy import ToyActiveLearningLoop, get_toy_dm
+from utils.setup import set_seed
 
 # DATA_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = path_utils.test_data_folder
+DATA_DIR = path_utils.TEST_DATA_FOLDER
 
 
 @pytest.fixture

@@ -1,13 +1,20 @@
-import rich
-import rich.tree
-import rich.syntax
-from omegaconf import DictConfig, OmegaConf
 from typing import Sequence
+
+import rich
+import rich.syntax
+import rich.tree
+from omegaconf import DictConfig, OmegaConf
 
 
 def print_config(
     config: DictConfig,
-    fields: Sequence[str] = ("trainer", "model", "active", "data", "optim",),
+    fields: Sequence[str] = (
+        "trainer",
+        "model",
+        "active",
+        "data",
+        "optim",
+    ),
     resolve: bool = True,
 ) -> None:
     """Prints content of DictConfig using Rich library and its tree structure.

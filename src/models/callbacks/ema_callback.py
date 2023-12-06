@@ -1,7 +1,8 @@
-import pytorch_lightning as pl
-from pytorch_lightning import Callback
-import torch.nn as nn
 from typing import Sequence
+
+import pytorch_lightning as pl
+import torch.nn as nn
+from pytorch_lightning import Callback
 
 
 class EMAWeightUpdate(Callback):
@@ -13,6 +14,10 @@ class EMAWeightUpdate(Callback):
         EMAN: Exponential Moving Average Normalization for Self-supervised and Semi-supervised Learning
         ArXiv: https://arxiv.org/abs/2101.08482
         Repo: https://github.com/amazon-research/exponential-moving-average-normalization
+
+        Args:
+            tau (float, optional): ema rate. Defaults to 0.999.
+            eman (bool, optional): use EMAN instead of EMA. Defaults to False.
         """
         super().__init__()
         self.tau = tau

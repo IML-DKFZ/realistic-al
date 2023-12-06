@@ -1,6 +1,6 @@
-from typing import Any, Dict, Iterable, Tuple, Callable
 from abc import abstractclassmethod
 from collections import defaultdict
+from typing import Any, Callable, Dict, Iterable, Tuple
 
 import numpy as np
 import torch
@@ -8,6 +8,8 @@ import torch.nn as nn
 from torch import Tensor
 
 from .tensor import to_numpy
+
+# TODO: delete unnecessary code for open source version.
 
 
 def get_batch_data(batch: Any, out_dict: dict = None) -> Dict[str, np.ndarray]:
@@ -17,9 +19,6 @@ def get_batch_data(batch: Any, out_dict: dict = None) -> Dict[str, np.ndarray]:
     Args:
         batch (Any): Batch from a dataloader
         out_dict (dict, optional): dictionary for extension. Defaults to None.
-
-    Raises:
-        NotImplemented: _description_
 
     Returns:
         Dict[str, np.ndarray]: dictionary carrying batch data
@@ -47,15 +46,23 @@ def get_batch_data(batch: Any, out_dict: dict = None) -> Dict[str, np.ndarray]:
 
 # this function might also work based on an abstract class (see GetModelOutputs)
 def concat_functional(
-    chunked_data: Iterable, functions: Tuple[Callable] = (get_batch_data,)
+    chunked_data: Iterable,
+    functions: Tuple[Callable[[Any], Dict[str, np.ndarray]]] = (get_batch_data,),
 ) -> Dict[str, np.ndarray]:
     """Concatenates outputs of functions from chunked_data.
     For a template regarding a function see `get_batch_data`.
     Also `AbstractBatchData` allows easy creation.
-    Returns a dictionary"""
+
+    Args:
+        chunked_data (Iterable): chunked data for running model.
+        functions (Tuple[Callable], optional): tuple of functions operating on data in chunked data. Defaults to (get_batch_data,).
+
+    Returns:
+        Dict[str, np.ndarray]: Dictionary contatining outputs for function on chunked_data
+    """
     loader_dict = defaultdict(list)
     for data in chunked_data:
-        batch_dict = None
+        batch_dict = {}
         for function in functions:
             batch_dict = function(data, out_dict=batch_dict)
         for key, val in batch_dict.items():

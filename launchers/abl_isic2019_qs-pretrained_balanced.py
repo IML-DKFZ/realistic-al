@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
-from launcher import ExperimentLauncher
+
 from config_launcher import get_pretrained_arch
+from launcher import ExperimentLauncher
 
 config_dict = {
     "model": "resnet",
@@ -28,11 +29,11 @@ hparam_dict = {
     "data.balanced_sampling": True,
     "data.val_size": [200],
     "trainer.seed": [12345, 12346, 12347],
-    "trainer.max_epochs": 80,  
+    "trainer.max_epochs": 80,
     "model.dropout_p": [0, 0, 0, 0, 0.5],
     "model.learning_rate": [0.001],
     "model.weight_decay": [5e-3],
-    "model.freeze_encoder": [False],  
+    "model.freeze_encoder": [False],
     "model.use_ema": False,
     "model.load_pretrained": load_pretrained,
     "data.transform_train": "isic_train",

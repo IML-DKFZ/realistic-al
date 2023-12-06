@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -29,7 +30,9 @@ hparam_dict = {
     "model.dropout_p": [0],
     "model.learning_rate": [0.1],
     "model.use_ema": False,
-    "data.transform_train": ["cifar_randaugmentMC",],
+    "data.transform_train": [
+        "cifar_randaugmentMC",
+    ],
     "trainer.batch_size": 1024,
     "trainer.precision": 16,
     "trainer.deterministic": True,

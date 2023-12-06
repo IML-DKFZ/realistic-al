@@ -10,7 +10,9 @@ import numpy as np
 import torch
 import torch.utils.data as torchdata
 from sklearn.utils import check_random_state
+
 from utils import io
+
 from .utils import ActiveSubset
 
 
@@ -67,7 +69,6 @@ class ActiveLearningDataset(torchdata.Dataset):
         labelled_ind: np.ndarray
 
     def init_state(self):
-
         self._state = self._LabelState(
             num_label=self.n_labelled,
             labelled_ind=self.labelled.nonzero()[0].reshape([-1]),
@@ -241,11 +242,13 @@ class ActiveLearningDataset(torchdata.Dataset):
         indices = []
 
         if random:
-            # labels = []
-            # for (x, y) in self.pool:
-            #     labels.append(y)
-            # labels = np.array(labels)
-            labels = self.pool.targets
+            if hasattr(self.pool, "targets"):
+                labels: np.ndarray = self.pool.targets
+            else:
+                labels = []
+                for x, y in self.pool:
+                    labels.append(y)
+                labels = np.array(labels)
             for c in range(num_classes):
                 class_indices = np.where(labels == c)[0]
                 indices.append(

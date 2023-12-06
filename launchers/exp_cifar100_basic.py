@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+
 from launcher import ExperimentLauncher
 
 config_dict = {
@@ -11,7 +12,11 @@ config_dict = {
         "badge",
     ],
     "data": ["cifar100"],
-    "active": ["cifar100_low", "cifar100_med", "cifar100_high",],
+    "active": [
+        "cifar100_low",
+        "cifar100_med",
+        "cifar100_high",
+    ],
     "optim": ["sgd_cosine"],
 }
 
@@ -24,7 +29,9 @@ hparam_dict = {
     "model.weight_decay": 5e-3,
     "model.load_pretrained": None,
     "model.use_ema": False,
-    "data.transform_train": ["cifar_randaugmentMC",],
+    "data.transform_train": [
+        "cifar_randaugmentMC",
+    ],
     "trainer.precision": 16,
     "trainer.batch_size": 1024,
     "trainer.deterministic": True,

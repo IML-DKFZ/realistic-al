@@ -23,7 +23,8 @@ class JointEntropy:
 
     `JointEntropy.compute` computes the joint entropy.
 
-    `JointEntropy.compute_batch` computes the joint entropy of the added variables with each of the variables in the provided batch probabilities in turn."""
+    `JointEntropy.compute_batch` computes the joint entropy of the added variables with each of the variables in the provided batch probabilities in turn.
+    """
 
     def compute(self) -> torch.Tensor:
         """Computes the entropy of this joint entropy."""
@@ -168,7 +169,8 @@ class SampledJointEntropy(JointEntropy):
 
     `SampledJointEntropy.compute` computes the joint entropy.
 
-    `SampledJointEntropy.compute_batch` computes the joint entropy of the added variables with each of the variables in the provided batch probabilities in turn."""
+    `SampledJointEntropy.compute_batch` computes the joint entropy of the added variables with each of the variables in the provided batch probabilities in turn.
+    """
 
     sampled_joint_probs_M_K: torch.Tensor
 
@@ -306,7 +308,7 @@ class DynamicJointEntropy(JointEntropy):
         self.log_probs_max_N_K_C[self.N : self.N + add_N] = log_probs_N_K_C
         self.N += add_N
 
-        num_exact_samples = C ** self.N
+        num_exact_samples = C**self.N
         if num_exact_samples > self.M:
             self.inner = SampledJointEntropy.sample(
                 self.log_probs_max_N_K_C[: self.N].exp(), self.M
