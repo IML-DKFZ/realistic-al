@@ -69,7 +69,7 @@ install FD-Shifts in its own environment (venv, conda environment, ...).
    version of PyTorch, it is strongly recommended that you install a compatible
    version of PyTorch beforehand.
    ```bash
-   pip install -r requirements.txt
+   pip install -e '.[dev]'
    ```
 
 ## Project Structure 
