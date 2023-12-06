@@ -1,9 +1,6 @@
 <!-- # Active-Study -->
 
 # Realistic-AL
-
-##  *Navigating the Pitfalls of Active Learning Evaluation: A Systematic Framework for Meaningful Performance Assessment*
-> Official Benchmark Implementation
 <p align="">
     <!-- <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/IML-DKFZ/fd-shifts/pytest.yml?branch=main&label=tests"> -->
     <a href="https://github.com/IML-DKFZ/realistic-al/blob/main/LICENSE">
@@ -15,7 +12,9 @@
     <a href="https://zenodo.org/badge/latestdoi/570145779"><img src="https://zenodo.org/badge/570145779.svg" alt="DOI"></a> -->
 </p>
 
----
+##  *Navigating the Pitfalls of Active Learning Evaluation: A Systematic Framework for Meaningful Performance Assessment*
+#### Official Benchmark Implementation
+
 
 ### Abstract
 > Active Learning (AL) aims to reduce the labeling burden by interactively selecting the most informative samples from a pool of unlabeled data. While there has been extensive research on improving AL query methods in recent years, some studies have questioned the effectiveness of AL compared to emerging paradigms such as semi-supervised (Semi-SL) and self-supervised learning (Self-SL), or a simple optimization of classifier configurations. Thus, today’s AL literature presents an inconsistent and contradictory landscape, leaving practitioners uncertain about whether and how to use AL in their tasks. In this work, we make the case that this inconsistency arises from a lack of systematic and realistic evaluation of AL methods. Specifically, we identify five key pitfalls in the current literature that reflect the delicate considerations required for AL evaluation. Further, we present an evaluation framework that overcomes these pitfalls and thus enables meaningful statements about the performance of AL methods. To demonstrate the relevance of our protocol, we present a large-scale empirical study and benchmark for image classification spanning various data sets, query methods, AL settings, and training paradigms. Our findings clarify the inconsistent picture in the literature and enable us to give hands-on recommendations for practitioners.
@@ -39,7 +38,7 @@
 
 ## Citing This Work
 
-If you use Realistic-AL please cite our [paper](https://arxiv.org/abs/2301.10625)
+If you use Realistic-AL, please cite our [paper](https://arxiv.org/abs/2301.10625)
 
 ```bibtex
 @inproceedings{
@@ -53,7 +52,7 @@ url={https://openreview.net/forum?id=Dqn715Txgl}
 ```
 
 ## Table Of Contents
-automatically created by GitHub.
+Automatically created by GitHub.
 
 ## Installation
 
@@ -158,7 +157,7 @@ The AUBC values and PPMS can be found in the respective jupyter notebooks.
 
 
 ### Sweeps
-Runner Scripts using the Experiment Launcher are in Folder: `/launchers`
+Launcher scripts using are located in folder: `/launchers`
 - Runs:
 	- CIFAR-10
 		- sweep_cifar10_basic.py
@@ -205,10 +204,12 @@ To add a new dataset please check out the class BaseDataModule in `/src/data/bas
 ### Trainings
 To add a new training strategy check out the class AbstractClassifier in `/src/models/abstract_classifier.py` and its corresponding inheritors.
 
-You also might have to add a new trainer class for this (see `/src/trainer.py` and `/src/trainer_fix.py`)
+You also might have to add a new trainer class in a new file `/src/trainer_{training}.py` (see `/src/trainer.py` and `/src/trainer_fix.py` for details).
 
-Finally you would need to add a run_training_{}.py and main_{}.py
 
+### Final touch for running experiments
+
+Finally you would need to add a `src/run_training_{training}.py` and `src/main_{training}.py` alongside additional launchers `/launchers/exp_{dataset}_{training}.py`.
 
 ## Acknowledgements
 
