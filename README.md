@@ -1,9 +1,9 @@
 <!-- # Active-Study -->
 
 # Realistic-AL
-## Official implementation of the Benchmark in: 
-## Navigating the Pitfalls of Active Learning Evaluation: A Systematic Framework for Meaningful Performance Assessment
 
+##  *Navigating the Pitfalls of Active Learning Evaluation: A Systematic Framework for Meaningful Performance Assessment*
+> Official Benchmark Implementation
 <p align="">
     <!-- <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/IML-DKFZ/fd-shifts/pytest.yml?branch=main&label=tests"> -->
     <a href="https://github.com/IML-DKFZ/realistic-al/blob/main/LICENSE">
@@ -17,7 +17,7 @@
 
 ---
 
-
+### Abstract
 > Active Learning (AL) aims to reduce the labeling burden by interactively selecting the most informative samples from a pool of unlabeled data. While there has been extensive research on improving AL query methods in recent years, some studies have questioned the effectiveness of AL compared to emerging paradigms such as semi-supervised (Semi-SL) and self-supervised learning (Self-SL), or a simple optimization of classifier configurations. Thus, today’s AL literature presents an inconsistent and contradictory landscape, leaving practitioners uncertain about whether and how to use AL in their tasks. In this work, we make the case that this inconsistency arises from a lack of systematic and realistic evaluation of AL methods. Specifically, we identify five key pitfalls in the current literature that reflect the delicate considerations required for AL evaluation. Further, we present an evaluation framework that overcomes these pitfalls and thus enables meaningful statements about the performance of AL methods. To demonstrate the relevance of our protocol, we present a large-scale empirical study and benchmark for image classification spanning various data sets, query methods, AL settings, and training paradigms. Our findings clarify the inconsistent picture in the literature and enable us to give hands-on recommendations for practitioners.
 
 <p align="center">
@@ -26,9 +26,9 @@
         <figcaption style="font-size: small;">
         <!-- There is no consensus regarding the performance gain of AL methods over random sampling in the literature, especially with regard to the cold start problem and orthogonal developments s.a. self-supervised and semi-supervised learning.  -->
         As practitioners need to rely on the performance gains estimated in studies to make an informed choice whether to employ AL or not, as an evaluation would require additional label effort which defeats the purpose of using AL (validation paradox).
-        Therefore the evaluation needs to test AL methods with regard to the following requirements: 1) Generalization across varying data distributions 2) robustness with regard to design choices of an AL pipeline 3) performance gains persist in combination with orthogonal approaches (e.g. Self-SL, Semi-SL)
-		This benchmark aims at solving these issues by improving the evaluation upon 5 concrete pitfalls in the literature (shown in action the figure above):
-        P1: Lack of evaluated data distribution settings.
+        Therefore the evaluation needs to test AL methods with regard to the following requirements: 1) Generalization across varying data distributions, 2) robustness with regard to design choices of an AL pipeline 3), performance gains persist in combination with orthogonal approaches (e.g. Self-SL, Semi-SL).<br>
+		This benchmark aims at solving these issues by improving the evaluation upon 5 concrete pitfalls in the literature (shown in action the figure above): <br>
+        P1: Lack of evaluated data distribution settings. 
         P2: Lack of evaluated starting budgets.
         P3: Lack of evaluated query sizes.
         P4: Neglection of classifier configuration.
@@ -56,6 +56,8 @@ url={https://openreview.net/forum?id=Dqn715Txgl}
 
 <!--toc:start-->
 
+*toc
+{:toc}
 
 
 <!--toc:end-->
