@@ -130,9 +130,13 @@ class TorchVisionDM(BaseDataModule):
         )
 
     def train_dataloader(self) -> DataLoader:
+        if self.dataset == "tox21":
+            return self.train_loader  # Return preloaded Tox21 train loader
         return self.get_dataloader(self.train_set, mode="train")
 
     def val_dataloader(self) -> DataLoader:
+        if self.dataset == "tox21":
+            return self.val_loader  # Return preloaded Tox21 validation loader
         return self.get_dataloader(self.val_set, mode="test")
 
     def test_dataloader(self) -> DataLoader:
