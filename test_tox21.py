@@ -1,7 +1,7 @@
 from src.data.data import TorchVisionDM
 
 if __name__ == "__main__":
-    data_root = "path/to/data"  # Update this with the actual path to your data
+    data_root = "tox21_compoundData_wSmiles.csv"  # Update this with the actual path to your data
     dm = TorchVisionDM(data_root=data_root, dataset="tox21")
     dm.prepare_data()
     dm.setup()
