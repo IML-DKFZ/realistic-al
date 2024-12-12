@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, Dataset, Subset, random_split
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, FashionMNIST
 
 from data.mio_dataset import MIOTCDDataset
-
+from src.data.tox21_dataloader import get_tox21_dataloader  # Import Tox21 dataloader
 from .active import ActiveLearningDataset
 from .base_datamodule import BaseDataModule
 from .longtail import create_imbalanced_dataset
