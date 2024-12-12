@@ -71,16 +71,7 @@ class TorchVisionDM(BaseDataModule):
         assert shape[-1] == len(mean)
         assert shape[-1] == len(std)
 
-        self.train_transforms = get_transform(
-            transform_train, self.mean, self.std, self.shape
-        )
-        self.test_transforms = get_transform(
-            transform_test, self.mean, self.std, self.shape
-        )
-        self.imbalance = imbalance
-
-        ### IMPLEMENTATION ###
-        # Novel image datasets can be added here
+        ### Add Tox21 Support ###
         if self.dataset == "mnist":
             self.dataset_cls = MNIST
         elif self.dataset == "cifar10":
@@ -95,9 +86,15 @@ class TorchVisionDM(BaseDataModule):
             self.dataset_cls = ISIC2019
         elif self.dataset == "miotcd":
             self.dataset_cls = MIOTCDDataset
+        elif self.dataset == "tox21":  # Add Tox21 Dataset Case
+            self.train_loader = get_tox21_dataloader(f"{self.data_root}/tox21_train_processed.pkl", batch_size=batch_size)
+            self.val_loader = get_tox21_dataloader(f"{self.data_root}/tox21_test_processed.pkl", batch_size=batch_size)
         else:
             raise NotImplementedError
-        self._setup_datasets()
+
+        # Call the setup for image-based datasets only
+        if self.dataset not in ["tox21"]:
+            self._setup_datasets()
 
         if not self.shuffle:
             raise ValueError("shuffle flag has to be set to true")
